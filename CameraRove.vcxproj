@@ -1,0 +1,177 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{2431694D-8BE1-4788-9ADE-7B6ED06A4858}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Debug\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Release\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Release\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>D:\pyan\map_wd_20250507\fontEngine_win;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86)</LibraryPath>
+    <LibraryWPath>$(WindowsSDK_MetadataPath);</LibraryWPath>
+    <GenerateManifest>false</GenerateManifest>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <GenerateManifest>false</GenerateManifest>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <AdditionalIncludeDirectories>$(ProjectDir)\..\libs\fontEngine\h;$(ProjectDir)\include;$(ProjectDir)\..\libs\pthread\include;$(ProjectDir)\..\libs;$(ProjectDir)\..\offlineMap1019;$(ProjectDir)\..;$(ProjectDir)\..\libs\freetype\include</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <OutputFile>$(OutDir)CameraRove.exe</OutputFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(OutDir)CameraRove.pdb</ProgramDatabaseFile>
+      <SubSystem>Windows</SubSystem>
+      <TargetMachine>MachineX86</TargetMachine>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)\..\fontEngine_win;$(ProjectDir)\..\libs\pthread\lib\x86;$(ProjectDir)\..\libs\freetype\objs</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>editbin /SUBSYSTEM:CONSOLE $(OutDir)$(ProjectName).exe</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <OutputFile>$(OutDir)CameraRove.exe</OutputFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+      <AdditionalDependencies>opencv_calib3d246.lib;opencv_contrib246.lib;opencv_core246.lib;opencv_features2d246.lib;opencv_flann246.lib;opencv_gpu246.lib;opencv_highgui246.lib;opencv_imgproc246.lib;opencv_legacy246.lib;opencv_ml246.lib;opencv_objdetect246.lib;opencv_ts246.lib;opencv_video246.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\libs\glm\detail\glm.cpp" />
+    <ClCompile Include="..\offlineMap1019\jsoncpp.cpp" />
+    <ClCompile Include="..\offlineMap1019\mapDrv.cpp" />
+    <ClCompile Include="..\offlineMap1019\OpenGLEngine\glstateengine.cpp" />
+    <ClCompile Include="..\offlineMap1019\OpenGLEngine\InputCharsets1.cpp" />
+    <ClCompile Include="..\offlineMap1019\OpenGLEngine\InputVString1.cpp" />
+    <ClCompile Include="..\offlineMap1019\OpenGLEngine\openglcoordinatesengine.cpp" />
+    <ClCompile Include="..\offlineMap1019\OpenGLEngine\openglrenderengine.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMap\CGeoLayer.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMap\CPolygon.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMap\CPolygonTile.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMap\crastertilelayer.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMap\CTile.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMap\CTileLayer.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMap\CVectorTileLayer.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMap\JSONLayer.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMap\OMap.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMDataBuffer\buffermanager.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMDataBuffer\ccache.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMDataBuffer\LRUCache.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMDataBuffer\tmbuffer.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMDataUnit\dataunit.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMDataUnit\heights.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMDataUnit\image.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMDataUnit\index.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMDataUnit\stop.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMDataUnit\text.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMDataUnit\vertices.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMScheduler\ccamera.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMScheduler\cperspective.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMScheduler\cscheduler.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMScheduler\OM3DScheduler.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMScheduler\OMScheduler.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMStyle\ccolor.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMStyle\cfill.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMStyle\cstroke.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMStyle\cstyle.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMStyle\csymbol.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMStyle\ctext.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMStyle\ctextfont.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMTextRender\cchar.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMTextRender\ccharbuffer.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMTextRender\cfont.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMTextRender\cfontmanager.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMTextRender\cfontrender.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMTextRender\cglobal.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMTextRender\cpage.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMUtil\cgeoutil.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMUtil\cstringutil.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMUtil\OMapGlobal.cpp" />
+    <ClCompile Include="..\offlineMap1019\TMUtil\OMGeoUtil.cpp" />
+    <ClCompile Include="src\Camera.cpp" />
+    <ClCompile Include="src\CameraRove.cpp" />
+    <ClCompile Include="src\GLFrame.cpp" />
+    <ClCompile Include="src\GLWindow.cpp" />
+    <ClCompile Include="src\stdafx.cpp" />
+    <ClCompile Include="src\Vector.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\Camera.h" />
+    <ClInclude Include="include\CameraRove.h" />
+    <ClInclude Include="include\GLFrame.h" />
+    <ClInclude Include="include\GLWindow.h" />
+    <ClInclude Include="include\stdafx.h" />
+    <ClInclude Include="include\Vector.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
