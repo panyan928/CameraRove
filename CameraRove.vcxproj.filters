@@ -15,179 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Camera.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GLWindow.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="src\stdafx.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Vector.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libs\glm\detail\glm.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\jsoncpp.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\OpenGLEngine\glstateengine.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\OpenGLEngine\openglcoordinatesengine.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\OpenGLEngine\openglrenderengine.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMap\CGeoLayer.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMap\CPolygonTile.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMap\crastertilelayer.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMap\CTile.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMap\CTileLayer.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMap\CVectorTileLayer.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMap\OMap.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMDataBuffer\buffermanager.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMDataBuffer\ccache.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMDataBuffer\LRUCache.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMDataBuffer\tmbuffer.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMDataUnit\dataunit.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMDataUnit\heights.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMDataUnit\image.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMDataUnit\index.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMDataUnit\stop.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMDataUnit\text.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMDataUnit\vertices.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMScheduler\ccamera.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMScheduler\cperspective.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMScheduler\cscheduler.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMScheduler\OM3DScheduler.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMScheduler\OMScheduler.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMStyle\ccolor.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMStyle\cfill.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMStyle\cstroke.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMStyle\cstyle.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMStyle\csymbol.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMStyle\ctext.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMStyle\ctextfont.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMTextRender\cchar.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMTextRender\ccharbuffer.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMTextRender\cfont.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMTextRender\cfontmanager.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMTextRender\cfontrender.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMTextRender\cglobal.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMTextRender\cpage.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMUtil\cgeoutil.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMUtil\cstringutil.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMUtil\OMapGlobal.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMUtil\OMGeoUtil.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\mapDrv.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="src\CameraRove.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="src\GLFrame.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\OpenGLEngine\InputCharsets1.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\OpenGLEngine\InputVString1.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMap\CPolygon.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\offlineMap1019\TMap\JSONLayer.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="include\Camera.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -206,5 +33,355 @@
     <ClInclude Include="include\Vector.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="src\OpenGLEngine\copenglcoordinatesengine.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\OpenGLEngine\glstateengine.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\OpenGLEngine\InputCharsets1.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\OpenGLEngine\InputVString1.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\OpenGLEngine\openglengine.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\OpenGLEngine\openglfileengine.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\OpenGLEngine\openglrenderengine.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMap\CGeoLayer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMap\CPolygon.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMap\CPolygonTile.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMap\crastertilelayer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMap\CTile.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMap\CTileLayer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMap\CVectorTileLayer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMap\JSONLayer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMap\OMap.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMDataBuffer\buffermanager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMDataBuffer\ccache.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMDataBuffer\LRUCache.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMDataBuffer\tmbuffer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMDataUnit\dataunit.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMDataUnit\heights.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMDataUnit\image.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMDataUnit\index.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMDataUnit\stop.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMDataUnit\text.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMDataUnit\tmdataunit.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMDataUnit\vertices.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMScheduler\ccamera.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMScheduler\cperspective.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMScheduler\cscheduler.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMScheduler\OM3DScheduler.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMScheduler\OMScheduler.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMStyle\ccolor.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMStyle\cfill.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMStyle\CStringUtil.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMStyle\cstroke.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMStyle\cstyle.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMStyle\csymbol.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMStyle\ctext.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMStyle\ctextfont.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMTextRender\cbuffer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMTextRender\cchar.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMTextRender\ccharbuffer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMTextRender\cfont.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMTextRender\cfontmanager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMTextRender\cfontrender.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMTextRender\cglobal.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMTextRender\cpage.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMTextRender\CStringUtil.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMTextRender\tmtools.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMUtil\cgeoutil.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMUtil\cstringutil.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMUtil\OMapGlobal.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMUtil\OMGeoUtil.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMUtil\tmtools.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="include\mapDrv.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Camera.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CameraRove.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GLFrame.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GLWindow.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\stdafx.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Vector.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\OpenGLEngine\glstateengine.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\OpenGLEngine\InputCharsets1.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\OpenGLEngine\InputVString1.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\OpenGLEngine\openglcoordinatesengine.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\OpenGLEngine\openglfileengine.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\OpenGLEngine\openglrenderengine.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMap\CGeoLayer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMap\CPolygon.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMap\CPolygonTile.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMap\crastertilelayer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMap\CTile.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMap\CTileLayer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMap\CVectorTileLayer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMap\JSONLayer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMap\OMap.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMDataBuffer\buffermanager.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMDataBuffer\ccache.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMDataBuffer\LRUCache.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMDataBuffer\tmbuffer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMDataUnit\dataunit.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMDataUnit\heights.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMDataUnit\image.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMDataUnit\index.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMDataUnit\stop.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMDataUnit\text.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMDataUnit\vertices.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMScheduler\ccamera.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMScheduler\cperspective.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMScheduler\cscheduler.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMScheduler\OM3DScheduler.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMScheduler\OMScheduler.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMStyle\ccolor.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMStyle\cfill.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMStyle\CStringUtil.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMStyle\cstroke.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMStyle\cstyle.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMStyle\csymbol.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMStyle\ctext.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMStyle\ctextfont.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMTextRender\cchar.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMTextRender\ccharbuffer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMTextRender\cfont.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMTextRender\cfontmanager.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMTextRender\cfontrender.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMTextRender\cglobal.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMTextRender\cpage.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMTextRender\CStringUtil.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMUtil\cgeoutil.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMUtil\cstringutil.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMUtil\OMapGlobal.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMUtil\OMGeoUtil.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\jsoncpp.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mapDrv.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
