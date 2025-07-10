@@ -13,7 +13,7 @@ using namespace std;
 //	_ERROR,
 //	_WARNING,
 //	_INFO,
-//	_DEBUG
+//	_PRINT
 //};
 //
 //extern consoleType consoleSettings;

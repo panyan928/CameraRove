@@ -217,14 +217,14 @@
             "style": "D:/pyan/map_wd_20221219/data/mbtiles-jiangxi/sld/water_area_anno.style",
             "zoom" : [9, 13]
         },
-        {
-            "layer-name": "air_line",
-            "path": "D:/pyan/map_wd_20221219/data/mbtiles-jiangxi/air_line/",
-            "layer-type": "vector-tile",
-            "geometry-type": "polyline",
-            "style": "D:/pyan/map_wd_20221219/data/mbtiles-jiangxi/sld/air_line.style",
-            "zoom" : [9, 11]
-        },
+        //{
+        //    "layer-name": "air_line",
+        //    "path": "D:/pyan/map_wd_20221219/data/mbtiles-jiangxi/air_line/",
+        //    "layer-type": "vector-tile",
+        //    "geometry-type": "polyline",
+        //    "style": "D:/pyan/map_wd_20221219/data/mbtiles-jiangxi/sld/air_line.style",
+        //    "zoom" : [9, 11]
+        //},
         {
             "layer-name": "isogonic_line_anno_point",
             "path": "D:/pyan/map_wd_20221219/data/mbtiles-jiangxi/isogonic_line_anno_point/",

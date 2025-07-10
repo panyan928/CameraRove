@@ -281,7 +281,8 @@ return;
 void Initial(void)
 {
 	//functionTest();                       //测试函数
-    int interval = 4;
+    /*pyan 0625 注释，没用到，似乎drawEarth才用到*/
+    /*int interval = 4;
     int size = 256 / interval + 2;
     textures = new float[size * size * 2];
     int index_t = 0;
@@ -320,7 +321,7 @@ void Initial(void)
                 index_temp[index_i++] = (i - 1) * 49 + j;
             }
         }
-    }
+    }*/
     /*  initialize the fontRnder */
     //_render->initialize("./../data/fonts/");
     #ifdef WIN32
@@ -553,17 +554,24 @@ void myDisplay(void) {
         double fovy=100.0,  aspect=4.0 / 3,  zNear= 0,  zFar= height * 4;
         gluPerspective(fovy, aspect, zNear, zFar);
     #if 0
-        _scheduler->updateFrustum(-4.0 / 3 * CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2,zoom - scale) + offset[0], 4.0 / 3 * CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - scale) + offset[0], -CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - scale) + offset[1],
+        _scheduler->updateFrustum(-4.0 / 3 * CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2,zoom - scale) + offset[0], 4.0 / 3 * _ortho_base + offset[0], -_ortho_base + offset[1],
         CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2,zoom - scale) + offset[1],0, height * 1 / 3);
     #else
         _scheduler->updateFrustum(fovy, aspect, zNear, zFar);
     #endif
     }
     else{
-		glOrtho(-4.0 / 3 * CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - scale) + offset[0], 4.0 / 3 * CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - scale) + offset[0], -CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - scale) + offset[1],
-	        CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - scale) + offset[1],- height * 1.5, height * 1 + 1 * CGeoUtil::WGS_84_RADIUS_EQUATOR);	    
-	    _scheduler->updateFrustum(-4.0 / 3 * CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2,zoom - scale) + offset[0], 4.0 / 3 * CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - scale) + offset[0], -CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - scale) + offset[1],
-	        CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2,zoom - scale) + offset[1],- height * 1.5, height * 1 + 1 * CGeoUtil::WGS_84_RADIUS_EQUATOR);
+        // 优化后：提取公共表达式，减少重复计算
+        double ortho_base = _scheduler->orthoBase();
+        double left   = -1920.0/1080.0 * 2 * ortho_base + offset[0];
+        double right  = 1920.0 / 1080.0 * 2 * ortho_base + offset[0];
+        double bottom = -2.0 * ortho_base + offset[1];
+        double top    =  2.0 * ortho_base + offset[1];
+        double zNear  = -height * 1.5;
+        double zFar   = height * 1 + CGeoUtil::WGS_84_RADIUS_EQUATOR;
+
+        glOrtho(left, right, bottom, top, zNear, zFar);
+        _scheduler->updateFrustum(left, right, bottom, top, zNear, zFar);
     }
     
 

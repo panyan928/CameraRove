@@ -119,139 +119,12 @@ namespace openglEngine {
 	template<typename T>
 	int OpenGLRenderEngine::drawRasters(T* pts, T* texture_coor, int* index, const char* texture_path, int pt_size)
 	{
-		if (pts == 0x00 || texture_coor == 0x00 || index == 0x00 || pt_size == 0)
-			return -1;
-		//加载并生成纹理
-		int width=0, height=0, nrChannels=0;
-
-		//clock_t begin = clock();
-		unsigned char* data = stbi_load(texture_path, &width, &height, &nrChannels, 0);
-		//clock_t end = clock();
-		//cout << "load texture: " << end - begin << endl;
-
-		GLuint texture;
-		//glColor3f(1.0, 1.0, 1.0);
-		glEnable(GL_TEXTURE_2D);//启用纹理贴图
-
-		//glEnable(GL_CULL_FACE);
-		//glCullFace(GL_BACK);
-
-		glDepthMask(GL_FALSE);//关掉深度测试
-		glGenTextures(1, &texture);
-		glBindTexture(GL_TEXTURE_2D, texture);
-		glEnable(GL_BLEND); //开混合模式贴图
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);// 指定混合模式算法
-		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-				
-		if (data)
-		{
-			glEnable(GL_TEXTURE_2D);
-			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-			glTexCoordPointer(2, GL_FLOAT, 0, texture_coor);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-
-			//glColor3f(48 / 255.0, 168 / 255.0, 224 / 255.0);
-			glEnableClientState(GL_VERTEX_ARRAY); //启用顶点数组
-			glVertexPointer(3, GL_FLOAT, 0, pts); //设置顶点数组属性
-			glDrawElements(GL_TRIANGLES, pt_size, GL_UNSIGNED_INT, index);
-			glDisableClientState(GL_VERTEX_ARRAY);
-
-			glDisable(GL_TEXTURE_2D);
-			glDisable(GL_CULL_FACE);
-			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-			glDeleteTextures(1, &texture);
-            //tCount += pt_size / 3;
-            //vCount += pt_size;
-		}
-		else
-		{
-			//std::cout << "Failed to load texture" << std::endl;
-		}
-		stbi_image_free(data);
-		glDisable(GL_CULL_FACE);
-		glDisable(GL_BLEND); 
-		//glDepthMask(GL_TRUE);
 		return 0;
 	}
 
 	template<typename T>
 	int OpenGLRenderEngine::drawRasters(T* pts, T* texture_coor, int* index, unsigned char* image, int width, int height, int nrChannels, int pt_size)
 	{
-		if (pts == 0x00 || texture_coor == 0x00 || index == 0x00 || pt_size == 0 || image == 0x00)
-			return -1;
-		static std::list<GLuint> listTextures;
-		if (listTextures.size() >= 16) {			
-			glDeleteTextures(1, &(listTextures.back()));
-			listTextures.pop_back();
-		}
-
-		GLuint texture;
-
-		glEnable(GL_TEXTURE_2D);//启用纹理贴图
-		glDepthMask(GL_FALSE);//关掉深度测试
-		glGenTextures(1, &texture);
-		listTextures.push_front(texture);
-		glBindTexture(GL_TEXTURE_2D, texture);
-		glEnable(GL_BLEND); //开混合模式贴图
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);// 指定混合模式算法
-		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-		if (nrChannels == 3)
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-		else
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
-#if 1
-		glDisable(GL_DEPTH_TEST);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glEnableClientState(GL_VERTEX_ARRAY); //启用顶点数组
-
-		glTexCoordPointer(2, GL_FLOAT, 0, texture_coor);		
-		glVertexPointer(3, GL_FLOAT, 0, pts); //设置顶点数组属性
-		glDrawElements(GL_TRIANGLES, pt_size, GL_UNSIGNED_INT, index);//GL_TRIANGLES
-		//glDrawArrays(GL_TRIANGLES, 0, pt_size);
-		/*glBegin(GL_TRIANGLES);
-		for (int i = 0; i < pt_size; i++) {
-			glArrayElement(index[i]);
-		}
-		glEnd();*/
-		glDisableClientState(GL_VERTEX_ARRAY);
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-#else 
-		glDisable(GL_DEPTH_TEST);
-		glMatrixMode(GL_PROJECTION);
-		glPushMatrix();
-		glLoadIdentity();
-		glOrtho(0, 1024, 0, 768, -10.0, 10.0);
-		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
-		glLoadIdentity();		
-		
-		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-		glBegin(GL_QUADS);
-		glTexCoord2d(0.0, 0.0); glVertex2f(0.0, 0.0);
-		glTexCoord2d(1.0, 0.0); glVertex2f(200.0, 0.0);
-		glTexCoord2d(1.0, 1.0); glVertex2f(200.0, 200.0);
-		glTexCoord2d(0.0, 1.0); glVertex2f(0.0, 200.0);		
-		glEnd();
-
-		glMatrixMode(GL_PROJECTION);
-		glPopMatrix();
-		glMatrixMode(GL_MODELVIEW);
-		glPopMatrix();
-#endif
-		//glDeleteTextures(1, &texture);
-		glDisable(GL_TEXTURE_2D);
-		//glDisable(GL_CULL_FACE);
-		//glDisable(GL_BLEND);
-		glDepthMask(GL_TRUE);
-
-        //tCount += pt_size / 3;
-        //vCount += pt_size;
-
 		return 0;
 	}
 
@@ -299,6 +172,8 @@ namespace openglEngine {
 		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 		glDisable(GL_DEPTH_TEST);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -407,42 +282,6 @@ namespace openglEngine {
     template<typename T>
 	int OpenGLRenderEngine::drawRasters(T* pts, T* texture_coor, int* index, unsigned char* image, GLuint* texture, int width, int height, int nrChannels, int pt_size)
 	{
-		if (pts == 0x00 || texture_coor == 0x00 || index == 0x00 || pt_size == 0 || image == 0x00)
-			return -1;
-
-
-		glDisable(GL_CULL_FACE);
-		glEnable(GL_TEXTURE_2D);//??ó???àíìùí?
-		glDepthMask(GL_FALSE);//1?μ?é??è2aê?
-		
-		glBindTexture(GL_TEXTURE_2D, *texture);
-		glEnable(GL_BLEND); //?a?ìo??￡ê?ìùí?
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);// ???¨?ìo??￡ê???·¨
-		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-
-		glEnable(GL_TEXTURE_2D);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glTexCoordPointer(2, GL_FLOAT, 0, texture_coor);
-		if (nrChannels == 3)
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-		else
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
-		//glColor3f(48 / 255.0, 168 / 255.0, 224 / 255.0);
-		glEnableClientState(GL_VERTEX_ARRAY); //??ó??￥μ?êy×é
-		glVertexPointer(3, GL_FLOAT, 0, pts); //éè???￥μ?êy×éê?D?
-		glDrawElements(GL_TRIANGLES, pt_size, GL_UNSIGNED_INT, index);
-
-		//glDeleteTextures(1, &texture);
-		glDisableClientState(GL_VERTEX_ARRAY);
-
-		glDisable(GL_TEXTURE_2D);
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-
-		//glDisable(GL_BLEND);
-		glDepthMask(GL_TRUE);
 		return 0;
 	}
 

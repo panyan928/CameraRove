@@ -54,7 +54,7 @@ void CameraRove::UpdateCamera()
 {
 //	m_Camera.setViewByMouse();
 	static int isFPV = 0;
-	char filename[16];	
+	char filename[16];	 
 	
 	/** 键盘按键响应 */
 	if(m_Keys.IsPressed(VK_SHIFT))                      /**< 按下SHIFT键时加速 */
@@ -67,36 +67,46 @@ void CameraRove::UpdateCamera()
 	}
 	if (m_Keys.IsPressed(VK_UP) || m_Keys.IsPressed('W'))   /**< 向上方向键或'W'键按下 */
 	{
+		m_Keys.SetReleased(VK_UP);
+		m_Keys.SetReleased('W');
 		if(!_scheduler->pan(4))
 			_map->isViewChanged = true;
 		Sleep(TIME);
 	}
 	else if (m_Keys.IsPressed(VK_DOWN) || m_Keys.IsPressed('S')) /**< 向下方向键或'S'键按下 */
 	{
+		m_Keys.SetReleased(VK_DOWN);
+		m_Keys.SetReleased('S');
 		if (!_scheduler->pan(2))
 			_map->isViewChanged = true;
 		Sleep(TIME);
 	}
 	else if (m_Keys.IsPressed(VK_LEFT) || m_Keys.IsPressed('A')) /**< 向左方向键或'A'键按下 */
 	{
+		m_Keys.SetReleased(VK_LEFT);
+		m_Keys.SetReleased('A');
 		if (!_scheduler->pan(1))
 			_map->isViewChanged = true;
 		Sleep(TIME);
 	}
 	else if (m_Keys.IsPressed(VK_RIGHT) || m_Keys.IsPressed('D')) /**< 向右方向键或'D'键按下 */
 	{
+		m_Keys.SetReleased(VK_RIGHT);
+		m_Keys.SetReleased('D');
 		if (!_scheduler->pan(3))
 			_map->isViewChanged = true;
 		Sleep(TIME);
 	}
 	else if (m_Keys.IsPressed('N'))
-	{		
+	{
+		m_Keys.SetReleased('N');
 		if (!_scheduler->zoomIn())
 			_map->isViewChanged = true;		
 		Sleep(TIME);
 	}		
 	else if (m_Keys.IsPressed('M'))
 	{
+		m_Keys.SetReleased('M');
 		if (!_scheduler->zoomOut())
 			_map->isViewChanged = true;
 		Sleep(TIME);
@@ -110,7 +120,8 @@ void CameraRove::UpdateCamera()
 	//else if (m_Keys.IsPressed('L'))
 	//	_scheduler->translate(1);	
 	else if (m_Keys.IsPressed('T'))
-	{
+	{	
+		m_Keys.SetReleased('T');
 		if (_map->Dislpay() != 1) {
 			_map->setDislpay(1);
 			_map->isViewChanged = true;
@@ -136,6 +147,7 @@ void CameraRove::UpdateCamera()
 	}	
 	else if (m_Keys.IsPressed('Y'))
 	{
+		m_Keys.SetReleased('Y');
 		if (_map->Dislpay() != 2) {
 			_map->setDislpay(2);
 			_map->isViewChanged = true;
@@ -144,6 +156,7 @@ void CameraRove::UpdateCamera()
 	}	
 	else if (m_Keys.IsPressed('U'))
 	{
+		m_Keys.SetReleased('U');
 		if (_map->Dislpay() != 3) {
 			_map->setDislpay(3);
 			_map->isViewChanged = true;
@@ -169,6 +182,7 @@ void CameraRove::UpdateCamera()
 	}
 	else if (m_Keys.IsPressed('O'))
 	{
+		m_Keys.SetReleased('O');
 		//angle += 1;
 		if(!_scheduler->rotate(1))
 			_map->isViewChanged = true;
@@ -176,6 +190,7 @@ void CameraRove::UpdateCamera()
 	}
 	else if (m_Keys.IsPressed('P'))
 	{
+		m_Keys.SetReleased('P');
 		//angle -= 1;
 		if(!_scheduler->rotate(-1))
 			_map->isViewChanged = true;
@@ -207,22 +222,27 @@ void CameraRove::UpdateCamera()
 	}*/
 	else if (m_Keys.IsPressed('Q'))
 	{
+		m_Keys.SetReleased('Q');
 		_map->turnUpBrightness();
 	}
 	else if (m_Keys.IsPressed('E')) 
 	{
+		m_Keys.SetReleased('E');
 		_map->turnDownBrightness();
 	}
 	else if (m_Keys.IsPressed('B'))
 	{
+		m_Keys.SetReleased('B');
 		isRoma = 1;
 	}
 	else if (m_Keys.IsPressed('G'))
 	{
+		m_Keys.SetReleased('G');
 		isRoma = 0;
 	}
     else if (m_Keys.IsPressed('2'))
 	{
+		m_Keys.SetReleased('2');
 		if (!_scheduler->changePitch(60.0))
 		{
 			_map->isViewChanged = true;			
@@ -238,18 +258,21 @@ void CameraRove::UpdateCamera()
 	}
 	else if (m_Keys.IsPressed('4'))
 	{
-		if(!_scheduler->changeYaw(1))
+		m_Keys.SetReleased('4');
+			if(!_scheduler->changeYaw(1))
 			_map->isViewChanged = true;
 		Sleep(TIME);
 	}
     else if (m_Keys.IsPressed('5'))
 	{
+		m_Keys.SetReleased('5');
 		if(!_scheduler->changeYaw(-1))
 			_map->isViewChanged = true;
 		Sleep(TIME);
 	}
 	else if (m_Keys.IsPressed('3'))
 	{
+		m_Keys.SetReleased('3');
 		if (!_scheduler->changePitch(-60.0)) {
 			_map->isViewChanged = true;			
 		}

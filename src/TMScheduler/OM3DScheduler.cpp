@@ -3,7 +3,7 @@
 #include <math.h>
 
 #define STRIDE 1
-//10.27¸ü¸ÄÁËzoomµÈ¼¶
+//10.27æ›´æ”¹äº†zoomç­‰çº§
 OM3DScheduler::OM3DScheduler()
 {
 	//_eye[2] = 5 * CGeoUtil::WGS_84_RADIUS_EQUATOR;
@@ -18,7 +18,7 @@ OM3DScheduler::OM3DScheduler()
 	_yaw = 0.0;
 	_pitch = 0.0;
 }
-//10.27¸ü¸ÄÁËzoomµÈ¼¶
+//10.27æ›´æ”¹äº†zoomç­‰çº§
 OM3DScheduler::OM3DScheduler(Vec2d center)
 {
 	_eye[0] = center[0]; _eye[1] = center[1];
@@ -37,9 +37,14 @@ OM3DScheduler::~OM3DScheduler()
 {
 }
 
+double OM3DScheduler::orthoBase() const
+{
+	return _ortho_base;
+}
+
 int OM3DScheduler::zoom() const
 {
-    return _zoom;
+	return _zoom;
 }
 
 void OM3DScheduler::setZoom(int zoom)
@@ -47,10 +52,9 @@ void OM3DScheduler::setZoom(int zoom)
 	_zoom = zoom;
 	return;
 }
-
 Recti OM3DScheduler::tileBound() const
 {
-    return _tileBound;
+	return _tileBound;
 }
 
 Vec3d OM3DScheduler::eyeXYZ() const
@@ -84,11 +88,11 @@ Vec2d OM3DScheduler::offset() const
 //}
 
 
-int OM3DScheduler::compute() {	
+int OM3DScheduler::compute() {
 	while (_eye[0] > 180)
 		_eye[0] -= 360;
 	OMGeoUtil::lonLatHeight2XYZ(_eye, _eyeXYZ);
-
+	_ortho_base = CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, _zoom - scale);
 	return 0;
 }
 
@@ -97,7 +101,7 @@ int OM3DScheduler::compute() {
 //	Vec3d eye = _eye;
 //	while (eye[0] > 180)
 //		eye[0] -= 360;
-//	double height = 5 * CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - scale);
+//	double height = 5 * _ortho_base;
 //	eye[2] = height;
 //
 //	OMGeoUtil::lonLatHeight2XYZ(eye, _eyeXYZ);
@@ -105,40 +109,40 @@ int OM3DScheduler::compute() {
 //	//memcpy(&_frustum_tmp, &_frustum, sizeof(OrthoFrustum));
 //	//memcpy(&_eye_tmp, &_eye, sizeof(Vec3d));
 //	//OMGeoUtil::lonLatHeight2XYZ(_eye_tmp, _eyeXYZ_tmp);
-//	updateFrustumForCalculation(-4.0 / 3 * CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - scale) + _offset[0], 4.0 / 3 * CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - scale) + _offset[0], -CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - scale) + _offset[1],
-//		CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - scale) + _offset[1], -height * 1.5, height * 1 + 1 * CGeoUtil::WGS_84_RADIUS_EQUATOR);
+//	updateFrustumForCalculation(-4.0 / 3 * _ortho_base + _offset[0], 4.0 / 3 * _ortho_base + _offset[0], -_ortho_base + _offset[1],
+//		_ortho_base + _offset[1], -height * 1.5, height * 1 + 1 * CGeoUtil::WGS_84_RADIUS_EQUATOR);
 //
 //	getTiles(_tileSet, zoom);
 //
 //	return 0;
 //}
 
-int OM3DScheduler::isSameTiles(){
+int OM3DScheduler::isSameTiles() {
 	_tileSet.clear();
-    getTiles(_tileSet, _zoom, 1);
-    
-    int len=_tileSet.size(),lastLen=_lastTileSet.size();
-    if(len != lastLen){
+	getTiles(_tileSet, _zoom, 1);
+
+	int len = _tileSet.size(), lastLen = _lastTileSet.size();
+	if (len != lastLen) {
 		_lastTileSet = _tileSet;
-        return 0;
-    }
-    else {
-        if (len != 0) {
-            for (int i=0;i<len;i++) {
-                if ((_tileSet[i][0] != _lastTileSet[i][0]) ||\
-                    (_tileSet[i][1] != _lastTileSet[i][1]) || \
-                    (_tileSet[i][2] != _lastTileSet[i][2])
-                    ) {
+		return 0;
+	}
+	else {
+		if (len != 0) {
+			for (int i = 0; i < len; i++) {
+				if ((_tileSet[i][0] != _lastTileSet[i][0]) || \
+					(_tileSet[i][1] != _lastTileSet[i][1]) || \
+					(_tileSet[i][2] != _lastTileSet[i][2])
+					) {
 					_lastTileSet = _tileSet;
-                    return 0;
-                }
-            }
-            return 1;
-        }
-        else {
-            return 1;
-        }
-    }
+					return 0;
+				}
+			}
+			return 1;
+		}
+		else {
+			return 1;
+		}
+	}
 }
 
 int OM3DScheduler::computeWider(vector<Vec3i>& tiles)
@@ -165,29 +169,29 @@ int OM3DScheduler::computeWider(vector<Vec3i>& tiles)
 		tiles.push_back(Vec3i(tiles[0][0], i, maxY));
 		tiles.push_back(Vec3i(tiles[0][0], i, minY));
 	}
-	for (int i = (minY+1); i < maxY; i++) {
+	for (int i = (minY + 1); i < maxY; i++) {
 		tiles.push_back(Vec3i(tiles[0][0], minX, i));
 		tiles.push_back(Vec3i(tiles[0][0], maxX, i));
-	}	
+	}
 	return 0;
 }
 
-int OM3DScheduler::computeWider(int zoom, vector<Vec3i>& tiles,set<string> processed)
-{	
-	double height = 5 * CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - scale);
-	updateFrustumForCalculation(-5.0 / 3 * CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - scale) + _offset[0], 5.0 / 3 * CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - scale) + _offset[0], -1.5*CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - scale) + _offset[1],
-		1.5*CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - scale) + _offset[1], -height * 1.5, height * 1 + 1 * CGeoUtil::WGS_84_RADIUS_EQUATOR);
+int OM3DScheduler::computeWider(int zoom, vector<Vec3i>& tiles, set<string> processed)
+{
+	double height = 5 * _ortho_base;
+	updateFrustumForCalculation(-1920.0 / 1080.0 * 2 * _ortho_base + _offset[0], 1920.0 / 1080.0 * 2 * _ortho_base + _offset[0], -2.0 * _ortho_base + _offset[1],
+		2.0 * _ortho_base + _offset[1], -height * 1.5, height * 1 + 1 * CGeoUtil::WGS_84_RADIUS_EQUATOR);
 
-	getTilesEn(tiles, zoom,processed);
+	getTilesEn(tiles, zoom, processed);
 
 	return 0;
 }
 
 int OM3DScheduler::computeWider(int zoom, vector<Vec3i>& tiles)
 {
-	double height = 5 * CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - scale);
-	updateFrustumForCalculation(-5.0 / 3 * CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - scale) + _offset[0], 5.0 / 3 * CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - scale) + _offset[0], -1.5 * CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - scale) + _offset[1],
-		1.5 * CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - scale) + _offset[1], -height * 1.5, height * 1 + 1 * CGeoUtil::WGS_84_RADIUS_EQUATOR);
+	double height = 5 * _ortho_base;
+	updateFrustumForCalculation(-1920.0 / 1080.0 * 2 * _ortho_base + _offset[0], 1920.0 / 1080.0 * 2 * _ortho_base + _offset[0], -2.0 * _ortho_base + _offset[1],
+		2.0 * _ortho_base + _offset[1], -height * 1.5, height * 1 + 1 * CGeoUtil::WGS_84_RADIUS_EQUATOR);
 
 	getTiles(tiles, zoom);
 
@@ -199,7 +203,7 @@ int OM3DScheduler::compute(int zoom, vector<Vec3i>& tiles)
 	Vec3d eye = _eye;
 	while (eye[0] > 180)
 		eye[0] -= 360;
-	double height = 5 * CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - scale);
+	double height = 5 * _ortho_base;
 	eye[2] = height;
 
 	//OMGeoUtil::lonLatHeight2XYZ(eye, _eyeXYZ_tmp);
@@ -207,22 +211,29 @@ int OM3DScheduler::compute(int zoom, vector<Vec3i>& tiles)
 	//memcpy(&_frustum_tmp, &_frustum, sizeof(OrthoFrustum));
 	//memcpy(&_eye_tmp, &_eye, sizeof(Vec3d));
 	//OMGeoUtil::lonLatHeight2XYZ(_eye_tmp, _eyeXYZ_tmp);
-	if (_isFirstPerson) {		
-    #if 0
-        updateFrustumForCalculation(-4.0 / 3 * CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - scale) + _offset[0], 4.0 / 3 * CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - scale) + _offset[0], -CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - scale) + _offset[1],
-			CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - scale) + _offset[1], 0, height * 1 / 3);
-    #else
-        updateFrustumForCalculation();
-    #endif
+	if (_isFirstPerson) {
+#if 0
+		updateFrustumForCalculation(-4.0 / 3 * _ortho_base + _offset[0], 4.0 / 3 * _ortho_base + _offset[0], -_ortho_base + _offset[1],
+			_ortho_base + _offset[1], 0, height * 1 / 3);
+#else
+		updateFrustumForCalculation();
+#endif
 	}
 	else {
-		updateFrustumForCalculation(-4.0 / 3 * CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - scale) + _offset[0], 4.0 / 3 * CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - scale) + _offset[0], -CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - scale) + _offset[1],
-			CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - scale) + _offset[1], -height * 1.5, height * 1 + 1 * CGeoUtil::WGS_84_RADIUS_EQUATOR);
-    }
-	
+		/*pyan 0626 é‡å¤ä¼ å…¥å‚æ•°ï¼Œè¿™é‡Œæ³¨é‡Šæ‰*/
+		/*updateFrustumForCalculation(-4.0 / 3 * _ortho_base + _offset[0], 4.0 / 3 * _ortho_base + _offset[0], -_ortho_base + _offset[1],
+			_ortho_base + _offset[1], -height * 1.5, height * 1 + 1 * CGeoUtil::WGS_84_RADIUS_EQUATOR);*/
+	}
 
+	if (_PRINT) {
+		printf("File:%s, Line:%d: enter getTiles\n", \
+			__FILE__, __LINE__);
+	}
 	getTiles(tiles, zoom);
-
+	if (_PRINT) {
+		printf("File:%s, Line:%d: getTiles done\n", \
+			__FILE__, __LINE__);
+	}
 	return 0;
 }
 
@@ -234,16 +245,16 @@ int OM3DScheduler::compute(int zoom, vector<Vec3i>& tiles)
 //	OMGeoUtil::lonLatHeight2XYZ(_eye, _eyeXYZ);
 //	//_zoom = CGeoUtil::computeTileLevel(_eye[2]);
 //
-//	/*step1: ¼ÆËã¹Û²ìµãµ½ÓëµØÇòÏàÇĞµÄÇĞµãµÄ³¤¶È*/
+//	/*step1: è®¡ç®—è§‚å¯Ÿç‚¹åˆ°ä¸åœ°çƒç›¸åˆ‡çš„åˆ‡ç‚¹çš„é•¿åº¦*/
 //	double tangentLength = sqrt(_eyeXYZ[0] * _eyeXYZ[0] + _eyeXYZ[1] * _eyeXYZ[1] + _eyeXYZ[2] * _eyeXYZ[2]
 //		- CGeoUtil::WGS_84_RADIUS_EQUATOR * CGeoUtil::WGS_84_RADIUS_EQUATOR);
 //
-//	/*step2: ¼ÆËãÏà»úÎ»ÖÃ¶ÔÓ¦µÄµØ±íÎ»ÖÃËùÔÚµÄÍßÆ¬±àºÅ*/
+//	/*step2: è®¡ç®—ç›¸æœºä½ç½®å¯¹åº”çš„åœ°è¡¨ä½ç½®æ‰€åœ¨çš„ç“¦ç‰‡ç¼–å·*/
 //	int* index = new int[2];
 //	int zoom_i = static_cast<int> (_zoom);
 //	CGeoUtil::deg2num(_eye[1], _eye[0], zoom_i, index);
 //
-//	/*step3: ÒÔÖĞĞÄÍßÆ¬Îª»ù´¡£¬ÏòÉÏÏÂ×óÓÒËÄ·½ÏòÑÓÉì£¬Ö±µ½ÍßÆ¬±»µØÆ½ÏßÕÚµ²*/
+//	/*step3: ä»¥ä¸­å¿ƒç“¦ç‰‡ä¸ºåŸºç¡€ï¼Œå‘ä¸Šä¸‹å·¦å³å››æ–¹å‘å»¶ä¼¸ï¼Œç›´åˆ°ç“¦ç‰‡è¢«åœ°å¹³çº¿é®æŒ¡*/
 //	_tileBound[0] = index[0]; _tileBound[1] = index[1];
 //	_tileBound[2] = index[0]; _tileBound[3] = index[1];
 //
@@ -266,18 +277,18 @@ int OM3DScheduler::compute(int zoom, vector<Vec3i>& tiles)
 
 int OM3DScheduler::eyeSet(Vec3d eye)
 {
-    _eye = eye;
-    if(isSameTiles())
-        return 1;
-    else
-        return 0;
+	_eye = eye;
+	if (isSameTiles())
+		return 1;
+	else
+		return 0;
 }
 
 int OM3DScheduler::zoomIn()
 {
 	_zoom++;
 	//scale++;
-    _eye[2] = _eye[2] / 2;
+	_eye[2] = _eye[2] / 2;
 	if (isSameTiles())
 		return 1;
 	else
@@ -288,7 +299,7 @@ int OM3DScheduler::zoomOut()
 {
 	_zoom--;
 	//scale--;
-    _eye[2] = _eye[2] * 2;
+	_eye[2] = _eye[2] * 2;
 	if (isSameTiles())
 		return 1;
 	else
@@ -296,8 +307,8 @@ int OM3DScheduler::zoomOut()
 }
 
 
-//10.27Ôö¼ÓÁË²ÎÊı
-int OM3DScheduler::changeViewer(int mode,float pitch)
+//10.27å¢åŠ äº†å‚æ•°
+int OM3DScheduler::changeViewer(int mode, float pitch)
 {
 	_viewer = mode;
 	this->pitch_ortho = pitch;
@@ -307,22 +318,22 @@ int OM3DScheduler::changeViewer(int mode,float pitch)
 	else if (mode == 1) {
 		Vec3d center(_eye[0], _eye[1], 0);
 		//center[1] += 2.5 * 45 * pow(2, log((_eye[2] / CGeoUtil::WGS_84_RADIUS_EQUATOR)) / log(2));
-		center[1] +=  pitch* 45 * _eye[2] / CGeoUtil::WGS_84_RADIUS_EQUATOR;
+		center[1] += pitch * 45 * _eye[2] / CGeoUtil::WGS_84_RADIUS_EQUATOR;
 		//memcpy(&_center_tmp, &_eye, sizeof(Vec3d));
 		OMGeoUtil::lonLatHeight2XYZ(center, _center);
 	}
 
 
-	if(isSameTiles())
-        return 1;
-    else
-        return 0;
+	if (isSameTiles())
+		return 1;
+	else
+		return 0;
 }
 
 int OM3DScheduler::pan(int direction)
 {
 	int zoom_i = static_cast<int> (_zoom);
-	double unit = 360.0 / pow(2, zoom_i) / 256*5;
+	double unit = 360.0 / pow(2, zoom_i) / 256 * 5;
 
 	switch (direction)
 	{
@@ -384,7 +395,7 @@ int OM3DScheduler::translate(int direction)
 void OM3DScheduler::updateFrustum(double left, double right, double bottom, double top, double zNear, double zfar)
 {
 	_frustum[0] = left;
-	_frustum[1] = right; 
+	_frustum[1] = right;
 	_frustum[2] = bottom;
 	_frustum[3] = top;
 	_frustum[4] = zNear;
@@ -413,18 +424,18 @@ int OM3DScheduler::changeYaw(double angle)
 	glm::dvec3 front = trans * glm::dvec4(cameraDirection.x, cameraDirection.y, cameraDirection.z, 1);
 	glm::dvec3 newCameraTarget = cameraPos - front;
 
-    _center[0] = newCameraTarget.x;
+	_center[0] = newCameraTarget.x;
 	_center[1] = newCameraTarget.y;
 	_center[2] = newCameraTarget.z;
-    cameraUp = glm::cross(front, cameraRight);
+	cameraUp = glm::cross(front, cameraRight);
 	_up[0] = cameraUp.x;
 	_up[1] = cameraUp.y;
 	_up[2] = cameraUp.z;
-	
-	if(isSameTiles())
-        return 1;
-    else
-        return 0;
+
+	if (isSameTiles())
+		return 1;
+	else
+		return 0;
 }
 
 void OM3DScheduler::updateFrustumForCalculation(double left, double right, double bottom,
@@ -439,69 +450,80 @@ void OM3DScheduler::updateFrustumForCalculation(double left, double right, doubl
 
 void OM3DScheduler::updateFrustumForCalculation()
 {
-    _frustum_tmp1[0] = _frustum1[0]+5.0;
+	_frustum_tmp1[0] = _frustum1[0] + 5.0;
 	_frustum_tmp1[1] = _frustum1[1];
 	_frustum_tmp1[2] = _frustum1[2];
 	_frustum_tmp1[3] = _frustum1[3];
-}   
+}
 
 
 int OM3DScheduler::changePitch(double angle)
 {
-	
+
 	glm::dvec3 cameraPos = glm::dvec3(_eyeXYZ[0], _eyeXYZ[1], _eyeXYZ[2]);
 	glm::dvec3 cameraTarget = glm::dvec3(_center[0], _center[1], _center[2]);
 	glm::dvec3 up = glm::dvec3(_up[0], _up[1], _up[2]);
 	glm::dvec3 cameraDirection = cameraPos - cameraTarget;
 	glm::dvec3 cameraRight = glm::normalize(glm::cross(up, cameraDirection));
-    glm::dvec3 cameraUp = glm::cross(cameraDirection, cameraRight);
+	glm::dvec3 cameraUp = glm::cross(cameraDirection, cameraRight);
 
 	glm::dmat4 trans = glm::dmat4(1.0f);
-	trans = glm::rotate(trans, glm::radians(angle- _pitch), cameraRight);
+	trans = glm::rotate(trans, glm::radians(angle - _pitch), cameraRight);
 	glm::dvec3 front = trans * glm::dvec4(cameraDirection.x, cameraDirection.y, cameraDirection.z, 1);
 	glm::dvec3 newCameraTarget = cameraPos - front;
-    
+
 	_center[0] = newCameraTarget.x;
 	_center[1] = newCameraTarget.y;
-	_center[2] = newCameraTarget.z;    
-    cameraUp = glm::cross(front, cameraRight);
+	_center[2] = newCameraTarget.z;
+	cameraUp = glm::cross(front, cameraRight);
 	_up[0] = cameraUp.x;
 	_up[1] = cameraUp.y;
 	_up[2] = cameraUp.z;
-    
+
 	_pitch = angle;
 
-	if(isSameTiles())
-        return 1;
-    else
-        return 0;
+	if (isSameTiles())
+		return 1;
+	else
+		return 0;
 }
-
+//pyan 0626 æ²¡ç”¨åˆ°
 bool OM3DScheduler::isCovered(int row, int col, double tangentLength)
 {
-	int zoom_i = static_cast<int>(_zoom);
-	if (row < 0 || col < 0 || row >= pow(2, zoom_i) || col >= pow(2, zoom_i))
-		return false;
-	
-	/*step1: ¼ÆËã¸ÃÍßÆ¬µÄÖĞĞÄ×ø±ê£¬ÒÔ´Ë´úÌæÍßÆ¬°üÎ§Çò½øĞĞ¼ÆËã£¬Ğ§¹û¸üºÃ*/
-	Vec3d tileCenter;
-	CGeoUtil::getTileCenter(zoom_i, col, row, tileCenter[0], tileCenter[1], tileCenter[2]);
-	
-	/*step2: ¼ÆËãÏà»úµ½ÍßÆ¬ÖĞĞÄµãµÄ¾àÀë*/
-	double distance = sqrt((_eyeXYZ[0] - tileCenter[0]) * (_eyeXYZ[0] - tileCenter[0]) + (_eyeXYZ[1] - tileCenter[1] *
-		(_eyeXYZ[1] - tileCenter[1]) + (_eyeXYZ[2] - tileCenter[2]) * (_eyeXYZ[2] - tileCenter[2])));
+	//int zoom_i = static_cast<int>(_zoom);
+	//if (row < 0 || col < 0 || row >= pow(2, zoom_i) || col >= pow(2, zoom_i))
+	//	return false;
 
-	/*step3: ±È½Ï tangentLength ºÍ distance*/
-	/*
-	* tangentLength > distance  ËµÃ÷ÍßÆ¬±»µØÆ½ÏßÕÚµ²£¬²»ĞèÒª±»¼Óµ½äÖÈ¾¶ÓÁĞ
-	* tangentLength <= distance ËµÃ÷ÍßÆ¬ÔÚÊÓÒ°·¶Î§ÄÚ£¬ĞèÒª±»¼Óµ½äÖÈ¾¶ÓÁĞ
-	*/
-	if (tangentLength > distance)
-		return true;
-	else
-		return false;
+	///*step1: è®¡ç®—è¯¥ç“¦ç‰‡çš„ä¸­å¿ƒåæ ‡ï¼Œä»¥æ­¤ä»£æ›¿ç“¦ç‰‡åŒ…å›´çƒè¿›è¡Œè®¡ç®—ï¼Œæ•ˆæœæ›´å¥½*/
+	//Vec3d tileCenter;
+	//CGeoUtil::getTileCenter(zoom_i, col, row, tileCenter[0], tileCenter[1], tileCenter[2]);
+
+	///*step2: è®¡ç®—ç›¸æœºåˆ°ç“¦ç‰‡ä¸­å¿ƒç‚¹çš„è·ç¦»*/
+	//double distance = sqrt(
+	//	(_eyeXYZ[0] - tileCenter[0]) * (_eyeXYZ[0] - tileCenter[0]) + 
+	//	(_eyeXYZ[1] - tileCenter[1]) * (_eyeXYZ[1] - tileCenter[1]) + 
+	//	(_eyeXYZ[2] - tileCenter[2]) * (_eyeXYZ[2] - tileCenter[2])
+	//);
+
+	///*step3: æ¯”è¾ƒ tangentLength å’Œ distance*/
+	///*
+	//* tangentLength > distance  è¯´æ˜ç“¦ç‰‡è¢«åœ°å¹³çº¿é®æŒ¡ï¼Œä¸éœ€è¦è¢«åŠ åˆ°æ¸²æŸ“é˜Ÿåˆ—
+	//* tangentLength <= distance è¯´æ˜ç“¦ç‰‡åœ¨è§†é‡èŒƒå›´å†…ï¼Œéœ€è¦è¢«åŠ åˆ°æ¸²æŸ“é˜Ÿåˆ—
+	//*/
+	//if (tangentLength > distance)
+	//	return true;
+	//else
+	//	return false;
+	return true;
 }
-
+/*
+è®¡ç®—çº¿æ®µäº¤ç‚¹
+p0: çº¿æ®µèµ·ç‚¹
+p1: çº¿æ®µç»ˆç‚¹
+center: åœ°å›¾ä¸­å¿ƒç‚¹
+a: åœ°çƒæ¤­çƒé•¿åŠè½´
+b: åœ°çƒæ¤­çƒçŸ­åŠè½´
+*/
 Vec3d OM3DScheduler::lineSegment_WGS84Ellipsoid_intersection(Vec3d p0, Vec3d p1, Vec3d center, double a, double b)
 {
 	double x0 = p0[0], y0 = p0[1], z0 = p0[2];
@@ -517,13 +539,23 @@ Vec3d OM3DScheduler::lineSegment_WGS84Ellipsoid_intersection(Vec3d p0, Vec3d p1,
 		double t0 = (-B - sqrt(test)) / (2.0 * A);
 		double t1 = (-B + sqrt(test)) / (2.0 * A);
 		Vec3d lineNormal(m, n, p);
-		// ÆäÊµÓĞÁ½¸ö½â£¬¸ù¾İÄãµÄĞèÒªÑ¡Ôñt0»¹ÊÇt1¡£
+		// å…¶å®æœ‰ä¸¤ä¸ªè§£ï¼Œæ ¹æ®ä½ çš„éœ€è¦é€‰æ‹©t0è¿˜æ˜¯t1ã€‚
 		//Vec3d hitp = lineNormal * t0 + p0;
 		Vec3d hitp;
 		hitp[0] = t0 * m + p0[0];
 		hitp[1] = t0 * n + p0[1];
 		hitp[2] = t0 * p + p0[2];
+		if (_PRINT)
+		{
+			printf("File:%s, Line:%d, Function:%s, Have intersection!hitp:%.2f,%.2f,%.2f\n", \
+				__FILE__, __LINE__, __FUNCTION__, hitp[0], hitp[1], hitp[2]);
+		}
 		return hitp;
+	}
+	if (_PRINT)
+	{
+		printf("File:%s, Line:%d, Function:%s, No intersection!\n", \
+			__FILE__, __LINE__, __FUNCTION__);
 	}
 	return Vec3d(0, 0, 0);
 }
@@ -539,10 +571,10 @@ bool OM3DScheduler::isVisible(int zoom, int col, int row)
 
 	double mecatorX = 0;
 	double mecatorY = 0;
-	double X=0.0, Y=0.0, Z=0.0;
+	double X = 0.0, Y = 0.0, Z = 0.0;
 	CGeoUtil::getTileLeftTop(zoom, col, row, mecatorX, mecatorY);
 	double span = 2 * CGeoUtil::PI * CGeoUtil::Web_Mecator_R / pow(2, zoom);
-	
+
 	CGeoUtil::WebMercator2XYZ(mecatorX, mecatorY, X, Y, Z);
 	mecatorY -= span / 2;
 	Vec3d left(X, Y, Z);
@@ -550,7 +582,7 @@ bool OM3DScheduler::isVisible(int zoom, int col, int row)
 	mecatorX += span;
 	CGeoUtil::WebMercator2XYZ(mecatorX, mecatorY, X, Y, Z);
 	Vec3d right(X, Y, Z);
-	
+
 	mecatorX -= span / 2;
 	mecatorY -= span / 2;
 	CGeoUtil::WebMercator2XYZ(mecatorX, mecatorY, X, Y, Z);
@@ -564,7 +596,7 @@ bool OM3DScheduler::isVisible(int zoom, int col, int row)
 	mecatorY -= span / 2;
 	CGeoUtil::WebMercator2XYZ(mecatorX, mecatorY, X, Y, Z);
 	Vec3d center(X, Y, Z);
-	
+
 	mecatorX -= span / 2;
 	mecatorY -= span / 2;
 	CGeoUtil::WebMercator2XYZ(mecatorX, mecatorY, X, Y, Z);
@@ -584,7 +616,7 @@ bool OM3DScheduler::isVisible(int zoom, int col, int row)
 	CGeoUtil::WebMercator2XYZ(mecatorX, mecatorY, X, Y, Z);
 	Vec3d leftTop(X, Y, Z);
 
-	// Ö»ÒªÓĞÒ»¸ö±ß½çµãÔÚÊÓÓòÄÚÔò¸ÃÍßÆ¬¿É¼û
+	// åªè¦æœ‰ä¸€ä¸ªè¾¹ç•Œç‚¹åœ¨è§†åŸŸå†…åˆ™è¯¥ç“¦ç‰‡å¯è§
 	return (isPositionVisible(center) || isPositionVisible(left) || isPositionVisible(right) ||
 		isPositionVisible(top) || isPositionVisible(bottom) || isPositionVisible(leftBottom) ||
 		isPositionVisible(rightBottom) || isPositionVisible(rightTop) || isPositionVisible(leftTop));
@@ -592,14 +624,14 @@ bool OM3DScheduler::isVisible(int zoom, int col, int row)
 	/*return isPositionVisible(center) || isPositionVisible(left) || isPositionVisible(right) ||
 		isPositionVisible(top) || isPositionVisible(bottom);*/
 
-	//glm::dvec3 out;
-	//openglEngine::openGLCoordinatesEngine::world2Camera(glm::dvec3(_eyeXYZ[0], _eyeXYZ[1], _eyeXYZ[2]),
-	//	glm::dvec3(0, 0, 0), glm::dvec3(0, 0, 1), glm::dvec3(x, y, z), out);
-	////return !(frustum_culling(tile) || horizon_culling(tile));
-	//Vec3d tile(out.x, out.y, -out.z);
-	////return !(frustum_culling(tile));
-	//return !(frustum_culling(tile) || horizon_culling(tile));
-	//return !(horizon_culling(tile));
+		//glm::dvec3 out;
+		//openglEngine::openGLCoordinatesEngine::world2Camera(glm::dvec3(_eyeXYZ[0], _eyeXYZ[1], _eyeXYZ[2]),
+		//	glm::dvec3(0, 0, 0), glm::dvec3(0, 0, 1), glm::dvec3(x, y, z), out);
+		////return !(frustum_culling(tile) || horizon_culling(tile));
+		//Vec3d tile(out.x, out.y, -out.z);
+		////return !(frustum_culling(tile));
+		//return !(frustum_culling(tile) || horizon_culling(tile));
+		//return !(horizon_culling(tile));
 }
 
 bool OM3DScheduler::isVisible(int zoom, int col, int row, size_t sample)
@@ -616,7 +648,7 @@ bool OM3DScheduler::isVisible(int zoom, int col, int row, size_t sample)
 
 	double mecatorX = 0;
 	double mecatorY = 0;
-	double X=0.0, Y=0.0, Z=0.0;
+	double X = 0.0, Y = 0.0, Z = 0.0;
 	CGeoUtil::getTileLeftTop(zoom, col, row, mecatorX, mecatorY);
 	double span = 2 * CGeoUtil::PI * CGeoUtil::Web_Mecator_R / pow(2, zoom) / (sample - 1);
 
@@ -648,7 +680,7 @@ bool OM3DScheduler::isVisible(int zoom, int col, int row, Vec3d eye)
 
 	double mecatorX = 0;
 	double mecatorY = 0;
-	double X=0.0, Y=0.0, Z=0.0;
+	double X = 0.0, Y = 0.0, Z = 0.0;
 	CGeoUtil::getTileLeftTop(zoom, col, row, mecatorX, mecatorY);
 	double span = 2 * CGeoUtil::PI * CGeoUtil::Web_Mecator_R / pow(2, zoom);
 
@@ -693,13 +725,13 @@ bool OM3DScheduler::isVisible(int zoom, int col, int row, Vec3d eye)
 	CGeoUtil::WebMercator2XYZ(mecatorX, mecatorY, X, Y, Z);
 	Vec3d leftTop(X, Y, Z);
 
-	// Ö»ÒªÓĞÒ»¸ö±ß½çµãÔÚÊÓÓòÄÚÔò¸ÃÍßÆ¬¿É¼û
+	// åªè¦æœ‰ä¸€ä¸ªè¾¹ç•Œç‚¹åœ¨è§†åŸŸå†…åˆ™è¯¥ç“¦ç‰‡å¯è§
 	/*return (isPositionVisible(center) || isPositionVisible(left) || isPositionVisible(right) ||
 		isPositionVisible(top) || isPositionVisible(bottom) || isPositionVisible(leftBottom) ||
 		isPositionVisible(rightBottom) || isPositionVisible(rightTop) || isPositionVisible(leftTop));*/
 
-	return isPositionVisible(center, eye, zoom) || isPositionVisible(left, eye, zoom) || 
-	isPositionVisible(right, eye, zoom) || isPositionVisible(top, eye, zoom) || isPositionVisible(bottom, eye, zoom);
+	return isPositionVisible(center, eye, zoom) || isPositionVisible(left, eye, zoom) ||
+		isPositionVisible(right, eye, zoom) || isPositionVisible(top, eye, zoom) || isPositionVisible(bottom, eye, zoom);
 }
 
 bool OM3DScheduler::isTileVisible(int zoom, int col, int row, int isdraw)
@@ -726,7 +758,7 @@ bool OM3DScheduler::isTileVisible(int zoom, int col, int row, int isdraw)
 	double minY = 99999999999;
 	double maxZ = -99999999999;
 	double minZ = 99999999999;
-    int isCull =1;
+	int isCull = 1;
 	for (int i = 0; i < 2; i++) {
 		for (int j = 0; j < 2; j++) {
 			x = mecatorX + j * span;
@@ -734,7 +766,7 @@ bool OM3DScheduler::isTileVisible(int zoom, int col, int row, int isdraw)
 			CGeoUtil::WebMercator2XYZ(x, y, X, Y, Z);
 			glm::dvec3 out;
 			openglEngine::openGLCoordinatesEngine::world2Camera(glm::dvec3(_eyeXYZ[0], _eyeXYZ[1], _eyeXYZ[2]),
-				glm::dvec3(_center[0], _center[1], _center[2]), glm::dvec3(_up[0], _up[1], _up[2]), glm::dvec3(X,Y,Z), out);
+				glm::dvec3(_center[0], _center[1], _center[2]), glm::dvec3(_up[0], _up[1], _up[2]), glm::dvec3(X, Y, Z), out);
 			if (out.x > maxX)
 				maxX = out.x;
 			if (out.x < minX)
@@ -748,55 +780,55 @@ bool OM3DScheduler::isTileVisible(int zoom, int col, int row, int isdraw)
 			if (-out.z < minZ)
 				minZ = -out.z;
 
-            Vec3d tile(out.x, out.y, -out.z);
-            if(!horizon_culling(tile)) isCull=0;
+			Vec3d tile(out.x, out.y, -out.z);
+			if (!horizon_culling(tile)) isCull = 0;
 		}
 	}
-    if(_isFirstPerson){
-        if (isdraw) {
-            double frustumYmax=tan(_frustum1[0]*3.1415926535/(2*180))*_frustum1[3];
-            double frustumXmax=frustumYmax*_frustum1[1];
-    		if ((max(_frustum1[2], minZ) <= min(_frustum1[3], maxZ))  && (!isCull)){
-                if((max(-frustumXmax, minX) <= min(frustumXmax, maxX)) && (max(-frustumYmax, minY) <= min(frustumYmax, maxY)))
-                    return true;
-            }            
-    		return false;	
-    	}
-    	else {
-    		double frustumYmax=tan(_frustum_tmp1[0]*3.1415926535/(2*180))*_frustum_tmp1[3];
-            double frustumXmax=frustumYmax*_frustum_tmp1[1];
-    		if ((max(_frustum_tmp1[2], minZ) <= min(_frustum_tmp1[3], maxZ))  && (!isCull)){
-                if((max(-frustumXmax, minX) <= min(frustumXmax, maxX)) && (max(-frustumYmax, minY) <= min(frustumYmax, maxY)))
-                    return true;
-            }            
-    		return false;	
-    	}
-    }
-    else{
-        if (isdraw) {
-    		if ((max(_frustum[0], minX) <= min(_frustum[1], maxX)) && (max(_frustum[2], minY) <= min(_frustum[3], maxY)) && (!isCull))
-    			return true;
-    	}
-    	else {
-    		if ((max(_frustum_tmp[0], minX) <= min(_frustum_tmp[1], maxX)) && (max(_frustum_tmp[2], minY) <= min(_frustum_tmp[3], maxY)) && (!isCull))
-    			return true;
-    	}	
-    }
-	
+	if (_isFirstPerson) {
+		if (isdraw) {
+			double frustumYmax = tan(_frustum1[0] * 3.1415926535 / (2 * 180)) * _frustum1[3];
+			double frustumXmax = frustumYmax * _frustum1[1];
+			if ((max(_frustum1[2], minZ) <= min(_frustum1[3], maxZ)) && (!isCull)) {
+				if ((max(-frustumXmax, minX) <= min(frustumXmax, maxX)) && (max(-frustumYmax, minY) <= min(frustumYmax, maxY)))
+					return true;
+			}
+			return false;
+		}
+		else {
+			double frustumYmax = tan(_frustum_tmp1[0] * 3.1415926535 / (2 * 180)) * _frustum_tmp1[3];
+			double frustumXmax = frustumYmax * _frustum_tmp1[1];
+			if ((max(_frustum_tmp1[2], minZ) <= min(_frustum_tmp1[3], maxZ)) && (!isCull)) {
+				if ((max(-frustumXmax, minX) <= min(frustumXmax, maxX)) && (max(-frustumYmax, minY) <= min(frustumYmax, maxY)))
+					return true;
+			}
+			return false;
+		}
+	}
+	else {
+		if (isdraw) {
+			if ((max(_frustum[0], minX) <= min(_frustum[1], maxX)) && (max(_frustum[2], minY) <= min(_frustum[3], maxY)) && (!isCull))
+				return true;
+		}
+		else {
+			if ((max(_frustum_tmp[0], minX) <= min(_frustum_tmp[1], maxX)) && (max(_frustum_tmp[2], minY) <= min(_frustum_tmp[3], maxY)) && (!isCull))
+				return true;
+		}
+	}
+
 	return false;
 }
 
 int OM3DScheduler::rotate(double angle)
 {
-	//1¡¢³õÊ¼»¯Ò»¸öµ¥Î»¾ØÕó
+	//1ã€åˆå§‹åŒ–ä¸€ä¸ªå•ä½çŸ©é˜µ
 	glm::dmat4 trans = glm::dmat4(1.0f);
 	trans = glm::rotate(trans, glm::radians(angle), glm::dvec3(0.0, 1.0, 0.0));
 	glm::dvec3 up = trans * glm::dvec4(_up[0], _up[1], _up[2], 1);
 	_up[0] = up.x; _up[1] = up.y; _up[2] = up.z;
-    if(isSameTiles())
-        return 1;
-    else
-        return 0;
+	if (isSameTiles())
+		return 1;
+	else
+		return 0;
 }
 
 bool OM3DScheduler::frustum_culling(Vec3d tile)
@@ -805,7 +837,7 @@ bool OM3DScheduler::frustum_culling(Vec3d tile)
 		&& tile[2] >= _frustum_tmp[4] && tile[2] <= _frustum_tmp[5])
 		return false;
 	else
-		return true; // ĞèÒª²Ã¼ô
+		return true; // éœ€è¦è£å‰ª
 }
 
 bool OM3DScheduler::horizon_culling(Vec3d tile)
@@ -816,7 +848,7 @@ bool OM3DScheduler::horizon_culling(Vec3d tile)
 	if (distance < limitDistance)
 		return false;
 	else
-		return true; // ĞèÒª²Ã¼ô
+		return true; // éœ€è¦è£å‰ª
 }
 
 bool OM3DScheduler::isPositionVisible(Vec3d pt)
@@ -841,20 +873,20 @@ bool OM3DScheduler::isPositionVisible(Vec3d pt, Vec3d eye, int zoom)
 	return !(frustum_culling(tile) || horizon_culling(tile));
 }
 
-int OM3DScheduler::getTilesEn(vector<Vec3i>& tiles, int zoom,set<string> processed, int isdraw)
+int OM3DScheduler::getTilesEn(vector<Vec3i>& tiles, int zoom, set<string> processed, int isdraw)
 {
 	Vec3d pt = lineSegment_WGS84Ellipsoid_intersection(_eyeXYZ, _center);
-	///* ÓĞ½»µã¼ÌĞø¼ÆËãĞèÒª¼ÓÔØµÄÍßÆ¬Ë÷Òı£¬²¢·µ»Ø0*/
+	///* æœ‰äº¤ç‚¹ç»§ç»­è®¡ç®—éœ€è¦åŠ è½½çš„ç“¦ç‰‡ç´¢å¼•ï¼Œå¹¶è¿”å›0*/
 	Vec3d lonlat1;
 	OMGeoUtil::XYZ2lonLatHeight(lonlat1, pt);
 
 	_earthObservedCenter[0] = lonlat1[0];
 	_earthObservedCenter[1] = lonlat1[1];
 	if (pt[0] != 0 || pt[1] != 0 || pt[2] != 0) {
-			centerSearchEn(tiles, zoom,processed, isdraw);
+		centerSearchEn(tiles, zoom, processed, isdraw);
 	}
-	else {                               //TODO:ÔİÎ´¶ÔquadtreeSearch½øĞĞisdrawÅĞ¶Ï
-			quadtreeSearch(tiles, zoom);
+	else {                               //TODO:æš‚æœªå¯¹quadtreeSearchè¿›è¡Œisdrawåˆ¤æ–­
+		quadtreeSearch(tiles, zoom);
 	}
 	return 0;
 }
@@ -862,8 +894,12 @@ int OM3DScheduler::getTilesEn(vector<Vec3i>& tiles, int zoom,set<string> process
 int OM3DScheduler::getTiles(vector<Vec3i>& tiles, int zoom, int isdraw)
 {
 	tiles.clear();
+	if (_PRINT) {
+		printf("File:%s, Line:%d:  _eyeXYZ:%.2f,%.2f,%.2f, _center:%.2f,%.2f,%.2f\n", \
+			__FILE__, __LINE__, _eyeXYZ[0], _eyeXYZ[1], _eyeXYZ[2], _center[0], _center[1], _center[2]);
+	}
 	Vec3d pt = lineSegment_WGS84Ellipsoid_intersection(_eyeXYZ, _center);
-	///* ÓĞ½»µã¼ÌĞø¼ÆËãĞèÒª¼ÓÔØµÄÍßÆ¬Ë÷Òı£¬²¢·µ»Ø0*/
+	///* æœ‰äº¤ç‚¹ç»§ç»­è®¡ç®—éœ€è¦åŠ è½½çš„ç“¦ç‰‡ç´¢å¼•ï¼Œå¹¶è¿”å›0*/
 	Vec3d lonlat1;
 	OMGeoUtil::XYZ2lonLatHeight(lonlat1, pt);
 
@@ -873,13 +909,21 @@ int OM3DScheduler::getTiles(vector<Vec3i>& tiles, int zoom, int isdraw)
 		//if (displayStyle == 1)
 			//centerSearch(tiles, zoom - 1);
 		//else
-			centerSearch(tiles, zoom, isdraw);
+		if (_PRINT) {
+			printf("File:%s, Line:%d, Function:%s, enter centerSearch\n", \
+				__FILE__, __LINE__, __FUNCTION__);
+		}
+		centerSearch(tiles, zoom, isdraw);
 	}
-	else {                       //TODO:ÔİÎ´¶ÔquadtreeSearch½øĞĞisdrawÅĞ¶Ï
+	else {                       //TODO:æš‚æœªå¯¹quadtreeSearchè¿›è¡Œisdrawåˆ¤æ–­
 		//if (displayStyle == 1)
 			//quadtreeSearch(tiles, zoom - 1);
 		//else
-			quadtreeSearch(tiles, zoom);
+		if (_PRINT) {
+			printf("File:%s, Line:%d, Function:%s, enter quadtreeSearch\n", \
+				__FILE__, __LINE__, __FUNCTION__);
+		}
+		quadtreeSearch(tiles, zoom);
 	}
 
 
@@ -906,13 +950,17 @@ int OM3DScheduler::traverseSearch(vector<Vec3i>& tiles, int zoom)
 	}
 	return 0;
 }
-
+/*
+å››å‰æ ‘æœç´¢
+tiles: ç“¦ç‰‡é˜Ÿåˆ—
+zoom: ç¼©æ”¾ç­‰çº§
+*/
 int OM3DScheduler::quadtreeSearch(vector<Vec3i>& tiles, int zoom) {
 	queue<Vec3i> nodes;
 	Vec3d pt = lineSegment_WGS84Ellipsoid_intersection(_eyeXYZ_tmp, _center);
 
-	
-	
+
+
 	int level = 0;
 	float height = 5 * CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, level - 3);
 	_eye_tmp[2] = height;
@@ -920,7 +968,7 @@ int OM3DScheduler::quadtreeSearch(vector<Vec3i>& tiles, int zoom) {
 
 	updateFrustumForCalculation(-4.0 / 3 * CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, level - 3) + _offset[0], 4.0 / 3 * CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, level - 3) + _offset[0], -CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, level - 3) + _offset[1],
 		CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, level - 3) + _offset[1], height * 0.95, height * 0.95 + 2.5 * CGeoUtil::WGS_84_RADIUS_EQUATOR);
-	
+
 	if (isVisible(0, 0, 0))
 		nodes.push(Vec3i(0, 0, 0));
 	//_count++;
@@ -968,7 +1016,7 @@ int OM3DScheduler::quadtreeSearch(vector<Vec3i>& tiles, int zoom) {
 					//cout << child4[0] << " " << child4[1] << " " << child4[2] << " invisible" << endl;
 			}
 		}
-		
+
 		level++;
 
 		if (level > zoom)
@@ -979,23 +1027,40 @@ int OM3DScheduler::quadtreeSearch(vector<Vec3i>& tiles, int zoom) {
 
 bool OM3DScheduler::isValid(Vec3i tile, set<string>& processed, int zoom, int isdraw) {
 	// index invalid
-	if (tile[1] < 0 || tile[1] >= pow(2, zoom) || tile[2] < 0 || tile[2] >= pow(2, zoom)||tile[0] <= 0)
+	if (tile[1] < 0 || tile[1] >= pow(2, zoom) || tile[2] < 0 || tile[2] >= pow(2, zoom) || tile[0] <= 0)
+	{
 		return false;
+	}
+
+
 	// processed
 	//string index = to_string(tile[0]) + "." + to_string(tile[1]) + "." + to_string(tile[2]);
 	ostringstream ost_temp;//ost_temp.str("");
 	ost_temp << (tile[0]) << "." << (tile[1]) << "." << (tile[2]);
 	string index = ost_temp.str();
 	if (processed.find(index) != processed.end())
+	{
 		return false;
+	}
 
 	//_count++;
 	// invisible
 	if (!isTileVisible(tile[0], tile[1], tile[2], isdraw))
+	{
+		if (_PRINT)
+		{
+			printf("File:%s, Line:%d: tile %d.%d.%d invisible\n", \
+				__FILE__, __LINE__, tile[0], tile[1], tile[2]);
+		}
 		return false;
+	}
 	//if (!isVisible(tile[0], tile[1], tile[2], 4))
 	//	return false;
-
+	if (_PRINT)
+	{
+		printf("File:%s, Line:%d: tile %d.%d.%d valid\n", \
+			__FILE__, __LINE__, tile[0], tile[1], tile[2]);
+	}
 	return true;
 }
 
@@ -1003,7 +1068,7 @@ bool OM3DScheduler::isValidWithoutCull(Vec3i tile, set<string>& processed, int z
 	// index invalid
 	if (tile[1] < 0 || tile[1] >= pow(2, zoom) || tile[2] < 0 || tile[2] >= pow(2, zoom) || tile[0] <= 0)
 		return false;
-    ostringstream ost_temp;//ost_temp.str("");
+	ostringstream ost_temp;//ost_temp.str("");
 	ost_temp << (tile[0]) << "." << (tile[1]) << "." << (tile[2]);
 	string index = ost_temp.str();
 	//string index = to_string(tile[0]) + "." + to_string(tile[1]) + "." + to_string(tile[2]);
@@ -1011,7 +1076,14 @@ bool OM3DScheduler::isValidWithoutCull(Vec3i tile, set<string>& processed, int z
 		return false;
 	return true;
 }
-
+/*
+-è·å–å…«é‚»åŸŸç“¦ç‰‡
+-nodes: ç“¦ç‰‡é˜Ÿåˆ—
+-tile: å½“å‰ç“¦ç‰‡
+-processed: å·²å¤„ç†ç“¦ç‰‡é›†åˆ
+-zoom: ç¼©æ”¾ç­‰çº§
+-isdraw: æ˜¯å¦ç»˜åˆ¶
+-*/
 void OM3DScheduler::getEightConnectedTiles(queue<Vec3i>& nodes, Vec3i tile, set<string>& processed, int zoom, int isdraw) {
 	Vec3i tile1(tile[0], tile[1] - 1, tile[2] - 1);
 	Vec3i tile2(tile[0], tile[1], tile[2] - 1);
@@ -1044,7 +1116,7 @@ void OM3DScheduler::getEightConnectedTiles(queue<Vec3i>& nodes, Vec3i tile, set<
 	//string index = to_string(tile1[0]) + "." + to_string(tile1[1]) + "." + to_string(tile1[2]);
 	ostringstream ost_temp;//ost_temp.str("");
 	ost_temp << (tile1[0]) << "." << (tile1[1]) << "." << (tile1[2]);
-    string index = ost_temp.str();
+	string index = ost_temp.str();
 	processed.insert(index);
 	//index = to_string(tile2[0]) + "." + to_string(tile2[1]) + "." + to_string(tile2[2]);
 	ost_temp.str("");
@@ -1064,7 +1136,7 @@ void OM3DScheduler::getEightConnectedTiles(queue<Vec3i>& nodes, Vec3i tile, set<
 	//index = to_string(tile5[0]) + "." + to_string(tile5[1]) + "." + to_string(tile5[2]);
 	ost_temp.str("");
 	ost_temp << (tile5[0]) << "." << (tile5[1]) << "." << (tile5[2]);
-    index = ost_temp.str();
+	index = ost_temp.str();
 	processed.insert(index);
 	//index = to_string(tile6[0]) + "." + to_string(tile6[1]) + "." + to_string(tile6[2]);
 	ost_temp.str("");
@@ -1078,11 +1150,11 @@ void OM3DScheduler::getEightConnectedTiles(queue<Vec3i>& nodes, Vec3i tile, set<
 	processed.insert(index);
 	//index = to_string(tile8[0]) + "." + to_string(tile8[1]) + "." + to_string(tile8[2]);
 	ost_temp.str("");
-	ost_temp << (tile8[0]) << "." << (tile8[1]) << "." <<(tile8[2]);
+	ost_temp << (tile8[0]) << "." << (tile8[1]) << "." << (tile8[2]);
 	index = ost_temp.str();
 	processed.insert(index);
 #else
-    string index = to_string(tile1[0]) + "." + to_string(tile1[1]) + "." + to_string(tile1[2]);
+	string index = to_string(tile1[0]) + "." + to_string(tile1[1]) + "." + to_string(tile1[2]);
 	processed.insert(index);
 	index = to_string(tile2[0]) + "." + to_string(tile2[1]) + "." + to_string(tile2[2]);
 	processed.insert(index);
@@ -1101,7 +1173,7 @@ void OM3DScheduler::getEightConnectedTiles(queue<Vec3i>& nodes, Vec3i tile, set<
 #endif
 }
 
-void OM3DScheduler::getEightConnectedTilesWithoutCull(vector<Vec3i> &tiles, Vec3i tile, set<string>& processed, int zoom)
+void OM3DScheduler::getEightConnectedTilesWithoutCull(vector<Vec3i>& tiles, Vec3i tile, set<string>& processed, int zoom)
 {
 	Vec3i tile1(tile[0], tile[1] - 1, tile[2] - 1);
 	Vec3i tile2(tile[0], tile[1], tile[2] - 1);
@@ -1130,54 +1202,54 @@ void OM3DScheduler::getEightConnectedTilesWithoutCull(vector<Vec3i> &tiles, Vec3
 	if (isValidWithoutCull(tile8, processed, zoom))
 		tiles.push_back(tile8);
 
-    ostringstream ost_temp;//ost_temp.str("");
+	ostringstream ost_temp;//ost_temp.str("");
 	ost_temp << (tile1[0]) << "." << (tile1[1]) << "." << (tile1[2]);
 	string index = ost_temp.str();
 	//string index = to_string(tile1[0]) + "." + to_string(tile1[1]) + "." + to_string(tile1[2]);
 	processed.insert(index);
-    ost_temp.str("");
-    ost_temp << (tile2[0]) << "." << (tile2[1]) << "." << (tile2[2]);
+	ost_temp.str("");
+	ost_temp << (tile2[0]) << "." << (tile2[1]) << "." << (tile2[2]);
 	index = ost_temp.str();
 	//index = to_string(tile2[0]) + "." + to_string(tile2[1]) + "." + to_string(tile2[2]);
 	processed.insert(index);
-    ost_temp.str("");
-    ost_temp << (tile3[0]) << "." << (tile3[1]) << "." << (tile3[2]);
+	ost_temp.str("");
+	ost_temp << (tile3[0]) << "." << (tile3[1]) << "." << (tile3[2]);
 	index = ost_temp.str();
 	//index = to_string(tile3[0]) + "." + to_string(tile3[1]) + "." + to_string(tile3[2]);
 	processed.insert(index);
-    ost_temp.str("");
-    ost_temp << (tile4[0]) << "." << (tile4[1]) << "." << (tile4[2]);
+	ost_temp.str("");
+	ost_temp << (tile4[0]) << "." << (tile4[1]) << "." << (tile4[2]);
 	index = ost_temp.str();
 	//index = to_string(tile4[0]) + "." + to_string(tile4[1]) + "." + to_string(tile4[2]);
 	processed.insert(index);
-    ost_temp.str("");
-    ost_temp << (tile5[0]) << "." << (tile5[1]) << "." << (tile5[2]);
+	ost_temp.str("");
+	ost_temp << (tile5[0]) << "." << (tile5[1]) << "." << (tile5[2]);
 	index = ost_temp.str();
 	//index = to_string(tile5[0]) + "." + to_string(tile5[1]) + "." + to_string(tile5[2]);
 	processed.insert(index);
-    ost_temp.str("");
-    ost_temp << (tile6[0]) << "." << (tile6[1]) << "." << (tile6[2]);
+	ost_temp.str("");
+	ost_temp << (tile6[0]) << "." << (tile6[1]) << "." << (tile6[2]);
 	index = ost_temp.str();
 	//index = to_string(tile6[0]) + "." + to_string(tile6[1]) + "." + to_string(tile6[2]);
 	processed.insert(index);
-    ost_temp.str("");
-    ost_temp << (tile7[0]) << "." << (tile7[1]) << "." << (tile7[2]);
+	ost_temp.str("");
+	ost_temp << (tile7[0]) << "." << (tile7[1]) << "." << (tile7[2]);
 	index = ost_temp.str();
 	//index = to_string(tile7[0]) + "." + to_string(tile7[1]) + "." + to_string(tile7[2]);
 	processed.insert(index);
-    ost_temp.str("");
-    ost_temp << (tile8[0]) << "." << (tile8[1]) << "." << (tile8[2]);
+	ost_temp.str("");
+	ost_temp << (tile8[0]) << "." << (tile8[1]) << "." << (tile8[2]);
 	index = ost_temp.str();
 	//index = to_string(tile8[0]) + "." + to_string(tile8[1]) + "." + to_string(tile8[2]);
 	processed.insert(index);
 }
 
-int OM3DScheduler::centerSearchEn(vector<Vec3i>& tiles, int zoom,set<string> processed, int isdraw)
+int OM3DScheduler::centerSearchEn(vector<Vec3i>& tiles, int zoom, set<string> processed, int isdraw)
 {
-	
+
 	Vec3d pt1 = lineSegment_WGS84Ellipsoid_intersection(_eyeXYZ, _center);
 
-	///* ÓĞ½»µã¼ÌĞø¼ÆËãĞèÒª¼ÓÔØµÄÍßÆ¬Ë÷Òı£¬²¢·µ»Ø0*/
+	///* æœ‰äº¤ç‚¹ç»§ç»­è®¡ç®—éœ€è¦åŠ è½½çš„ç“¦ç‰‡ç´¢å¼•ï¼Œå¹¶è¿”å›0*/
 	Vec3d lonlat1;
 	OMGeoUtil::XYZ2lonLatHeight(lonlat1, pt1);
 
@@ -1193,7 +1265,7 @@ int OM3DScheduler::centerSearchEn(vector<Vec3i>& tiles, int zoom,set<string> pro
 		Vec3i node = nodes.front();
 		tiles.push_back(node);
 		nodes.pop();
-		
+
 		//_count++;
 		getEightConnectedTiles(nodes, node, processed, zoom, isdraw);
 	}
@@ -1205,25 +1277,22 @@ int OM3DScheduler::centerSearchEn(vector<Vec3i>& tiles, int zoom,set<string> pro
 
 int OM3DScheduler::centerSearch(vector<Vec3i>& tiles, int zoom, int isdraw)
 {
-	
-	Vec3d pt1 = lineSegment_WGS84Ellipsoid_intersection(_eyeXYZ, _center);
+	//pyan 0610 åˆ é™¤å†—ä½™
+	// Vec3d pt1 = lineSegment_WGS84Ellipsoid_intersection(_eyeXYZ, _center);
 
-	///* ÓĞ½»µã¼ÌĞø¼ÆËãĞèÒª¼ÓÔØµÄÍßÆ¬Ë÷Òı£¬²¢·µ»Ø0*/
-	Vec3d lonlat1;
-	OMGeoUtil::XYZ2lonLatHeight(lonlat1, pt1);
-	/*lonlat1[0]:longitude ¾­¶È£»lonlat1[1]:latitude:Î³¶È */
+	///* æœ‰äº¤ç‚¹ç»§ç»­è®¡ç®—éœ€è¦åŠ è½½çš„ç“¦ç‰‡ç´¢å¼•ï¼Œå¹¶è¿”å›0*/
+	// Vec3d lonlat1;
+	// OMGeoUtil::XYZ2lonLatHeight(lonlat1, pt1);
+
 	Vec2i centerIndex;
-	OMGeoUtil::deg2num(lonlat1, centerIndex, zoom);
+	OMGeoUtil::deg2num(_earthObservedCenter, centerIndex, zoom);//æ ¹æ®_earthObservedCenterç»çº¬åº¦å’Œzoomè½¬ç“¦ç‰‡ç´¢å¼•centerIndex
 	Vec3i tile(zoom, centerIndex[0], centerIndex[1]);
 
 	queue<Vec3i> nodes;
 
 	nodes.push(tile);
 	set<string> processed;
-	ostringstream ost_temp;//ost_temp.str("");
-	ost_temp << (tile[0]) << "." << (tile[1]) << "." << (tile[2]);
-	string index = ost_temp.str();
-	processed.insert(index);
+
 	while (!nodes.empty()) {
 		Vec3i node = nodes.front();
 		tiles.push_back(node);
@@ -1231,7 +1300,12 @@ int OM3DScheduler::centerSearch(vector<Vec3i>& tiles, int zoom, int isdraw)
 		//_count++;
 		getEightConnectedTiles(nodes, node, processed, zoom, isdraw);
 	}
-	//OMGeoUtil::deg2num(lonlat2, rightTop, _zoom);
 
+	//OMGeoUtil::deg2num(lonlat2, rightTop, _zoom);
+	if (_PRINT)
+	{
+		printf("File:%s, Line:%d: tiles size:%d\n", \
+			__FILE__, __LINE__, tiles.size());
+	}
 	return 0;
 }

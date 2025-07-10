@@ -16,6 +16,7 @@ public:
 	OM3DScheduler(Vec2d center);
 	~OM3DScheduler();
 
+	double orthoBase()const;
 	int zoom() const;
 	void setZoom(int zoom);
 	Recti tileBound() const;
@@ -86,10 +87,12 @@ private:
 	double _yaw ;
 	double _pitch ;
 	
-	OrthoFrustum _frustum;
+	OrthoFrustum _frustum;  //isdraw为true时用于判断的视锥体范围
 	OrthoFrustum _frustum_tmp;
-	double _frustum1[4];
-	double _frustum_tmp1[4];
+	double _frustum1[4]; //第一视角时视锥体范围
+	double _frustum_tmp1[4]; //实际用到的视锥体范围
+
+	double _ortho_base = CGeoUtil::WGS_84_RADIUS_EQUATOR / 2; //正交投影的基准距离
 
 	vector<string> _tiles;
 

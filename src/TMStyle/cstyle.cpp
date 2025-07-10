@@ -437,7 +437,7 @@ namespace TMStyle {
         if (data[0].compare("label") == 0)
             text->setLabel(data[1]);
         if (data[0].compare("font-family") == 0)
-            text->font()->setFont(data[1]);
+            text->font()->setFont("SIMHEI");
         if (data[0].compare("font-size") == 0)
             text->font()->setFontSize(atoi(data[1].c_str()));
         if (data[0].compare("font-style") == 0)

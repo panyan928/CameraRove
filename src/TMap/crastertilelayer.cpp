@@ -396,9 +396,8 @@ int CRasterTileLayer::addBuffer(vector<Vec3i> tiles, int zoom, BufferManager* ma
 				int index_t = 0; int index_v = 0; int index_color = 0;  int index_i = 0;
 				for (int i = 0; i < size; i++) {
 					for (int j = 0; j < size; j++) {
-
-						pt[0] = leftTop[0] + (j - 0) * span;
-						pt[1] = leftTop[1] - (i - 0) * span;
+							pt[0] = leftTop[0] + (j - 0) * span;
+							pt[1] = leftTop[1] - (i - 0) * span;					
 						double lat, lon;
 						CGeoUtil::WebMercator2lonLat(pt[0], pt[1], lat, lon);
 						if (height == 0x00)
