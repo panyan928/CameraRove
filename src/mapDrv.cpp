@@ -28,7 +28,7 @@ pthread_mutex_t g_mutex;
 #endif
 
 #ifdef WIN32
-OMap* _map = new OMap("D://pyan//map_wd_20250507//3d//map_jx.json");
+OMap* _map = new OMap("D://pyan//map_wd_20250507//3d//map.json");
 //OMap* _map = new OMap("./../data/map_night.json");
 //JSONLayer *queryLayer = new JSONLayer("./../data/jiangxi.geojson");
 #else//目前只适用于tm3
@@ -282,7 +282,7 @@ void Initial(void)
 {
 	//functionTest();                       //测试函数
     /*pyan 0625 注释，没用到，似乎drawEarth才用到*/
-    /*int interval = 4;
+    int interval = 4;
     int size = 256 / interval + 2;
     textures = new float[size * size * 2];
     int index_t = 0;
@@ -321,7 +321,8 @@ void Initial(void)
                 index_temp[index_i++] = (i - 1) * 49 + j;
             }
         }
-    }*/
+    }
+
     /*  initialize the fontRnder */
     //_render->initialize("./../data/fonts/");
     #ifdef WIN32
@@ -549,7 +550,7 @@ void myDisplay(void) {
     //cout << height << " " << CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, scale) << endl;
 
     // 根据调度计算的信息实时更新视景体
-#if 1
+
     if(_scheduler->_isFirstPerson){
         double fovy=100.0,  aspect=4.0 / 3,  zNear= 0,  zFar= height * 4;
         gluPerspective(fovy, aspect, zNear, zFar);
@@ -563,27 +564,17 @@ void myDisplay(void) {
     else{
         // 优化后：提取公共表达式，减少重复计算
         double ortho_base = _scheduler->orthoBase();
-        double left   = -1920.0/1080.0 * 2 * ortho_base + offset[0];
-        double right  = 1920.0 / 1080.0 * 2 * ortho_base + offset[0];
-        double bottom = -2.0 * ortho_base + offset[1];
-        double top    =  2.0 * ortho_base + offset[1];
+        double left   = -1920.0/1080.0 * 1.5 * ortho_base + offset[0];
+        double right  = 1920.0 / 1080.0 * 1.5 * ortho_base + offset[0];
+        double bottom = -1.5 * ortho_base + offset[1];
+        double top    = 1.5 * ortho_base + offset[1];
         double zNear  = -height * 1.5;
         double zFar   = height * 1 + CGeoUtil::WGS_84_RADIUS_EQUATOR;
 
         glOrtho(left, right, bottom, top, zNear, zFar);
         _scheduler->updateFrustum(left, right, bottom, top, zNear, zFar);
     }
-    
 
-#else
-    
-    glOrtho(-4.0 / 3 * CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - 3) + offset[0], 4.0 / 3 * CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - 3) + offset[0], -CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - 3) + offset[1],
-            CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - 3) + offset[1], height * 0.95, height * 0.95 + 2.5 * CGeoUtil::WGS_84_RADIUS_EQUATOR);
-    
-    _scheduler->updateFrustum(-4.0 / 3 * CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - 3) + offset[0], 4.0 / 3 * CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - 3) + offset[0], -CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - 3) + offset[1],
-        CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom - 3) + offset[1], height * 0.95, height * 0.95 + 2.5 * CGeoUtil::WGS_84_RADIUS_EQUATOR);
-    
-#endif
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     Vec3d eye = _scheduler->eyeXYZ();
@@ -611,12 +602,66 @@ void myDisplay(void) {
     //getBuffer(NULL);
     //drawText();
     //glutSwapBuffers();
-    glMatrixMode(GL_PROJECTION);
+    /*glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(0, 1024, 0, 768, -10.0, 10.0);
     glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    glLoadIdentity();*/
     //renderArray();
+}
+
+void Display2d(){
+    glClearColor(48 / 255.0, 168 / 255.0, 224 / 255.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT);        //用当前背景色填充窗口
+    
+    glEnable(GL_BLEND); //开混合模式贴图
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glMatrixMode(GL_PROJECTION);                    //指定设定投影参数
+    glLoadIdentity();
+
+    // 获取实时视点参数
+    _scheduler->compute();
+    int zoom = _scheduler->zoom();
+
+    double centerMercatorX = 0.0;
+    double centerMercatorY = 0.0;
+    
+    // 获取当前视口尺寸
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT, viewport);
+    int pixelWidth = viewport[2];
+    int pixelHeight = viewport[3];
+    
+
+    // 计算墨卡托单位的视口尺寸
+    double mercatorPerPixel = 2 * 20037508.34 / pow(2, zoom) / 256;
+    double viewportWidth = pixelWidth * mercatorPerPixel;
+    double viewportHeight = pixelHeight * mercatorPerPixel;
+
+    CGeoUtil::lonLat2WebMercator(25.271, 55.3, centerMercatorX, centerMercatorY);
+
+    // 优化后：提取公共表达式，减少重复计算
+    double left = centerMercatorX - viewportWidth / 2;
+    double right = centerMercatorX + viewportWidth  / 2;
+    double bottom = centerMercatorY - viewportHeight / 2;
+    double top = centerMercatorY + viewportHeight / 2;
+    glOrtho(left, right, bottom, top, -1.0, 1.0);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    // Vec3d eye = _scheduler->eyeXYZ();
+    // Vec3d center = _scheduler->center();
+    // Vec3d up = _scheduler->up();
+    //gluLookAt(eye[0], eye[1], eye[2], center[0], center[1], center[2], up[0], up[1], up[2]);
+
+     //drawRasters(4, 6, 7, 10, 11);
+    if (_map->isDoubleBufferLoaded)
+    {
+        _map->swapBuffer();
+        _map->isDoubleBufferLoaded = false;
+    }
+    _map->draw(); 
 }
 
 int isRotate = 0,rotateconut=0;
@@ -875,7 +920,7 @@ void drawRaster(int zoom, int row, int col) {
                 ostringstream ost_temp;//ost_temp.str("");
                 
                 #ifdef WIN32
-                    ost_temp << "./../data/raster/satellite/" << (zoom) << "/" << (col) << "/" << (row) << ".jpg";
+                    ost_temp << "D://pyan/map_wd_20221219/data/uae/" << (zoom) << "/" << (col) << "/" << (row) << ".jpg";
                 #else//目前只适用于tm3
                     ost_temp << "raster/satellite/" << (zoom) << "/" << (col) << "/" << (row) << ".jpg";
                 #endif
@@ -885,10 +930,12 @@ void drawRaster(int zoom, int row, int col) {
                 if (data) {
                     pImage = new Image(data, width * height, imIndex);
                     pImage->setInfo(height, width, nrChannels);
+                    cout << path << "open success" << endl;
                 }
 
                 else {
                     stbi_image_free(data);
+                    cout << path << "open failed" << endl;
                     return;
                 }
             }
@@ -899,18 +946,6 @@ void drawRaster(int zoom, int row, int col) {
 
                 int* index = new int[(size * size - 2 * size + 1) * 6];
 
-                //string hPath = "H:/trainer_map/data/jiangxi_height/" + to_string(zoom) + "." + to_string(row) + "." + to_string(col) + ".height";
-                ostringstream ost_temp;//ost_temp.str("");
-            	
-                #ifdef WIN32
-                    ost_temp << "./../data/jiangxi_height/" << (zoom) << "." << (row) << "." << (col) << ".height";
-                #else//目前只适用于tm3
-                    ost_temp << "jiangxi_height/" << (zoom) << "." << (row) << "." << (col) << ".height";
-                #endif
-            	string hPath = ost_temp.str();
-                int hSize = 0;
-                short int* height = openglEngine::OpenGLFileEngine::getHeightFromBinary<short int>(hPath.c_str(), hSize);
-
                 Vec2d leftTop, pt;
                 CGeoUtil::getTileLeftTop(zoom, col, row, leftTop[0], leftTop[1]);
                 double span = 2 * CGeoUtil::PI * CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom) / 256 * interval;
@@ -920,22 +955,15 @@ void drawRaster(int zoom, int row, int col) {
                 for (int i = 0; i < size; i++) {
                     for (int j = 0; j < size; j++) {
 
-                        pt[0] = leftTop[0] + (j - 1) * span;
-                        pt[1] = leftTop[1] - (i - 1) * span;
+                        pt[0] = leftTop[0] + j * span;
+                        pt[1] = leftTop[1] - i * span;
                         double lat, lon;
                         CGeoUtil::WebMercator2lonLat(pt[0], pt[1], lat, lon);
+                        CGeoUtil::lonLatHeight2XYZ(lon * CGeoUtil::PI / 180, lat * CGeoUtil::PI / 180, 0, x, y, z);
 
-                        if (height == 0x00)
-                            CGeoUtil::lonLatHeight2XYZ(lon * CGeoUtil::PI / 180, lat * CGeoUtil::PI / 180, 0, x, y, z);
-                        else {
-                            int h = 2 * height[i * size + j];
-                            CGeoUtil::lonLatHeight2XYZ(lon * CGeoUtil::PI / 180, lat * CGeoUtil::PI / 180, h, x, y, z);
-                        }
-                        vertices[index_v++] = x;
-                        vertices[index_v++] = y;
-                        vertices[index_v++] = z;
-
-
+                        vertices[index_v++] = pt[0];
+                        vertices[index_v++] = pt[1];
+                        vertices[index_v++] = 0.1;
 
                         if (i > 0 && j > 0) {
                             index[index_i++] = (i)*size + j;
@@ -951,11 +979,11 @@ void drawRaster(int zoom, int row, int col) {
 
                 pVertices = new Vertices(vertices, size * size, vIndex);
                 pIndex = new Index(index, (size * size - 2 * size + 1) * 6, iIndex);
-                pHeight = new Heights(height, size * size, hIndex);
+                //pHeight = new Heights(height, size * size, hIndex);
 
                 buffer->setData(pVertices, VERTICE);
                 buffer->setData(pIndex, INDEX);
-                buffer->setData(pHeight, HEIGHT);
+                //buffer->setData(pHeight, HEIGHT);
                 buffer->setData(pImage, IMAGE);
 
                 manager->insert(2, buffer, level2Index);
@@ -967,16 +995,14 @@ void drawRaster(int zoom, int row, int col) {
             }
         }
 
-        float* vertices = static_cast<float*>(pVertices->data());
+        float* _vertices = static_cast<float*>(pVertices->data());
         int* indexes = static_cast<int*>(pIndex->data());
         unsigned char* image = static_cast<unsigned char*>(pImage->data());
         int width, height1, nrChannels;
         pImage->getInfo(width, height1, nrChannels);
-        if (vertices && indexes)
-            openglEngine::OpenGLRenderEngine::drawRasters(vertices, textures, indexes, image, width, height1, nrChannels,
+        if (_vertices && indexes)
+            openglEngine::OpenGLRenderEngine::drawRasters(_vertices, textures, indexes, image, width, height1, nrChannels,
                 (size * size - 2 * size + 1) * 6);
-
-
     return ;
 }
 

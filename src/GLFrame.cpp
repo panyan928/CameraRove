@@ -281,6 +281,7 @@ int GLApplication::Main(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCm
 							m_LastTickCount = tickCount;				/**< 重新设置上一次，计数器的值 */						
 							
 							myDisplay();
+							//Display2d();									/**< 调用用户自定义的绘制函数 */
 							//drawText();
                             Draw();
 							renderFontArray();

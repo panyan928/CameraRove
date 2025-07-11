@@ -223,6 +223,8 @@ int OM3DScheduler::compute(int zoom, vector<Vec3i>& tiles)
 		/*pyan 0626 重复传入参数，这里注释掉*/
 		/*updateFrustumForCalculation(-4.0 / 3 * _ortho_base + _offset[0], 4.0 / 3 * _ortho_base + _offset[0], -_ortho_base + _offset[1],
 			_ortho_base + _offset[1], -height * 1.5, height * 1 + 1 * CGeoUtil::WGS_84_RADIUS_EQUATOR);*/
+		/*updateFrustumForCalculation(-1920.0 / 1080.0 * 1.5 * _ortho_base + _offset[0], 1920.0 / 1080.0 * 1.5 * _ortho_base + _offset[0], -1.5 * _ortho_base + _offset[1],
+			1.5 * _ortho_base + _offset[1], -height * 1.5, height * 1 + 1 * CGeoUtil::WGS_84_RADIUS_EQUATOR);*/
 	}
 
 	if (_PRINT) {

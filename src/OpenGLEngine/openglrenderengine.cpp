@@ -125,6 +125,78 @@ namespace openglEngine {
 	template<typename T>
 	int OpenGLRenderEngine::drawRasters(T* pts, T* texture_coor, int* index, unsigned char* image, int width, int height, int nrChannels, int pt_size)
 	{
+		if (pts == 0x00 || texture_coor == 0x00 || index == 0x00 || pt_size == 0 || image == 0x00)
+			return -1;
+		static std::list<GLuint> listTextures;
+		if (listTextures.size() >= 16) {			
+			glDeleteTextures(1, &(listTextures.back()));
+			listTextures.pop_back();
+		}
+
+		GLuint texture;
+
+		glEnable(GL_TEXTURE_2D);//å¯ç”¨çº¹ç†è´´å›¾
+		glDepthMask(GL_FALSE);//å…³æ‰æ·±åº¦æµ‹è¯•
+		glGenTextures(1, &texture);
+		listTextures.push_front(texture);
+		glBindTexture(GL_TEXTURE_2D, texture);
+		glEnable(GL_BLEND); //å¼€æ··åˆæ¨¡å¼è´´å›¾
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);// æŒ‡å®šæ··åˆæ¨¡å¼ç®—æ³•
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		if (nrChannels == 3)
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+		else
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+#if 1
+		glDisable(GL_DEPTH_TEST);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glEnableClientState(GL_VERTEX_ARRAY); //å¯ç”¨é¡¶ç‚¹æ•°ç»„
+
+		glTexCoordPointer(2, GL_FLOAT, 0, texture_coor);		
+		glVertexPointer(3, GL_FLOAT, 0, pts); //è®¾ç½®é¡¶ç‚¹æ•°ç»„å±æ€§
+		glDrawElements(GL_TRIANGLES, pt_size, GL_UNSIGNED_INT, index);//GL_TRIANGLES
+		//glDrawArrays(GL_TRIANGLES, 0, pt_size);
+		/*glBegin(GL_TRIANGLES);
+		for (int i = 0; i < pt_size; i++) {
+			glArrayElement(index[i]);
+		}
+		glEnd();*/
+		glDisableClientState(GL_VERTEX_ARRAY);
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+#else 
+		glDisable(GL_DEPTH_TEST);
+		glMatrixMode(GL_PROJECTION);
+		glPushMatrix();
+		glLoadIdentity();
+		glOrtho(0, 1024, 0, 768, -10.0, 10.0);
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+		glLoadIdentity();		
+		
+		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		glBegin(GL_QUADS);
+		glTexCoord2d(0.0, 0.0); glVertex2f(0.0, 0.0);
+		glTexCoord2d(1.0, 0.0); glVertex2f(200.0, 0.0);
+		glTexCoord2d(1.0, 1.0); glVertex2f(200.0, 200.0);
+		glTexCoord2d(0.0, 1.0); glVertex2f(0.0, 200.0);		
+		glEnd();
+
+		glMatrixMode(GL_PROJECTION);
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glPopMatrix();
+#endif
+		//glDeleteTextures(1, &texture);
+		glDisable(GL_TEXTURE_2D);
+		//glDisable(GL_CULL_FACE);
+		//glDisable(GL_BLEND);
+		glDepthMask(GL_TRUE);
+
+        //tCount += pt_size / 3;
+        //vCount += pt_size;		
 		return 0;
 	}
 
@@ -138,10 +210,10 @@ namespace openglEngine {
 		static int textureIndex = 0;
 		int i=0;
 
-		glEnable(GL_TEXTURE_2D);//ÆôÓÃÎÆÀíÌùÍ¼
-		glDepthMask(GL_FALSE);//¹ØµôÉî¶È²âÊÔ
+		glEnable(GL_TEXTURE_2D);//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¼
+		glDepthMask(GL_FALSE);//ï¿½Øµï¿½ï¿½ï¿½È²ï¿½ï¿½ï¿½
 
-		if (!Textures[0])/*³õÊ¼»¯*/
+		if (!Textures[0])/*ï¿½ï¿½Ê¼ï¿½ï¿½*/
 		{
 			glGenTextures(48, Textures);
 		}
@@ -167,8 +239,8 @@ namespace openglEngine {
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
 		}
 
-		glEnable(GL_BLEND); //¿ª»ìºÏÄ£Ê½ÌùÍ¼
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);// Ö¸¶¨»ìºÏÄ£Ê½Ëã·¨
+		glEnable(GL_BLEND); //ï¿½ï¿½ï¿½ï¿½ï¿½Ä£Ê½ï¿½ï¿½Í¼
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);// Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½Ä£Ê½ï¿½ã·¨
 		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -177,10 +249,10 @@ namespace openglEngine {
 
 		glDisable(GL_DEPTH_TEST);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glEnableClientState(GL_VERTEX_ARRAY); //ÆôÓÃ¶¥µãÊı×é
+		glEnableClientState(GL_VERTEX_ARRAY); //ï¿½ï¿½ï¿½Ã¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
 		glTexCoordPointer(2, GL_FLOAT, 0, texture_coor);
-		glVertexPointer(3, GL_FLOAT, 0, pts); //ÉèÖÃ¶¥µãÊı×éÊôĞÔ
+		glVertexPointer(3, GL_FLOAT, 0, pts); //ï¿½ï¿½ï¿½Ã¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		glDrawElements(GL_TRIANGLES, pt_size, GL_UNSIGNED_INT, index);//GL_TRIANGLES
 		//glDrawArrays(GL_TRIANGLES, 0, pt_size);
 		/*glBegin(GL_TRIANGLES);
@@ -214,10 +286,10 @@ namespace openglEngine {
 		static int textureIndex = 0;
 		int i=0;
 
-		glEnable(GL_TEXTURE_2D);//ÆôÓÃÎÆÀíÌùÍ¼
-		glDepthMask(GL_FALSE);//¹ØµôÉî¶È²âÊÔ
+		glEnable(GL_TEXTURE_2D);//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¼
+		glDepthMask(GL_FALSE);//ï¿½Øµï¿½ï¿½ï¿½È²ï¿½ï¿½ï¿½
 
-		if (!Textures[0])/*³õÊ¼»¯*/
+		if (!Textures[0])/*ï¿½ï¿½Ê¼ï¿½ï¿½*/
 		{
 			glGenTextures(48, Textures);
 		}
@@ -238,18 +310,18 @@ namespace openglEngine {
 			if (textureIndex == 48) textureIndex = 0;
 		}
 		glColor3f(1.0, 1.0, 1.0);
-		glEnable(GL_BLEND); //¿ª»ìºÏÄ£Ê½ÌùÍ¼
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);// Ö¸¶¨»ìºÏÄ£Ê½Ëã·¨
+		glEnable(GL_BLEND); //ï¿½ï¿½ï¿½ï¿½ï¿½Ä£Ê½ï¿½ï¿½Í¼
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);// Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½Ä£Ê½ï¿½ã·¨
 		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 		glDisable(GL_DEPTH_TEST);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glEnableClientState(GL_VERTEX_ARRAY); //ÆôÓÃ¶¥µãÊı×é
+		glEnableClientState(GL_VERTEX_ARRAY); //ï¿½ï¿½ï¿½Ã¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
 		glTexCoordPointer(2, GL_FLOAT, 0, texture_coor);
-		glVertexPointer(3, GL_FLOAT, 0, pts); //ÉèÖÃ¶¥µãÊı×éÊôĞÔ
+		glVertexPointer(3, GL_FLOAT, 0, pts); //ï¿½ï¿½ï¿½Ã¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #if 0
 		glDrawElements(GL_LINES, pt_size, GL_UNSIGNED_INT, index);//GL_TRIANGLES
 #else

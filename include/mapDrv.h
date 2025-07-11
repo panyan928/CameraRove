@@ -16,6 +16,7 @@ void drawFontE(float x,float y,char* a);
 void drawText(void) ;
 void myDisplay1(void);
 void myDisplay(void);
+void Display2d();
 void* romaFucn(void* args);
 void drawEarth(void);
 void drawEarth1(void);
@@ -23,5 +24,6 @@ void drawRaster(int zoom, int row, int col);
 void drawRasters(int zoom, int beginRow, int endRow, int beginCol, int endCol);
 void renderFontArray();
 void romaCreate();
+
 #endif
 

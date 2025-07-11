@@ -35,7 +35,7 @@ OMap::OMap(const char* path)
     _manager = 0x00;
     _manager_2 = 0x00;
     _layers.clear();
-    _display = 1;  // 0 nothing, 1 vector, 2 raster, 3 all
+    _display = 2;  // 0 nothing, 1 vector, 2 raster, 3 all
     lastDisplay=_display;
     isViewChanged = true;
     lastZoom = 0;

@@ -398,21 +398,21 @@ int CRasterTileLayer::addBuffer(vector<Vec3i> tiles, int zoom, BufferManager* ma
 					for (int j = 0; j < size; j++) {
 							pt[0] = leftTop[0] + (j - 0) * span;
 							pt[1] = leftTop[1] - (i - 0) * span;					
-						double lat, lon;
-						CGeoUtil::WebMercator2lonLat(pt[0], pt[1], lat, lon);
-						if (height == 0x00)
-							CGeoUtil::lonLatHeight2XYZ(lon * CGeoUtil::PI / 180, lat * CGeoUtil::PI / 180, 0, x, y, z);
-						else {
-							//int h = 0 * height[i * size * 2 + j * 2];
-							int h = 2 * height[i * size + j];
-							CGeoUtil::lonLatHeight2XYZ(lon * CGeoUtil::PI / 180, lat * CGeoUtil::PI / 180, h, x, y, z);
-						}
-						float h1;
-						if (height == 0x00)
-							h1 = -999999;
-						else
-							//h1 = height[i * size * 2 + j * 2];
-							h1 = height[i * size + j];
+						 double lat, lon;
+						 CGeoUtil::WebMercator2lonLat(pt[0], pt[1], lat, lon);
+						 if (height == 0x00)
+						 	CGeoUtil::lonLatHeight2XYZ(lon * CGeoUtil::PI / 180, lat * CGeoUtil::PI / 180, 0, x, y, z);
+						 else {
+						 	//int h = 0 * height[i * size * 2 + j * 2];
+						 	int h = 2 * height[i * size + j];
+						 	CGeoUtil::lonLatHeight2XYZ(lon * CGeoUtil::PI / 180, lat * CGeoUtil::PI / 180, h, x, y, z);
+						 }
+						 float h1 = -999999;
+						 if (height == 0x00)
+						 	h1 = -999999;
+						 else
+						 	//h1 = height[i * size * 2 + j * 2];
+						 	h1 = height[i * size + j];
 						
 						vertices[index_v++] = x;
 						vertices[index_v++] = y;
@@ -447,11 +447,11 @@ int CRasterTileLayer::addBuffer(vector<Vec3i> tiles, int zoom, BufferManager* ma
 				pVertices = new Vertices(vertices, size * size, vIndex);
 				pColors = new Vertices(colors, size * size, cIndex);
 				pIndex = new Index(index, index_num, iIndex);
-				pHeight = new Heights(height, size * size, hIndex);
+				// pHeight = new Heights(height, size * size, hIndex);
 				buffer->setData(pColors, COLOR);
 				buffer->setData(pVertices, VERTICE);
 				buffer->setData(pIndex, INDEX);
-				buffer->setData(pHeight, HEIGHT);
+				// buffer->setData(pHeight, HEIGHT);
 				buffer->setData(pImage, IMAGE);
 				//buffer->setData(texture, TEXTURE);
 				manager->insert(2, buffer, level2Index);
