@@ -42,6 +42,7 @@ OMap* _map = new OMap("D:\\map_tm.json");
 JTFONT hzFont[2];
 CFontRender* render = new CFontRender(1920, 1080);
 OM3DScheduler* _scheduler = _map->getOrCreate3DScheduler();
+OMScheduler* _scheduler2d = _map->getOrCreateScheduler();   
 BufferManager* manager = _map->getOrCreateBufferManager();
 CScheduler* _nScheduler = _map->getOrCreateNScheduler();
 
@@ -562,6 +563,7 @@ void myDisplay(void) {
     #endif
     }
     else{
+        //CGeoUtil::lonLat2WebMercator(_scheduler->eye()[1], _scheduler->eye()[0], offset[0], offset[1]);
         // 优化后：提取公共表达式，减少重复计算
         double ortho_base = _scheduler->orthoBase();
         double left   = -1920.0/1080.0 * 1.5 * ortho_base + offset[0];
@@ -570,7 +572,7 @@ void myDisplay(void) {
         double top    = 1.5 * ortho_base + offset[1];
         double zNear  = -height * 1.5;
         double zFar   = height * 1 + CGeoUtil::WGS_84_RADIUS_EQUATOR;
-
+        
         glOrtho(left, right, bottom, top, zNear, zFar);
         _scheduler->updateFrustum(left, right, bottom, top, zNear, zFar);
     }
@@ -611,6 +613,10 @@ void myDisplay(void) {
 }
 
 void Display2d(){
+    //GLint textureNum;
+	//glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &textureNum); //获取当前视口尺寸
+	//cout << "当前视口支持的纹理单元数量：" << textureNum << endl;
+
     glClearColor(48 / 255.0, 168 / 255.0, 224 / 255.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);        //用当前背景色填充窗口
     
@@ -621,11 +627,11 @@ void Display2d(){
     glLoadIdentity();
 
     // 获取实时视点参数
-    _scheduler->compute();
-    int zoom = _scheduler->zoom();
-
-    double centerMercatorX = 0.0;
-    double centerMercatorY = 0.0;
+    _scheduler2d->compute();
+    int zoom = _scheduler2d->zoom();
+    Vec2d center = _scheduler2d->center(); //地图中心点，即视点
+    // 获取旋转角度（以弧度为单位）
+    double rotationRad = _scheduler2d->getRotation() * M_PI / 180.0;
     
     // 获取当前视口尺寸
     GLint viewport[4];
@@ -639,13 +645,11 @@ void Display2d(){
     double viewportWidth = pixelWidth * mercatorPerPixel;
     double viewportHeight = pixelHeight * mercatorPerPixel;
 
-    CGeoUtil::lonLat2WebMercator(25.271, 55.3, centerMercatorX, centerMercatorY);
-
     // 优化后：提取公共表达式，减少重复计算
-    double left = centerMercatorX - viewportWidth / 2;
-    double right = centerMercatorX + viewportWidth  / 2;
-    double bottom = centerMercatorY - viewportHeight / 2;
-    double top = centerMercatorY + viewportHeight / 2;
+    double left = center[0] - viewportWidth / 2;
+    double right = center[0] + viewportWidth  / 2;
+    double bottom = center[1] - viewportHeight / 2;
+    double top = center[1] + viewportHeight / 2;
     glOrtho(left, right, bottom, top, -1.0, 1.0);
 
     glMatrixMode(GL_MODELVIEW);
@@ -855,7 +859,7 @@ void drawEarth() {
     }
    else
     {
-        std::cout << "Failed to load texture" << std::endl;
+        cout << "Failed to load texture" << std::endl;
    }
     stbi_image_free(data);
 

@@ -42,6 +42,17 @@ public:
         this->vTail->pre = this->vHead;
     }
 
+    void clear(){  
+        while (this->vHead->next != this->vTail) {
+            ListNode<Key, Value>* node = this->vHead->next;
+            this->vHead->next = node->next;
+            node->next->pre = this->vHead;
+            this->_map.erase(node->key);
+            delete node;
+        }
+        this->_size = 0;
+     }
+
     Value get(Key key) {
         typename map<Key, ListNode<Key, Value>*>::iterator iter = this->_map.find(key);
         if (iter != this->_map.end()) {

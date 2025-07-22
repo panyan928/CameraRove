@@ -8,12 +8,12 @@
 #endif
 #include <set>
 
-//�򿪻���TIN����
+//�򿪻���TIN����
 #if 0
 #define TIN 1
 #endif
-
-//这个暂时没用�?
+using namespace std;
+//这个暂时没用�?
 OMap::OMap(string path)
 {
 	_scheduler = 0x00;
@@ -73,9 +73,9 @@ OMap::~OMap()
 }
 
 /**
- * @brief 初始化地�?
- * @details 根据map.json中的配置信息初始化地图，主要包括：地图中心�?
- * 缩放等级、地图图层以及其它可变配�?
+ * @brief 初始化地�?
+ * @details 根据map.json中的配置信息初始化地图，主要包括：地图中心�?
+ * 缩放等级、地图图层以及其它可变配�?
  * @param path map.json 配置路径
 */
 int OMap::initialMap(string path)
@@ -84,8 +84,8 @@ int OMap::initialMap(string path)
 //        chdir("D:\\");
 //#endif
     
-    long len=0;//�ļ�����
-    char* content;//�ļ�����
+    long len=0;//�ļ�����
+    char* content;//�ļ�����
     FILE* ifs = fopen(path.c_str(), "r");
     if (!ifs)
     {
@@ -126,6 +126,9 @@ int OMap::initialMap(string path)
     //调度的初始化在后面坐做了非空检查，这里删了也没事，缺少center参数
     _3dScheduler = new OM3DScheduler(center);
     _3dScheduler->setZoom(zoom);
+
+    _scheduler = new OMScheduler((int)zoom, center);
+
     //load layers
     int size = mapRoot["layers"].size();
     for (int i = 0; i < size; i++) {
@@ -204,33 +207,18 @@ int OMap::getBuffer() {
     BufferManager* manager = getOrCreate2ndBufferManager();
     BufferManager* managerF = getOrCreateBufferManager();
     vector<Vec3i> highTiles,lowTiles,nearTiles;
-    int zoom = scheduler->zoom();
     
-    scheduler->compute(int(zoom), nearTiles);
-    /*if( (isBreak) || (lastDisplay != _display) || (lastZoom!=zoom)||( !isSameTiles(nearTiles,lastNearTiles) )){
-        lastNearTiles=nearTiles;
-        lastZoom=zoom;
-        isBreak = 0;
-        isBreak2=0;//�����ȼ������������isBreak2=1��״̬
-        lastDisplay=_display;
+    //scheduler->compute(int(zoom), nearTiles);
+    OMScheduler* scheduler2d = getOrCreateScheduler();
+    int zoom = scheduler2d->zoom();
+    
+    int ret = scheduler2d->getTiles(nearTiles, zoom);
+    cout << "buffer size: " << manager->size() << endl;
+    if((manager->size() + ret ) >= 1000){
+        cout << "buffer size is too large, clear buffer" << endl;
+        //manager->clear();
     }
-    else if(isBreak2){
-        ;//��Ϊ����Ҫ�õ�isBreak2�����ﲻ��isBreak2=0;
-    }
-    else{
-        cout << "nearTiles==lastNearTiles" << endl;
-        #ifdef WIN32
-            Sleep(100);
-        #else
-            taskDelay(500);
-        #endif
-        
-        return 0;
-    } */
-
-    //if(!isBreak2)
     {
-        //�����isBreak2���µ�,������stage 1���������ڴ�
         for (int i = 0; i < _layers.size(); i++) {
             if (!_layers[i]->isVisible())
                 continue;
@@ -256,10 +244,8 @@ int OMap::getBuffer() {
         isBreak = 0;
         isDoubleBufferLoaded = true;
         cout<<"get buffer stage 1"<<endl;
-        while (isDoubleBufferLoaded); 
-
-        
-    } 
+        while (isDoubleBufferLoaded);     
+    }
 #if 0
     int len = nearTiles.size();
     set<string> processed;
@@ -272,8 +258,9 @@ int OMap::getBuffer() {
     }
     scheduler->computeWider(int(zoom), nearTiles,processed);
 #else
-    scheduler->computeWider(int(zoom), nearTiles);
+    //scheduler->computeWider(int(zoom), nearTiles);
     //scheduler->computeWider(nearTiles);
+    scheduler2d->getTilesBuffer(nearTiles, zoom);
 #endif
     for (int i = 0; i < _layers.size(); i++) {
         if (!_layers[i]->isVisible())
@@ -300,8 +287,10 @@ int OMap::getBuffer() {
     cout<<"get buffer stage 2-1"<<endl;
 
 
-    scheduler->compute(int(zoom + 1), highTiles);
-    scheduler->compute(int(zoom - 1), lowTiles);
+    // scheduler->compute(int(zoom + 1), highTiles);
+    // scheduler->compute(int(zoom - 1), lowTiles);
+    scheduler2d->getTilesBuffer(lowTiles, zoom-1);
+    scheduler2d->getTilesBuffer(highTiles, zoom+1);
     for (int i = 0; i < _layers.size(); i++) {
         if (!_layers[i]->isVisible())
             continue;
@@ -339,36 +328,22 @@ int OMap::getBuffer() {
 }
 int OMap::draw()
 {
-
+    OMScheduler* scheduler2d = getOrCreateScheduler();
     OM3DScheduler* scheduler = getOrCreate3DScheduler();
     BufferManager* manager = getOrCreateBufferManager();
     BufferManager* managerH = getOrCreate2ndBufferManager();
     vector<Vec3i> tiles;
-    //这个zoom可以控制清晰度进而控制渲染效�?
-    int zoom = scheduler->zoom();
-    scheduler->getTiles(tiles, zoom,1);
+    //这个zoom可以控制清晰度进而控制渲染效�?
+    //int zoom = scheduler->zoom();
+    // scheduler->getTiles(tiles, zoom,1);
+    int zoom = scheduler2d->zoom();
+    scheduler2d->getTiles(tiles, zoom);
 
     int state = 0;
     int len = _layers.size();
     for (int i = 0; i < len; i++) {
         if (!_layers[i]->isVisible())
             continue;
-        
-        //if (_display == 3) {
-        //    
-        //    if (_layers[i]->geometryType().size() == 0) {
-        //        state = _layers[i]->draw(tiles, zoom, manager);
-        //    }
-        //    else {
-        //        if (state == 0) {
-        //            if (_layers[i]->geometryType().compare("polygon") != 0)
-        //                _layers[i]->draw(tiles, zoom, manager);
-        //        }
-        //        else
-        //            _layers[i]->draw(tiles, zoom, manager);
-        //    }
-
-        //}
         if ((_display == 2 || _display == 3) && _layers[i]->geometryType().size() == 0)
         {
 #ifdef TIN
@@ -384,28 +359,28 @@ int OMap::draw()
   
 
     
-    /******************采用独立坐标系统**************************/
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-    glOrtho(-1.0, 1.0, 1.0, -1.0, 0.0, 10.0);
+    // /******************采用独立坐标系统**************************/
+    // glMatrixMode(GL_PROJECTION);
+    // glPushMatrix();
+    // glLoadIdentity();
+    // glOrtho(-1.0, 1.0, 1.0, -1.0, 0.0, 10.0);
 
-    glMatrixMode(GL_MODELVIEW);
-    //glPushMatrix();
-    glLoadIdentity();
-    gluLookAt(0, 0, 1, 0, 0, 0, 0, 1, 0);
+    // glMatrixMode(GL_MODELVIEW);
+    // //glPushMatrix();
+    // glLoadIdentity();
+    // gluLookAt(0, 0, 1, 0, 0, 0, 0, 1, 0);
 
-    glEnable(GL_BLEND);
-    glColor4f(0.0, 0.0, 0.0, 1 - _brightness / 100.0);
-    glBegin(GL_POLYGON);
-    glVertex3f(-1, 1, 0);
-    glVertex3f(1, 1, 0);
-    glVertex3f(1, -1, 0);
-    glVertex3f(-1, -1, 0);
-    glEnd();
+    // glEnable(GL_BLEND);
+    // glColor4f(0.0, 0.0, 0.0, 1 - _brightness / 100.0);
+    // glBegin(GL_POLYGON);
+    // glVertex3f(-1, 1, 0);
+    // glVertex3f(1, 1, 0);
+    // glVertex3f(1, -1, 0);
+    // glVertex3f(-1, -1, 0);
+    // glEnd();
 
-    glPopMatrix();
-    glDisable(GL_BLEND);
+    // glPopMatrix();
+    // glDisable(GL_BLEND);
 
     return 0;
 }

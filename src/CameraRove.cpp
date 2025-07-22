@@ -7,57 +7,58 @@
 
 #define MY_PI 3.14159F
 extern OM3DScheduler* _scheduler;
+extern OMScheduler* _scheduler2d;
 extern OMap* _map;
 float angle = 0.0;
 //extern textRender::CFontRender* _render;
 extern JTFONT hzFont[2];
 
-/** ´´½¨Ò»¸ö³ÌĞòµÄÊµÀı */
+/** åˆ›å»ºä¸€ä¸ªç¨‹åºçš„å®ä¾‹ */
 GLApplication * GLApplication::Create(const char * class_name)
 {
 	CameraRove * test = new CameraRove(class_name);
 	return reinterpret_cast<GLApplication *>(test);
 }
 
-/** ¹¹Ôìº¯Êı */
+/** æ„é€ å‡½æ•° */
 CameraRove::CameraRove(const char * class_name) : GLApplication(class_name)
 {
 	calcDist2Step();
-	//³õÊ¼»¯ÓÃ»§×Ô¶¨ÒåµÄ³ÌĞò±äÁ¿
+	//åˆå§‹åŒ–ç”¨æˆ·è‡ªå®šä¹‰çš„ç¨‹åºå˜é‡	
 	//m_readTerrain = new ReadTerrainData();
 	m_Fps = 0;
 	currPatchID = 0;
 }
 
-/** ³õÊ¼»¯OpenGL */
+/** åˆå§‹åŒ–OpenGL */
 bool CameraRove::Init()									
 {		
-	ResizeDraw(true);	   /**< ¸Ä±äOpenGL´°¿Ú´óĞ¡£¬Ö±½Óµ÷ÓÃ×ÓÀàµÄº¯Êı true*/
+	ResizeDraw(true);	   /**< æ”¹å˜OpenGLçª—å£å¤§å°ï¼Œç›´æ¥è°ƒç”¨å­ç±»çš„å‡½æ•° true*/
 
 	m_Timer = 0;	
 	//glFlush();
-	return true;    /**< ³É¹¦·µ»Ø */
+	return true;    /**< æˆåŠŸè¿”å› */
 }
 
 #define TIME 100
-/** ÓÃ»§×Ô¶¨ÒåµÄĞ¶ÔØº¯Êı */
+/** ç”¨æˆ·è‡ªå®šä¹‰çš„å¸è½½å‡½æ•° */
 void CameraRove::Uninit()									
 {
-	/** ÓÃ»§×Ô¶¨ÒåµÄĞ¶ÔØ¹ı³Ì */
-	//m_Texture.FreeImage();              /** ÊÍ·ÅÎÆÀíÍ¼ÏñÕ¼ÓÃµÄÄÚ´æ */
-	//glDeleteTextures(1, &m_Texture.ID); /**< É¾³ıÎÆÀí¶ÔÏó */
+	/** ç”¨æˆ·è‡ªå®šä¹‰çš„å¸è½½è¿‡ç¨‹ */
+	//m_Texture.FreeImage();              /** é‡Šæ”¾çº¹ç†å›¾åƒå ç”¨çš„å†…å­˜ */
+	//glDeleteTextures(1, &m_Texture.ID); /**< åˆ é™¤çº¹ç†å¯¹è±¡ */
 
 }
 
-/** ¸üĞÂÉãÏñ»ú */
+/** æ›´æ–°æ‘„åƒæœº */
 void CameraRove::UpdateCamera()
 {
 //	m_Camera.setViewByMouse();
 	static int isFPV = 0;
 	char filename[16];	 
 	
-	/** ¼üÅÌ°´¼üÏìÓ¦ */
-	if(m_Keys.IsPressed(VK_SHIFT))                      /**< °´ÏÂSHIFT¼üÊ±¼ÓËÙ */
+	/** é”®ç›˜æŒ‰é”®å“åº” */
+	if(m_Keys.IsPressed(VK_SHIFT))                      /**< æŒ‰ä¸‹SHIFTé”®æ—¶åŠ é€Ÿ */
 	{
 		m_Camera.setSpeed(100.0f);
 	}
@@ -65,50 +66,56 @@ void CameraRove::UpdateCamera()
 	{
 		m_Camera.setSpeed(2.0f);
 	}
-	if (m_Keys.IsPressed(VK_UP) || m_Keys.IsPressed('W'))   /**< ÏòÉÏ·½Ïò¼ü»ò'W'¼ü°´ÏÂ */
+	if (m_Keys.IsPressed(VK_UP) || m_Keys.IsPressed('W'))   /**< å‘ä¸Šæ–¹å‘é”®æˆ–'W'é”®æŒ‰ä¸‹ */
 	{
 		m_Keys.SetReleased(VK_UP);
 		m_Keys.SetReleased('W');
-		if(!_scheduler->pan(4))
+		if(!_scheduler2d->pan(4))
 			_map->isViewChanged = true;
+		//_scheduler2d->pan(4);
 		Sleep(TIME);
 	}
-	else if (m_Keys.IsPressed(VK_DOWN) || m_Keys.IsPressed('S')) /**< ÏòÏÂ·½Ïò¼ü»ò'S'¼ü°´ÏÂ */
+	else if (m_Keys.IsPressed(VK_DOWN) || m_Keys.IsPressed('S')) /**< å‘ä¸‹æ–¹å‘é”®æˆ–'S'é”®æŒ‰ä¸‹ */
 	{
 		m_Keys.SetReleased(VK_DOWN);
 		m_Keys.SetReleased('S');
-		if (!_scheduler->pan(2))
+		if (!_scheduler2d->pan(2))
 			_map->isViewChanged = true;
+		//_scheduler2d->pan(2);
 		Sleep(TIME);
 	}
-	else if (m_Keys.IsPressed(VK_LEFT) || m_Keys.IsPressed('A')) /**< Ïò×ó·½Ïò¼ü»ò'A'¼ü°´ÏÂ */
+	else if (m_Keys.IsPressed(VK_LEFT) || m_Keys.IsPressed('A')) /**< å‘å·¦æ–¹å‘é”®æˆ–'A'é”®æŒ‰ä¸‹ */
 	{
 		m_Keys.SetReleased(VK_LEFT);
 		m_Keys.SetReleased('A');
-		if (!_scheduler->pan(1))
+		if (!_scheduler2d->pan(1))
 			_map->isViewChanged = true;
+		//_scheduler2d->pan(1);
 		Sleep(TIME);
 	}
-	else if (m_Keys.IsPressed(VK_RIGHT) || m_Keys.IsPressed('D')) /**< ÏòÓÒ·½Ïò¼ü»ò'D'¼ü°´ÏÂ */
+	else if (m_Keys.IsPressed(VK_RIGHT) || m_Keys.IsPressed('D')) /**< å‘å³æ–¹å‘é”®æˆ–'D'é”®æŒ‰ä¸‹ */
 	{
 		m_Keys.SetReleased(VK_RIGHT);
 		m_Keys.SetReleased('D');
-		if (!_scheduler->pan(3))
+		if (!_scheduler2d->pan(3))
 			_map->isViewChanged = true;
+		//_scheduler2d->pan(3);
 		Sleep(TIME);
 	}
 	else if (m_Keys.IsPressed('N'))
 	{
 		m_Keys.SetReleased('N');
-		if (!_scheduler->zoomIn())
-			_map->isViewChanged = true;		
+		_scheduler2d->zoomIn();
+			_map->isViewChanged = true;
+		//_scheduler2d->zoomIn();
 		Sleep(TIME);
 	}		
 	else if (m_Keys.IsPressed('M'))
 	{
 		m_Keys.SetReleased('M');
-		if (!_scheduler->zoomOut())
+		_scheduler2d->zoomOut();
 			_map->isViewChanged = true;
+		//_scheduler2d->zoomOut();
 		Sleep(TIME);
 	}		
 	//else if (m_Keys.IsPressed('I'))
@@ -126,14 +133,14 @@ void CameraRove::UpdateCamera()
 			_map->setDislpay(1);
 			_map->isViewChanged = true;
 		}	
-		//Ãæ
+		//ï¿½ï¿½
 		_map->turnOnLayer(1);
 		_map->turnOnLayer(4);
 		_map->turnOnLayer(5);
 		_map->turnOnLayer(9);
 		_map->turnOnLayer(10);
 		_map->turnOnLayer(11);
-		//Ïß
+		//ï¿½ï¿½
 		_map->turnOnLayer(2);
 		_map->turnOnLayer(6);
 		_map->turnOnLayer(7);
@@ -161,14 +168,14 @@ void CameraRove::UpdateCamera()
 			_map->setDislpay(3);
 			_map->isViewChanged = true;
 		}
-		//Ãæ
+		//ï¿½ï¿½
 		_map->turnOffLayer(1);
 		_map->turnOffLayer(4);
 		_map->turnOffLayer(5);
 		_map->turnOffLayer(9);
 		_map->turnOffLayer(10);
 		_map->turnOffLayer(11);
-		//Ïß
+		//ï¿½ï¿½
 		_map->turnOffLayer(2);
 		_map->turnOffLayer(6);
 		_map->turnOffLayer(7);
@@ -186,6 +193,7 @@ void CameraRove::UpdateCamera()
 		//angle += 1;
 		if(!_scheduler->rotate(1))
 			_map->isViewChanged = true;
+		_scheduler2d->rotate(1);
 		Sleep(TIME);
 	}
 	else if (m_Keys.IsPressed('P'))
@@ -194,6 +202,7 @@ void CameraRove::UpdateCamera()
 		//angle -= 1;
 		if(!_scheduler->rotate(-1))
 			_map->isViewChanged = true;
+		_scheduler2d->rotate(-1);
 		Sleep(TIME);
 	}	
 	/*else if (m_Keys.IsPressed('C')) 
@@ -318,7 +327,7 @@ void CameraRove::UpdateCamera()
 	}*/
 }
 
-/** ¸üĞÂ·É»úÄ£ĞÍÎ»ÖÃ*/
+/** æ›´æ–°é£æœºæ¨¡å‹ä½ç½®*/
 void CameraRove::updateModelPos()
 {
 	if(m_Timer <= 500){
@@ -330,7 +339,7 @@ void CameraRove::updateModelPos()
 		planePos.y = 1245603.1 + (m_Timer/500.0 * 5724.0);
 	}
 
-	//***¸üĞÂÆäËû·É»úÎ»ÖÃ
+	//***æ›´æ–°å…¶ä»–é£æœºä½ç½®
 	samplePlanePos[0].x = 572449.2f+1000.0f*cos(2*MY_PI*0.1*m_Timer/30.0);
 	samplePlanePos[0].y = 1252000.0f+200.0f*sin(2*MY_PI*0.1*m_Timer/30.0);
 	samplePlanePos[0].z = 500.0f;
@@ -340,42 +349,42 @@ void CameraRove::updateModelPos()
 	samplePlanePos[1].z = 800.0f;
 }
 
-/** ³ÌĞò¸üĞÂº¯Êı */
+/** ç¨‹åºæ›´æ–°å‡½æ•° */
 void CameraRove::Update(DWORD milliseconds)						
 {
 
-	if (m_Keys.IsPressed(VK_ESCAPE) == true){					/**< °´ESCÍË³ö */
+	if (m_Keys.IsPressed(VK_ESCAPE) == true){					/**< ï¿½ï¿½ESCï¿½Ë³ï¿½ */
 		TerminateApplication();									
 	}
-	if (m_Keys.IsPressed(VK_F1) == true){					/**< °´F1ÔÚ´°¿ÚºÍÈ«ÆÁ¼äÇĞ»» */
+	if (m_Keys.IsPressed(VK_F1) == true){					/**< ï¿½ï¿½F1ï¿½Ú´ï¿½ï¿½Úºï¿½È«ï¿½ï¿½ï¿½ï¿½ï¿½Ğ»ï¿½ */
 		ToggleFullscreen();									
 	}
 	UpdateCamera();
 }
 
-/** ¼ÆËãÖ¡ËÙ */
+/** è®¡ç®—å¸§é€Ÿ */
 void CameraRove::CaculateFrameRate(){
-	static float framesPerSecond    = 0.0f;	     /**< ±£´æÏÔÊ¾Ö¡Êı */	
-    static float lastTime			= 0.0f;	     /**< ¼ÇÂ¼ÉÏ´ÎÊ±¼ä */						
-    float currentTime = GetTickCount() * 0.001f; /**< »ñµÃµ±Ç°Ê±¼ä */	 			
+	static float framesPerSecond    = 0.0f;	     /**< ä¿å­˜æ˜¾ç¤ºå¸§æ•° */	
+    static float lastTime			= 0.0f;	     /**< è®°å½•ä¸Šæ¬¡æ—¶é—´ */						
+    float currentTime = GetTickCount() * 0.001f; /**< è·å¾—å½“å‰æ—¶é—´ */	 			
 
-	++framesPerSecond;                           /**< ÏÔÊ¾Ö¡ÊıµİÔö1 */
-    /** Èç¹ûÊ±¼ä²î´óÓÚ1.0Ãë */
+	++framesPerSecond;                           /**< æ˜¾ç¤ºå¸§æ•°é€’å¢1 */
+    /** å¦‚æœæ—¶é—´å·®å¤§äº1.0ç§’ */
 	if( currentTime - lastTime > 1.0f )          
     {
-	    lastTime = currentTime;                   /**< ±£´æµ±Ç°Ê±¼ä */
-		m_Fps = framesPerSecond;                  /**< µ±Ç°Ö¡Êı´«¸øm_Fps */
-        framesPerSecond = 0;                      /**< ½«Ö¡ÊıÖÃÁã */                    
+	    lastTime = currentTime;                   /**< ä¿å­˜å½“å‰æ—¶é—´ */
+		m_Fps = framesPerSecond;                  /**< å½“å‰å¸§æ•°ä¼ ç»™m_Fps */
+        framesPerSecond = 0;                      /**< å°†å¸§æ•°ç½®é›¶ */                    
     }
 }
-/** Êä³öÎÄ×ÖĞÅÏ¢ */
+/** è¾“å‡ºæ–‡å­—ä¿¡æ¯ */
 void CameraRove::PrintText()
 {	
 
-	//Êä³öÖ¡ËÙ
+	//è¾“å‡ºå¸§é€Ÿ
 	char a[30];
 	CaculateFrameRate();
-    sprintf(a,"Ö¡ÂÊFPS:%3.0f", m_Fps);
+    sprintf(a,"å¸§ç‡FPS:%3.0f", m_Fps);
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -388,12 +397,12 @@ void CameraRove::PrintText()
 	//oglfSetFontSize(hzFont[1], 24);
 	oglfDrawString(hzFont[1], 30.0, 750.0, (const unsigned char*)a, FONT_JUST_HLEFT, FONT_JUST_VTOP);
 
-    memset(a,0,30);
-    sprintf(a,"zoom=%d", _scheduler->zoom());
+    memset(a, 0, 30);
+    sprintf(a,"zoom = %d", _scheduler2d->zoom());
     oglfDrawString(hzFont[1], 30.0, 730.0, (const unsigned char*)a, FONT_JUST_HLEFT, FONT_JUST_VTOP);
 	//renderArray();
 #if 0
-	//²âÊÔÎÄ¼ş¶ÁÈ¡»æÖÆ
+	//æµ‹è¯•æ–‡ä»¶è¯»å–ç»˜åˆ¶
 	ifstream infile;
 	infile.open("5.18.26.anno", std::ifstream::binary);
 	if (!infile) {
@@ -408,7 +417,7 @@ void CameraRove::PrintText()
 	char temp[50];
 	memset(temp, 0, 50);
 	memset(buffer, 0, 50);
-	// ¶ÁÈ¡¶ş½øÖÆÊı¾İ 
+	// è¯»å–äºŒè¿›åˆ¶æ•°æ® 
 	infile.read(const_cast<char*>(temp), len);
 
 	int des_len = 0;
@@ -420,35 +429,35 @@ void CameraRove::PrintText()
 
 
 
-/** »æÖÆÍø¸ñµØÃæ */
+/** ç»˜åˆ¶ç½‘æ ¼åœ°é¢ */
 void CameraRove::DrawGrid()
 {
-    /** »ñµÃ³¡¾°ÖĞÒ»Ğ©×´Ì¬  */
+    /** è·å¾—åœºæ™¯ä¸­ä¸€äº›çŠ¶æ€  */
 	GLboolean  lp,tp;
 	glGetBooleanv(GL_LIGHTING,&lp);  
 	glGetBooleanv(GL_TEXTURE_2D,&tp);
 	
-	/** ¹Ø±ÕÎÆÀíºÍ¹âÕÕ */
+	/** å…³é—­çº¹ç†å’Œå…‰ç…§ */
 	glDisable(GL_TEXTURE_2D);
     glDisable(GL_LIGHTING);
 	
-	/** »æÖÆ¹ı³Ì */
-	glPushAttrib(GL_CURRENT_BIT);   /**< ±£´æµ±Ç°ÊôĞÔ */
-    glPushMatrix();                 /**< Ñ¹Èë¶ÑÕ» */
+	/** ç»˜åˆ¶è¿‡ç¨‹ */
+	glPushAttrib(GL_CURRENT_BIT);   /**< ä¿å­˜å½“å‰å±æ€§ */
+    glPushMatrix();                 /**< å‹å…¥å †æ ˆ */
 	glTranslatef(0.0f,0.0f,0.0f);  
-	glColor3f(0.0f, 0.0f, 1.0f);    /**< ÉèÖÃÑÕÉ« */
+	glColor3f(0.0f, 0.0f, 1.0f);    /**< è®¾ç½®é¢œè‰² */
 
-	/** ÔÚX,ZÆ½ÃæÉÏ»æÖÆÍø¸ñ */
+	/** åœ¨X,Zå¹³é¢ä¸Šç»˜åˆ¶ç½‘æ ¼ */
 	for(float i = -5000; i <= 5000; i += 100)
 	{
-		/** »æÖÆÏß */
+		/** ç»˜åˆ¶çº¿ */
 		glBegin(GL_LINES);
 
-		    /** XÖá·½Ïò */
+		    /** Xè½´æ–¹å‘ */
 			glVertex3f(-5000, 0, i);
 			glVertex3f(5000, 0, i);
 
-			/** ZÖá·½Ïò */
+			/** Zè½´æ–¹å‘ */
 			glVertex3f(i, 0, -5000);
 			glVertex3f(i, 0, 5000);
 
@@ -457,17 +466,17 @@ void CameraRove::DrawGrid()
 	glPopMatrix();
 	glPopAttrib();
 	
-	/** »Ö¸´³¡¾°×´Ì¬ */
+	/** æ¢å¤åœºæ™¯çŠ¶æ€ */
 	if(tp)
 	  glEnable(GL_TEXTURE_2D);
 	if(lp)
       glEnable(GL_LIGHTING);
 }
 
-/** »æÖÆÇòÌå */
+/** ç»˜åˆ¶çƒä½“ */
 void CameraRove::DrawSphere()
 {
-	//ÉèÖÃ²ÄÖÊÊôĞÔ
+	//è®¾ç½®æè´¨å±æ€§
 	GLfloat mat_ambient[] = { 0.9f, 0.5f, 0.8f, 1.0f };
     GLfloat mat_diffuse[] = { 0.9f, 0.5f, 0.8f, 1.0f };
 	GLfloat mat_shininess[] = { 100.0f };
@@ -475,12 +484,12 @@ void CameraRove::DrawSphere()
     glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
 	glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
     
-	//»ñµÃÎÆÀíÆôÓÃ×´Ì¬
+	//è·å¾—çº¹ç†å¯ç”¨çŠ¶æ€
 	GLboolean tp;
 	glGetBooleanv(GL_TEXTURE_2D,&tp);
-    glDisable(GL_TEXTURE_2D);                   /**< ¹Ø±ÕÎÆÀí */
+    glDisable(GL_TEXTURE_2D);                   /**< å…³é—­çº¹ç† */
     
-	//»æÖÆ¹ı³Ì
+	//ç»˜åˆ¶è¿‡ç¨‹
 	glPushMatrix();
     glTranslatef(-5.0f,2.0f,-10.0f);
     GLUquadricObj * sphere = gluNewQuadric();
@@ -490,16 +499,16 @@ void CameraRove::DrawSphere()
 	gluDeleteQuadric(sphere);
     glPopMatrix();
     
-	//»Ö¸´×´Ì¬
+	//æ¢å¤çŠ¶æ€
 	if(tp)
 	   glEnable(GL_TEXTURE_2D);
 	
 }
 
-/** »æÖÆÄ¾Ïä */
+/** ç»˜åˆ¶æœ¨ç®± */
 void CameraRove::DrawBox()
 {
-	// ÉèÖÃ²ÄÖÊÊôĞÔ
+	// è®¾ç½®æè´¨å±æ€§
 	GLfloat mat_ambient[] = { 0.8f, 0.8f, 0.8f, 1.0f };
     GLfloat mat_diffuse[] = { 0.8f, 0.8f, 0.8f, 1.0f };
     glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
@@ -509,49 +518,49 @@ void CameraRove::DrawBox()
 	glTranslatef(5.0f,2.0f,-10.0f);
 	glScalef(2.0f,2.0f,2.0f);
 	
-	// Ñ¡ÔñÎÆÀí 
+	// é€‰æ‹©çº¹ç† 
 	//glBindTexture(GL_TEXTURE_2D, m_Texture.ID);
 	
-	// ¿ªÊ¼»æÖÆËÄ±ßĞÎ 
+	// å¼€å§‹ç»˜åˆ¶å››è¾¹å½¢ 
 	glBegin(GL_QUADS);												
 		
-	    /// Ç°²àÃæ
-		glNormal3f( 0.0f, 0.0f, 1.0f);								/**< Ö¸¶¨·¨ÏßÖ¸Ïò¹Û²ìÕß */
+	    /// å‰ä¾§é¢
+		glNormal3f( 0.0f, 0.0f, 1.0f);								/**< æŒ‡å®šæ³•çº¿æŒ‡å‘è§‚å¯Ÿè€… */
 		glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f, -1.0f,  1.0f);	
 		glTexCoord2f(1.0f, 0.0f); glVertex3f( 1.0f, -1.0f,  1.0f);	
 		glTexCoord2f(1.0f, 1.0f); glVertex3f( 1.0f,  1.0f,  1.0f);	
 		glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f,  1.0f,  1.0f);	
 		
-		/// ºó²àÃæ
-		glNormal3f( 0.0f, 0.0f,-1.0f);								/**< Ö¸¶¨·¨Ïß±³Ïò¹Û²ìÕß */
+		/// åä¾§é¢
+		glNormal3f( 0.0f, 0.0f,-1.0f);								/**< æŒ‡å®šæ³•çº¿èƒŒå‘è§‚å¯Ÿè€… */
 		glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, -1.0f, -1.0f);	
 		glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f,  1.0f, -1.0f);	
 		glTexCoord2f(0.0f, 1.0f); glVertex3f( 1.0f,  1.0f, -1.0f);	
 		glTexCoord2f(0.0f, 0.0f); glVertex3f( 1.0f, -1.0f, -1.0f);	
 		
-		/// ¶¥Ãæ
-		glNormal3f( 0.0f, 1.0f, 0.0f);								/**< Ö¸¶¨·¨ÏßÏòÉÏ */
+		/// é¡¶é¢
+		glNormal3f( 0.0f, 1.0f, 0.0f);								/**< æŒ‡å®šæ³•çº¿å‘ä¸Š */
 		glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f,  1.0f, -1.0f);	
 		glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f,  1.0f,  1.0f);	
 		glTexCoord2f(1.0f, 0.0f); glVertex3f( 1.0f,  1.0f,  1.0f);	
 		glTexCoord2f(1.0f, 1.0f); glVertex3f( 1.0f,  1.0f, -1.0f);	
 		
-		/// µ×Ãæ
-		glNormal3f( 0.0f,-1.0f, 0.0f);								/**< Ö¸¶¨·¨Ïß³¯ÏÂ */
+		/// åº•é¢
+		glNormal3f( 0.0f,-1.0f, 0.0f);								/**< æŒ‡å®šæ³•çº¿æœä¸‹ */
 		glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f, -1.0f, -1.0f);	
 		glTexCoord2f(0.0f, 1.0f); glVertex3f( 1.0f, -1.0f, -1.0f);	
 		glTexCoord2f(0.0f, 0.0f); glVertex3f( 1.0f, -1.0f,  1.0f);	
 		glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, -1.0f,  1.0f);	
 		
-		/// ÓÒ²àÃæ
-		glNormal3f( 1.0f, 0.0f, 0.0f);								/**< Ö¸¶¨·¨Ïß³¯ÓÒ */
+		/// å³ä¾§é¢
+		glNormal3f( 1.0f, 0.0f, 0.0f);								/**< æŒ‡å®šæ³•çº¿æœå³ */
 		glTexCoord2f(1.0f, 0.0f); glVertex3f( 1.0f, -1.0f, -1.0f);	
 		glTexCoord2f(1.0f, 1.0f); glVertex3f( 1.0f,  1.0f, -1.0f);	
 		glTexCoord2f(0.0f, 1.0f); glVertex3f( 1.0f,  1.0f,  1.0f);	
 		glTexCoord2f(0.0f, 0.0f); glVertex3f( 1.0f, -1.0f,  1.0f);	
 		
-		/// ×ó²àÃæ
-		glNormal3f(-1.0f, 0.0f, 0.0f);								/**< Ö¸¶¨·¨Ïß³¯×ó */
+		/// å·¦ä¾§é¢
+		glNormal3f(-1.0f, 0.0f, 0.0f);								/**< æŒ‡å®šæ³•çº¿æœå·¦ */
 		glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f, -1.0f, -1.0f);	
 		glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, -1.0f,  1.0f);	
 		glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f,  1.0f,  1.0f);	
@@ -561,7 +570,7 @@ void CameraRove::DrawBox()
 }
 
 void CameraRove::DrawAirport(){
-	// ÉèÖÃ²ÄÖÊÊôĞÔ
+	// è®¾ç½®æè´¨å±æ€§
 	glPushMatrix();
 	
 	GLfloat mat_ambient[] = { 0.8f, 0.8f, 0.8f, 1.0f };
@@ -572,48 +581,48 @@ void CameraRove::DrawAirport(){
 	glTranslatef(572460.0f - 1548.1f, 1251150.0f, 40.0f);
 	//glScalef(2.0f,2.0f,2.0f);
 
-	// Ñ¡ÔñÎÆÀí 
+	// é€‰æ‹©çº¹ç† 
 	//glBindTexture(GL_TEXTURE_2D, m_Texture.ID);
 
-	// ¿ªÊ¼»æÖÆËÄ±ßĞÎ 
+	// å¼€å§‹ç»˜åˆ¶å››è¾¹å½¢ 
 	glBegin(GL_QUADS);
 
-	/// Ç°²àÃæ
-	glNormal3f( 0.0f, 1.0f, 0.0f);								/**< Ö¸¶¨·¨ÏßÖ¸Ïò¹Û²ìÕß */
+	/// å‰ä¾§é¢
+	glNormal3f( 0.0f, 1.0f, 0.0f);								/**< æŒ‡å®šæ³•çº¿æŒ‡å‘è§‚å¯Ÿè€… */
 	glVertex3f(0.0f, 2000.0f, 120.0f);	
 	glVertex3f(2000.0f, 2000.0f, 120.0f);	
 	glVertex3f(2000.0f, 2000.0f, 0.0f);	
 	glVertex3f(0.0f, 2000.0f, 0.0f);	
 
-	/// ºó²àÃæ
-	glNormal3f(0.0f, -1.0f, 0.0f);								/**< Ö¸¶¨·¨Ïß±³Ïò¹Û²ìÕß */
+	/// åä¾§é¢
+	glNormal3f(0.0f, -1.0f, 0.0f);								/**< æŒ‡å®šæ³•çº¿èƒŒå‘è§‚å¯Ÿè€… */
 	glVertex3f(0.0f, 0.0f, 120.0f);	
 	glVertex3f(2000.0f, 0.0f, 120.0f);	
 	glVertex3f(2000.0f, 0.0f, 0.0f);	
 	glVertex3f(0.0f, 0.0f, 0.0f);		
 
-	glNormal3f( 0.0f, 0.0f, 1.0f);								/**< Ö¸¶¨·¨ÏßÏòÉÏ */
+	glNormal3f( 0.0f, 0.0f, 1.0f);								/**< æŒ‡å®šæ³•çº¿å‘ä¸Š */
 	glTexCoord2f(0.0f, 1.0f); glVertex3f(0.0f, 2000.0f, 120.0f);	
 	glTexCoord2f(0.0f, 0.0f); glVertex3f(0.0f, 0.0f, 120.0f);	
 	glTexCoord2f(1.0f, 0.0f); glVertex3f(2000.0f, 1.0f, 120.0f);	
 	glTexCoord2f(1.0f, 1.0f); glVertex3f(2000.0f, 2000.0f, 120.0f);	
 	
-	/// µ×Ãæ
-	//glNormal3f( 0.0f, 0.0f, -1.0f);								/**< Ö¸¶¨·¨Ïß³¯ÏÂ */
+	/// åº•é¢
+	//glNormal3f( 0.0f, 0.0f, -1.0f);								/**< æŒ‡å®šæ³•çº¿æœä¸‹ */
 	//glVertex3f(0.0f, 2000.0f, 120.0f);	
 	//glVertex3f(0.0f, 0.0f, 120.0f);	
 	//glVertex3f(2000.0f, 1.0f, 120.0f);	
 	//glVertex3f(2000.0f, 2000.0f, 120.0f);	
 
-	/// ÓÒ²àÃæ
-	glNormal3f( 1.0f, 0.0f, 0.0f);								/**< Ö¸¶¨·¨Ïß³¯ÓÒ */
+	/// å³ä¾§é¢
+	glNormal3f( 1.0f, 0.0f, 0.0f);								/**< æŒ‡å®šæ³•çº¿æœå³ */
 	glVertex3f( 0.0f, 0.0f, 120.0f);	
 	glVertex3f( 0.0f, 2000.0f, 120.0f);	
 	glVertex3f( 0.0f, 2000.0f, 0.0f);	
 	glVertex3f( 0.0f, 0.0f,  0.0f);	
 
-	/// ×ó²àÃæ
-	glNormal3f(-1.0f, 0.0f, 0.0f);								/**< Ö¸¶¨·¨Ïß³¯×ó */
+	/// å·¦ä¾§é¢
+	glNormal3f(-1.0f, 0.0f, 0.0f);								/**< æŒ‡å®šæ³•çº¿æœå·¦ */
 	glVertex3f( 2000.0f, 0.0f, 120.0f);	
 	glVertex3f( 2000.0f, 2000.0f, 120.0f);	
 	glVertex3f( 2000.0f, 2000.0f, 0.0f);	
@@ -666,7 +675,7 @@ Camera & CameraRove::getCamera(int i)
 {
 	return m_grabCamera[i];
 }
-/** »æÖÆº¯Êı */
+/** ç»˜åˆ¶å‡½æ•° */
 void CameraRove::Draw()											
 {
     PrintText();				    
@@ -763,7 +772,7 @@ void CameraRove::grabBuf(GLubyte * pInnerData, int innerWidth, int innerHeight)
 	GLubyte  BMP_Header[54];
 	GLint    PixelDataLength;
 
-	// ¼ÆËãÏñËØÊı¾İµÄÊµ¼Ê³¤¶È
+	// è®¡ç®—åƒç´ æ•°æ®çš„å®é™…é•¿åº¦
 	GLint windowWidth = m_Window.GetWidth();
 	GLint windowHeight = m_Window.GetHeight();
 	GLint lineLen = windowWidth * 3;
@@ -772,7 +781,7 @@ void CameraRove::grabBuf(GLubyte * pInnerData, int innerWidth, int innerHeight)
 	
 	PixelDataLength = lineLen * windowHeight;
 
-	// ·ÖÅäÄÚ´æºÍ´ò¿ªÎÄ¼ş
+	// åˆ†é…å†…å­˜å’Œæ‰“å¼€æ–‡ä»¶
 	pPixelData = (GLubyte*)malloc(PixelDataLength);
 	if( pPixelData == 0 )
 		exit(0);
@@ -785,7 +794,7 @@ void CameraRove::grabBuf(GLubyte * pInnerData, int innerWidth, int innerHeight)
 	if( pWritingFile == 0 )
 		exit(0);
 
-	// ¶ÁÈ¡ÏñËØ
+	// è¯»å–åƒç´ 
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 	glReadPixels(0, 0, windowWidth, windowHeight,
 		GL_BGR_EXT, GL_UNSIGNED_BYTE, pPixelData);
@@ -816,7 +825,7 @@ void CameraRove::grabBuf(GLubyte * pInnerData, int innerWidth, int innerHeight)
 
 	glDrawPixels(windowWidth, windowHeight, GL_BGR_EXT, GL_UNSIGNED_BYTE, pPixelData);
 	
-	// °Ñdummy.bmpµÄÎÄ¼şÍ·¸´ÖÆÎªĞÂÎÄ¼şµÄÎÄ¼şÍ·
+	// æŠŠdummy.bmpçš„æ–‡ä»¶å¤´å¤åˆ¶ä¸ºæ–°æ–‡ä»¶çš„æ–‡ä»¶å¤´
 	fread(BMP_Header, sizeof(BMP_Header), 1, pDummyFile);
 	fwrite(BMP_Header, sizeof(BMP_Header), 1, pWritingFile);
 	fseek(pWritingFile, 0x0012, SEEK_SET);
@@ -825,11 +834,11 @@ void CameraRove::grabBuf(GLubyte * pInnerData, int innerWidth, int innerHeight)
 	fwrite(&i, sizeof(i), 1, pWritingFile);
 	fwrite(&j, sizeof(j), 1, pWritingFile);
 
-	// Ğ´ÈëÏñËØÊı¾İ
+	// å†™å…¥åƒç´ æ•°æ®
 	fseek(pWritingFile, 0, SEEK_END);
 	fwrite(pPixelData, PixelDataLength, 1, pWritingFile);
 
-	// ÊÍ·ÅÄÚ´æºÍ¹Ø±ÕÎÄ¼ş
+	// é‡Šæ”¾å†…å­˜å’Œå…³é—­æ–‡ä»¶
 	fclose(pDummyFile);
 	fclose(pWritingFile);
 	free(pPixelData);
@@ -844,7 +853,7 @@ void CameraRove :: getGrabCamera(Camera & refCamera)
 
 	Vector3 n = ref - eye;
 
-	//ºóÏò
+	//åå‘
 	m_grabCamera[BACK_FACE].m_Position = eye;
 	m_grabCamera[BACK_FACE].m_View = eye*2.0f - ref;
 	m_grabCamera[BACK_FACE].m_UpVector = refCamera.m_UpVector;
@@ -1086,4 +1095,3 @@ GLbyte *gltLoadTGA(const char *szFileName, GLint *iWidth, GLint *iHeight, GLint 
     // Return pointer to image data
     return pBits;
 	}
-

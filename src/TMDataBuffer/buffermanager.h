@@ -25,7 +25,9 @@ public:
 	BufferManager();
 	BufferManager(int _2_level_capacity);
 	virtual ~BufferManager();
+	void clear();
 
+	int size();
 	void setCapacity(int level2, int level3);
 	int insert(int level, void* data, string index);
 	void remove(int level, string index);

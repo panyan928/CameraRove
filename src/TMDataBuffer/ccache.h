@@ -35,10 +35,11 @@ protected:
     ListNode<Key, Value>* vHead;
     ListNode<Key, Value>* vTail;
     int _capacity;
-    int _size;
+    
     map<Key, ListNode<Key, Value>*> _map;
 
 public:
+    int _size;
     virtual Value get(Key key) = 0;
     virtual void put(Key key, Value value) = 0;
 };

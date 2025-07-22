@@ -41,6 +41,14 @@ BufferManager::~BufferManager()
 	//_3_level_buffer = 0x00;
 }
 
+int BufferManager::size(){
+	return _2_level_buffer->_size;
+}
+
+void BufferManager::clear(){
+	_2_level_buffer->clear();
+}
+
 void BufferManager::setCapacity(int level2, int level3)
 {
 	//_2_level_buffer->setCapacity(level2);

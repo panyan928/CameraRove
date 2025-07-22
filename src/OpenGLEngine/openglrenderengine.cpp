@@ -210,8 +210,8 @@ namespace openglEngine {
 		static int textureIndex = 0;
 		int i=0;
 
-		glEnable(GL_TEXTURE_2D);//����������ͼ
-		glDepthMask(GL_FALSE);//�ص���Ȳ���
+		glEnable(GL_TEXTURE_2D);//启用纹理贴图
+		glDepthMask(GL_FALSE);//关掉深度测试
 
 		if (!Textures[0])/*��ʼ��*/
 		{
@@ -239,8 +239,8 @@ namespace openglEngine {
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
 		}
 
-		glEnable(GL_BLEND); //�����ģʽ��ͼ
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);// ָ�����ģʽ�㷨
+		glEnable(GL_BLEND); //开混合模式贴图
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);// 指定混合模式算法
 		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -249,10 +249,10 @@ namespace openglEngine {
 
 		glDisable(GL_DEPTH_TEST);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glEnableClientState(GL_VERTEX_ARRAY); //���ö�������
+		glEnableClientState(GL_VERTEX_ARRAY); //启用顶点数组
 
 		glTexCoordPointer(2, GL_FLOAT, 0, texture_coor);
-		glVertexPointer(3, GL_FLOAT, 0, pts); //���ö�����������
+		glVertexPointer(3, GL_FLOAT, 0, pts); //设置顶点数组属性
 		glDrawElements(GL_TRIANGLES, pt_size, GL_UNSIGNED_INT, index);//GL_TRIANGLES
 		//glDrawArrays(GL_TRIANGLES, 0, pt_size);
 		/*glBegin(GL_TRIANGLES);

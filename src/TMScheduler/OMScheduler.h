@@ -12,28 +12,38 @@ class OMScheduler
 {
 public:
 	OMScheduler();
-	OMScheduler(float zoom, Vec2d center) : _zoom(zoom), _center(center) {};
+	OMScheduler(int zoom, Vec2d center);
 
 	virtual ~OMScheduler();
-
-	float zoom() const;
+	Vec2d center()const;
+	int zoom() const;
 	Recti tileBound() const;
 	Rectd windowRect() const;
+	double getRotation() const;
 
 	int compute();
 	
-	int updateMapParameter(Vec2d center, float zoom);
+	int updateMapParameter(Vec2d center, int zoom);
 
 	int zoomIn();
 	int zoomOut();
-
+	
 	int pan(int direction);
+	int rotate(double angle);
+
+
+	int getTiles(vector<Vec3i>& tiles, int zoom);
+	int getTilesBuffer(vector<Vec3i>& tiles, int zoom);
+	bool isTileVisible(int zoom, int col, int row);
 
 private:
 	Recti _tileBound;
 	Rectd _windowRect;
-	float _zoom;
+	int _zoom;
 	Vec2d _center;
+	double _rotationAngle=0.0;
+
+	int isSameTiles();
 };
 
 #endif
