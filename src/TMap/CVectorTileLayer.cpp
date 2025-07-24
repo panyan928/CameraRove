@@ -1,6 +1,7 @@
+#include <sstream>
+#include <iomanip>
 #include "CVectorTileLayer.h"
 #include "sqlite/sqlite3.h"
-#include <sstream>
 
 CVectorTileLayer::CVectorTileLayer()
 {
@@ -375,7 +376,7 @@ int CVectorTileLayer::drawPolygon(int zoom, int col, int row, BufferManager* man
 	style->fill(0)->getColor()->colorRGB(r, g, b);
 	Color color(255 * r, 255 * g, 255 * b, 255);
 
-    // 锟斤拷锟秸讹拷锟斤拷锟斤拷锟斤拷-->锟斤拷锟斤拷锟斤拷锟斤拷-->锟斤拷锟斤拷顺锟斤拷锟斤拷锟斤拷锟斤拷锟?
+    // 锟斤拷锟秸�?�拷锟斤拷锟斤拷锟斤�?-->锟斤拷锟斤拷锟斤拷锟斤拷-->锟斤拷锟斤拷顺锟斤拷锟斤拷锟斤拷锟斤拷锟?
     //string tileIndex = to_string(zoom) + "." + to_string(row) + "." + to_string((col % (int)pow(2, zoom)));
     ostringstream ost_temp;//ost_temp.str("");
 	ost_temp << (zoom) << "." << (row) << "." << ((col % (int)pow(2, zoom)));
@@ -578,7 +579,7 @@ int CVectorTileLayer::drawPoint(int zoom, int col, int row, BufferManager* manag
 {
 	CStyle* style = getOrCreateStyle();
 
-	// 锟斤拷锟秸讹拷锟斤拷锟斤拷锟斤拷-->锟斤拷锟斤拷锟斤拷锟斤拷-->锟斤拷锟斤拷顺锟斤拷锟斤拷锟斤拷锟斤拷锟?
+	// 锟斤拷锟秸�?�拷锟斤拷锟斤拷锟斤�?-->锟斤拷锟斤拷锟斤拷锟斤拷-->锟斤拷锟斤拷顺锟斤拷锟斤拷锟斤拷锟斤拷锟?
 	//string tileIndex = to_string(zoom) + "." + to_string(row) + "." + to_string((col % (int)pow(2, zoom)));
     ostringstream ost_temp;//ost_temp.str("");
 	ost_temp << (zoom) << "." << (row) << "." << ((col % (int)pow(2, zoom)));
@@ -619,7 +620,7 @@ int CVectorTileLayer::drawPoint(int zoom, int col, int row, BufferManager* manag
 		int size_render = vertices->size();
 		_amount += size_render;
 		float* pts_render = static_cast<float*>(vertices->data());
-		//TODO("鍔犱竴涓猄ymbol鐨勮矾寰勫湪閰嶇疆鏂囦欢)
+		//TODO("鍔犱竴涓猄ymbol鐨勮矾�?�勫�?閰嶇疆鏂囦�??)
 		#ifdef WIN32
             string symbolPath = "./../data/mbtiles-jiangxi/symbols/" + layerName() + ".jpg";
         #else//Ŀǰֻ������tm3
@@ -771,6 +772,21 @@ int CVectorTileLayer::addPolygonBuffer(int zoom, int col, int row, BufferManager
 	//float* pts = openglEngine::OpenGLFileEngine::getVerticesFromDB<float>(db, zoom, row, col, CGeoUtil::Proj::WGS84, 2, size);
 	float* pts = openglEngine::OpenGLFileEngine::getVerticesFromBinary<float>(path.c_str(), CGeoUtil::WGS84, 2, size);
 	if (pts) {
+		cout << tileIndex << endl;
+		for (int i = 0; i < size / 3; i++) {
+			cout << fixed << setprecision(4) << "XYZ: " << pts[i * 3] << " " << pts[i * 3 + 1] << " " << pts[i * 3 + 2] << " " << endl;
+			Vec2d LonLat;
+			double height, X, Y;
+			CGeoUtil::XYZToLatLongHeight(pts[i*3], pts[i*3+1], pts[i*3+2], LonLat[1], LonLat[0], height);
+			LonLat[1] = LonLat[1] * 180 / CGeoUtil::PI;
+			LonLat[0] = LonLat[0] * 180 / CGeoUtil::PI;
+			
+			CGeoUtil::lonLat2WebMercator(LonLat[1], LonLat[0], X, Y);
+			pts[i*3] = X;
+			pts[i*3+1] = Y;
+			pts[i*3+2] = 0.1;
+			 cout << fixed << setprecision(4) << "Mecator: " << X << " " << Y << " " << endl;
+		}
 		mBuffer = new TMBuffer(PolygonBuffer, level2Index);
 		string dataIndex = level2Index + ".vertices";
 		vertices = new Vertices(pts, size, dataIndex);

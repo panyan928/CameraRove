@@ -35,7 +35,7 @@ OMap::OMap(const char* path)
     _manager = 0x00;
     _manager_2 = 0x00;
     _layers.clear();
-    _display = 2;  // 0 nothing, 1 vector, 2 raster, 3 all
+    _display = 1;  // 0 nothing, 1 vector, 2 raster, 3 all
     lastDisplay=_display;
     isViewChanged = true;
     lastZoom = 0;
@@ -208,16 +208,15 @@ int OMap::getBuffer() {
     BufferManager* managerF = getOrCreateBufferManager();
     vector<Vec3i> highTiles,lowTiles,nearTiles;
     
-    //scheduler->compute(int(zoom), nearTiles);
     OMScheduler* scheduler2d = getOrCreateScheduler();
     int zoom = scheduler2d->zoom();
-    
+    //scheduler->compute(int(zoom), nearTiles);
     int ret = scheduler2d->getTiles(nearTiles, zoom);
     cout << "buffer size: " << manager->size() << endl;
-    if((manager->size() + ret ) >= 1000){
-        cout << "buffer size is too large, clear buffer" << endl;
-        //manager->clear();
-    }
+    //if((manager->size() + ret ) >= 1000){
+    //    cout << "buffer size is too large, clear buffer" << endl;
+    //    //manager->clear();
+    //}
     {
         for (int i = 0; i < _layers.size(); i++) {
             if (!_layers[i]->isVisible())

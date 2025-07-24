@@ -28,7 +28,7 @@ pthread_mutex_t g_mutex;
 #endif
 
 #ifdef WIN32
-OMap* _map = new OMap("D://pyan//map_wd_20250507//3d//map.json");
+OMap* _map = new OMap("D://pyan//map_wd_20250507//3d//map_jx.json");
 //OMap* _map = new OMap("./../data/map_night.json");
 //JSONLayer *queryLayer = new JSONLayer("./../data/jiangxi.geojson");
 #else//目前只适用于tm3

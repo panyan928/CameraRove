@@ -43,8 +43,10 @@ namespace openglEngine {
 			return -1;
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
+		glFrontFace(GL_CCW);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		glEnableClientState(GL_VERTEX_ARRAY);
-
+		
 		glVertexPointer(3, GL_FLOAT, 0, &pts[0]);
 		glColor3f(color[0] / 255.0, color[1] / 255.0, color[2] / 255.0);
 		glDrawArrays(GL_TRIANGLES, 0, size);
