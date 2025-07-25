@@ -18,7 +18,7 @@ BufferManager::BufferManager()
 	/*_2_level_buffer = new CBuffer<string, TMBuffer>;
 	_3_level_buffer = new CBuffer<string, DataUnit>;*/
 
-	_2_level_buffer = new LRUCache< string, TMBuffer*>(500);
+	_2_level_buffer = new LRUCache< string, TMBuffer*>(3000);
 	//_3_level_buffer = new LRUCache< string, DataUnit*>(1000);
 }
 

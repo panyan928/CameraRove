@@ -45,7 +45,8 @@ namespace openglEngine {
 
         if (srs == CGeoUtil::WGS84) {
             if (demension == 2)
-                pts = OMGeoUtil::projectLonlat2XYZ<float>(pts, pt_size);
+                //pts = OMGeoUtil::projectLonlat2XYZ<float>(pts, pt_size);
+                pts = OMGeoUtil::projectLonlat2Mecator<float>(pts, pt_size);
             if (demension == 3)
                 pts = OMGeoUtil::projectLonlatHeight2XYZ<float>(pts, pt_size);
         }

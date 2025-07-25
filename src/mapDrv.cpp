@@ -28,7 +28,7 @@ pthread_mutex_t g_mutex;
 #endif
 
 #ifdef WIN32
-OMap* _map = new OMap("D://pyan//map_wd_20250507//3d//map.json");
+OMap* _map = new OMap("D://pyan//map_wd_20250507//3d//map_jx.json");
 //OMap* _map = new OMap("./../data/map_night.json");
 //JSONLayer *queryLayer = new JSONLayer("./../data/jiangxi.geojson");
 #else//目前只适用于tm3
@@ -658,6 +658,9 @@ void Display2d(){
     // Vec3d center = _scheduler->center();
     // Vec3d up = _scheduler->up();
     //gluLookAt(eye[0], eye[1], eye[2], center[0], center[1], center[2], up[0], up[1], up[2]);
+    glTranslated(center[0], center[1], 0.0);
+    glRotated(_scheduler2d->getRotation(), 0.0, 0.0, 1.0);
+    glTranslated(-center[0], -center[1], 0.0);
 
      //drawRasters(4, 6, 7, 10, 11);
     if (_map->isDoubleBufferLoaded)
