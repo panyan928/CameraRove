@@ -24,6 +24,6 @@ void drawRaster(int zoom, int row, int col);
 void drawRasters(int zoom, int beginRow, int endRow, int beginCol, int endCol);
 void renderFontArray();
 void romaCreate();
-
+void drawAirplaneIcon();
 #endif
 

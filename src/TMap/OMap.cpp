@@ -355,32 +355,6 @@ int OMap::draw()
         if ((_display == 1 || _display == 3) && _layers[i]->geometryType().size() != 0)
             _layers[i]->draw(tiles, zoom, manager);
     }
-  
-
-    
-    // /******************采用独立坐标系统**************************/
-    // glMatrixMode(GL_PROJECTION);
-    // glPushMatrix();
-    // glLoadIdentity();
-    // glOrtho(-1.0, 1.0, 1.0, -1.0, 0.0, 10.0);
-
-    // glMatrixMode(GL_MODELVIEW);
-    // //glPushMatrix();
-    // glLoadIdentity();
-    // gluLookAt(0, 0, 1, 0, 0, 0, 0, 1, 0);
-
-    // glEnable(GL_BLEND);
-    // glColor4f(0.0, 0.0, 0.0, 1 - _brightness / 100.0);
-    // glBegin(GL_POLYGON);
-    // glVertex3f(-1, 1, 0);
-    // glVertex3f(1, 1, 0);
-    // glVertex3f(1, -1, 0);
-    // glVertex3f(-1, -1, 0);
-    // glEnd();
-
-    // glPopMatrix();
-    // glDisable(GL_BLEND);
-
     return 0;
 }
 
