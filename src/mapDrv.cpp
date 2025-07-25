@@ -658,6 +658,9 @@ void Display2d(){
     // Vec3d center = _scheduler->center();
     // Vec3d up = _scheduler->up();
     //gluLookAt(eye[0], eye[1], eye[2], center[0], center[1], center[2], up[0], up[1], up[2]);
+    glTranslated(center[0], center[1], 0.0);
+    glRotated(_scheduler2d->getRotation(), 0.0, 0.0, 1.0);
+    glTranslated(-center[0], -center[1], 0.0);
 
      //drawRasters(4, 6, 7, 10, 11);
     if (_map->isDoubleBufferLoaded)
