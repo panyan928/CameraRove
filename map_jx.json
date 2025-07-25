@@ -1,30 +1,28 @@
 {
     "version": 1,
     "center": [ 116, 28.5 ],
-    "zoom": 5,
+    "zoom": 8,
     "bearing": 0,
     "pitch": 0,
     "sprite-png": "",
     "sprite-json": "",
-    "layers": [
-      {
-        "layer-name": "raster",
-        "path": "D:\\pyan\\map_wd_20221219\\data\\raster\\satellite/",
-        "heightPath": "D:/pyan/map_wd_20221219/data/jiangxi_height/",
-        "layer-type": "raster-tile",
-        "height": 50,
-        "zoom": [ 3, 16 ]
-      },
-        {
-            "layer-name": "country",
-            "path": "D:/pyan/map_wd_20221219/data/world/mbtiles/country/",
-            "layer-type": "vector-tile",
-            "geometry-type": "polygon",
-            "style": "D:/pyan/map_wd_20221219/data/world/style/country.style",
-            "zoom" : [0, 7]
-        }
-    ],
-  "layers1": [
+  "layers": [
+    {
+      "layer-name": "raster",
+      "path": "D:\\pyan\\map_wd_20221219\\data\\raster\\satellite/",
+      "heightPath": "D:/pyan/map_wd_20221219/data/jiangxi_height/",
+      "layer-type": "raster-tile",
+      "height": 50,
+      "zoom": [ 3, 16 ]
+    },
+    {
+      "layer-name": "country",
+      "path": "D:/pyan/map_wd_20221219/data/world/mbtiles/country/",
+      "layer-type": "vector-tile",
+      "geometry-type": "polygon",
+      "style": "D:/pyan/map_wd_20221219/data/world/style/country.style",
+      "zoom": [ 0, 7 ]
+    },
     {
       "layer-name": "boundary_0",
       "path": "D:/pyan/map_wd_20221219/data/world/mbtiles/boundary_0/",
@@ -44,7 +42,6 @@
       "style": "D:/pyan/map_wd_20221219/data/world/style/place_anno.style",
       "zoom": [ 2, 7 ]
     },
-
     {
       "layer-name": "china_region",
       "path": "D:/pyan/map_wd_20221219/data/china/mbtiles/china_region/",
@@ -95,21 +92,12 @@
       "style": "D:/pyan/map_wd_20221219/data/mbtiles-jiangxi/sld/provincial_region.style",
       "zoom": [ 8, 13 ]
     },
-
     {
       "layer-name": "water_region",
       "path": "D:/pyan/map_wd_20221219/data/mbtiles-jiangxi/water_region/",
       "layer-type": "vector-tile",
       "geometry-type": "polygon",
       "style": "D:/pyan/map_wd_20221219/data/mbtiles-jiangxi/sld/water_region.style",
-      "zoom": [ 8, 13 ]
-    },
-    {
-      "layer-name": "island_region",
-      "path": "D:/pyan/map_wd_20221219/data/mbtiles-jiangxi/island_region/",
-      "layer-type": "vector-tile",
-      "geometry-type": "polygon",
-      "style": "D:/pyan/map_wd_20221219/data/mbtiles-jiangxi/sld/island_region.style",
       "zoom": [ 8, 13 ]
     },
     {
@@ -120,6 +108,15 @@
       "style": "D:/pyan/map_wd_20221219/data/mbtiles-jiangxi/sld/railway_line.style",
       "zoom": [ 8, 13 ]
     },
+    {
+      "layer-name": "island_region",
+      "path": "D:/pyan/map_wd_20221219/data/mbtiles-jiangxi/island_region/",
+      "layer-type": "vector-tile",
+      "geometry-type": "polygon",
+      "style": "D:/pyan/map_wd_20221219/data/mbtiles-jiangxi/sld/island_region.style",
+      "zoom": [ 8, 13 ]
+    },
+
 
     {
       "layer-name": "national_road_line",

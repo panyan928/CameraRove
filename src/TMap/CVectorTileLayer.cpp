@@ -280,7 +280,7 @@ int CVectorTileLayer::drawMultiThreads(void* para)//
 
 int CVectorTileLayer::addBuffer(vector<Vec3i> tiles, int zoom, BufferManager* manager) {
 	Vec2i visibleZoom = this->zoom();
-	if (zoom < visibleZoom[0] + 1 || zoom > visibleZoom[1] - 1)
+	if (zoom < visibleZoom[0] || zoom > visibleZoom[1])
 		return -1;
 	if (zoom < 0)
 		return -1;
@@ -772,7 +772,7 @@ int CVectorTileLayer::addPolygonBuffer(int zoom, int col, int row, BufferManager
 	//float* pts = openglEngine::OpenGLFileEngine::getVerticesFromDB<float>(db, zoom, row, col, CGeoUtil::Proj::WGS84, 2, size);
 	float* pts = openglEngine::OpenGLFileEngine::getVerticesFromBinary<float>(path.c_str(), CGeoUtil::WGS84, 2, size);
 	if (pts) {
-		cout << tileIndex << endl;
+		/*cout << tileIndex << endl;
 		for (int i = 0; i < size / 3; i++) {
 			cout << fixed << setprecision(4) << "XYZ: " << pts[i * 3] << " " << pts[i * 3 + 1] << " " << pts[i * 3 + 2] << " " << endl;
 			Vec2d LonLat;
@@ -786,7 +786,7 @@ int CVectorTileLayer::addPolygonBuffer(int zoom, int col, int row, BufferManager
 			pts[i*3+1] = Y;
 			pts[i*3+2] = 0.1;
 			 cout << fixed << setprecision(4) << "Mecator: " << X << " " << Y << " " << endl;
-		}
+		}*/
 		mBuffer = new TMBuffer(PolygonBuffer, level2Index);
 		string dataIndex = level2Index + ".vertices";
 		vertices = new Vertices(pts, size, dataIndex);

@@ -560,14 +560,14 @@ CScheduler* OMap::getOrCreateNScheduler()
 BufferManager* OMap::getOrCreateBufferManager()
 {
     if (_manager == 0x00)
-        _manager = new BufferManager(1000);
+        _manager = new BufferManager(3000);
     return _manager;
 }
 
 BufferManager* OMap::getOrCreate2ndBufferManager()
 {
     if (_manager_2 == 0x00)
-        _manager_2 = new BufferManager(1000);
+        _manager_2 = new BufferManager(3000);
     return _manager_2;
 }
 
