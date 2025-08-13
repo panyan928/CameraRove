@@ -109,6 +109,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="include\airlineDraw.h" />
     <ClInclude Include="include\Camera.h" />
     <ClInclude Include="include\CameraRove.h" />
     <ClInclude Include="include\GLFrame.h" />
@@ -123,6 +124,7 @@
     <ClInclude Include="src\OpenGLEngine\openglengine.h" />
     <ClInclude Include="src\OpenGLEngine\openglfileengine.h" />
     <ClInclude Include="src\OpenGLEngine\openglrenderengine.h" />
+    <ClInclude Include="src\TMap\BatchRenderer.h" />
     <ClInclude Include="src\TMap\CGeoLayer.h" />
     <ClInclude Include="src\TMap\CPolygon.h" />
     <ClInclude Include="src\TMap\CPolygonTile.h" />
@@ -132,6 +134,7 @@
     <ClInclude Include="src\TMap\CVectorTileLayer.h" />
     <ClInclude Include="src\TMap\JSONLayer.h" />
     <ClInclude Include="src\TMap\OMap.h" />
+    <ClInclude Include="src\TMap\QuadTree.h" />
     <ClInclude Include="src\TMDataBuffer\buffermanager.h" />
     <ClInclude Include="src\TMDataBuffer\ccache.h" />
     <ClInclude Include="src\TMDataBuffer\LRUCache.h" />
@@ -174,6 +177,7 @@
     <ClInclude Include="src\TMUtil\tmtools.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\airlineDraw.cpp" />
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\CameraRove.cpp" />
     <ClCompile Include="src\GLFrame.cpp" />

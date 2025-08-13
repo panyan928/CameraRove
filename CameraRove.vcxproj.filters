@@ -204,6 +204,15 @@
     <ClInclude Include="include\mapDrv.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="include\airlineDraw.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMap\BatchRenderer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMap\QuadTree.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Camera.cpp">
@@ -381,6 +390,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="src\mapDrv.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\airlineDraw.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

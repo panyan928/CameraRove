@@ -2,17 +2,9 @@
 #include <iomanip>
 #include "CVectorTileLayer.h"
 #include "sqlite/sqlite3.h"
-
-CVectorTileLayer::CVectorTileLayer()
-{
-
-}
-
-
-CVectorTileLayer::~CVectorTileLayer()
-{
-
-}
+#include "../OpenGLEngine/openglfileengine.h"
+#include "../OpenGLEngine/openglrenderengine.h"
+#include "BatchRenderer.h"
 
 void CVectorTileLayer::setAnnotation(int anno, string label)
 {
@@ -241,6 +233,147 @@ int CVectorTileLayer::draw(vector<Vec3i> tiles, int zoom, BufferManager* manager
 	return 0;
 }
 
+// 修改draw方法，使用批处理渲染
+int CVectorTileLayer::draw_batch(vector<Vec3i> tiles, int zoom, BufferManager* manager, BatchRenderer* batchRenderer)
+{
+	//  // 清空批处理渲染器
+	//  _batchRenderer->clear();
+	 
+    Vec2i visibleZoom = this->zoom();
+    if (zoom < visibleZoom[0] || zoom > visibleZoom[1])
+        return -1;
+
+    _amount = 0;
+    count = 0;
+    allCount = 0;
+    pierce = 0;
+
+    // 加载瓦片数据到批处理渲染器
+    int len = tiles.size();
+    for (int k = 0; k < len; k++) {
+        allCount++;
+        int zoom = tiles[k][0];
+        int i = tiles[k][1];
+        int j = tiles[k][2];
+
+        // 添加到批处理渲染器
+        addToBatchRenderer(zoom, i, j, manager, batchRenderer);
+    }
+
+    // 使用批处理渲染器渲染
+    return 0;
+}
+
+// 实现添加到批处理渲染器的方法
+void CVectorTileLayer::addToBatchRenderer(int zoom, int col, int row, BufferManager* manager, BatchRenderer* batchRenderer)
+{
+    // 构建瓦片索引
+    ostringstream ost_temp;
+    ost_temp << (zoom) << "." << (row) << "." << ((col % (int)pow(2, zoom)));
+    string tileIndex = ost_temp.str();
+    string level2Index = tileIndex + "." + layerName();
+    
+    // 检查是否已经加载
+    TMBuffer* mBuffer = manager->getFrom2LevelBuffer(level2Index);
+    if (!mBuffer) {
+        // 如果未加载，则根据几何类型加载数据
+        if (geometryType().compare("polygon") == 0) {
+            addPolygonBuffer(zoom, col, row, manager, NULL);
+        }
+        else if (geometryType().compare("polyline") == 0) {
+            addPolylineBuffer(zoom, col, row, manager, NULL);
+        }
+        else if (geometryType().compare("point") == 0) {
+            if (_anno) {
+                addAnnotationBuffer(zoom, col, row, manager, NULL);
+            }
+            else {
+                addPointBuffer(zoom, col, row, manager, NULL);
+            }
+        }
+        
+        // 重新获取加载后的缓冲区
+        mBuffer = manager->getFrom2LevelBuffer(level2Index);
+    }
+    
+    // 如果缓冲区存在，创建要素并添加到批处理渲染器
+    if (mBuffer) {
+        CStyle* style = getOrCreateStyle();
+        
+        if (geometryType().compare("polygon") == 0) {
+            // 处理多边形数据
+            Vertices* vertices = mBuffer->vData();
+            if (vertices) {
+                // 创建要素
+                VectorFeature* feature = new VectorFeature();
+                feature->type = 2; // 面
+                
+                // 复制顶点数据
+                int size = vertices->size();
+                feature->vertices = new float[size * 3];
+                memcpy(feature->vertices, vertices->data(), size * 3 * sizeof(float));
+                feature->vertexCount = size;
+
+				//创建索引数据
+				feature->indices = new int[size];
+				for (int i = 0; i < size; i++) {
+					feature->indices[i] = i;
+				}
+				feature->indexCount = size;
+                
+                // 设置样式
+                if (style && style->fill(0)) {
+                    float r, g, b;
+                    style->fill(0)->getColor()->colorRGB(r, g, b);
+                    feature->color = Color(255 * r, 255 * g, 255 * b, 1);
+                }
+                
+                // 添加到批处理渲染器
+                batchRenderer->addFeature(feature);
+            }
+        }
+        else if (geometryType().compare("polyline") == 0) {
+            // 处理线数据
+            Vertices* vertices = mBuffer->vData();
+            Stop* stops = mBuffer->sData();
+            
+            if (vertices && stops) {
+                int i = 0;
+                while (style->stroke(i)) {
+                    // 创建要素
+                    VectorFeature* feature = new VectorFeature();
+                    feature->type = 1; // 线
+                    
+                    // 复制顶点数据
+                    int size = vertices->size();
+                    feature->vertices = new float[size * 3];
+                    memcpy(feature->vertices, vertices->data(), size * 3 * sizeof(float));
+                    feature->vertexCount = size;
+                    
+                    // 复制停止点数据
+                    int stopCount = stops->size();
+                    feature->stops = new int[stopCount];
+                    memcpy(feature->stops, stops->data(), stopCount * sizeof(int));
+                    feature->stopCount = stopCount;
+                    
+                    // 设置样式
+                    float r, g, b;
+                    style->stroke(i)->getColor()->colorRGB(r, g, b);
+                    feature->color = Color(255 * r, 255 * g, 255 * b, 1);
+                    feature->lineWidth = style->stroke(i)->width();
+                    feature->isDashed = isDashArrayValid(style->stroke(i)->dashArray());
+                    
+                    // 添加到批处理渲染器
+                    batchRenderer->addFeature(feature);
+                    
+                    i++;
+                }
+            }
+        }
+        // 点和注释可以类似处理
+    }
+}
+
 int CVectorTileLayer::drawMultiThreads(void* para)//
 {
 	drawParameter* data = static_cast<drawParameter*>(para);
@@ -376,7 +509,7 @@ int CVectorTileLayer::drawPolygon(int zoom, int col, int row, BufferManager* man
 	style->fill(0)->getColor()->colorRGB(r, g, b);
 	Color color(255 * r, 255 * g, 255 * b, 255);
 
-    // 锟斤拷锟秸�?�拷锟斤拷锟斤拷锟斤�?-->锟斤拷锟斤拷锟斤拷锟斤拷-->锟斤拷锟斤拷顺锟斤拷锟斤拷锟斤拷锟斤拷锟?
+    // 锟斤拷锟秸�?�拷锟斤拷锟斤拷锟斤�?-->锟斤拷锟斤拷锟斤拷锟斤拷-->锟斤拷锟斤拷顺锟斤拷锟斤拷锟斤拷锟斤拷锟?
     //string tileIndex = to_string(zoom) + "." + to_string(row) + "." + to_string((col % (int)pow(2, zoom)));
     ostringstream ost_temp;//ost_temp.str("");
 	ost_temp << (zoom) << "." << (row) << "." << ((col % (int)pow(2, zoom)));
@@ -409,13 +542,13 @@ int CVectorTileLayer::drawPolygon(int zoom, int col, int row, BufferManager* man
 		_amount += size_render;
 		float* pts_render = static_cast<float*>(vertices->data());
 		if (draw){
-            int upLimitLen = 65500;	//�޶�����������������
-    	    int times=0;//��Ҫ���ƵĴ���
+            int upLimitLen = 65500;	//�޶�����������������
+    	    int times=0;//��Ҫ���ƵĴ���
             if(size_render % upLimitLen)
         		times=size_render / upLimitLen + 1;
         	else
         		times = size_render / upLimitLen ;
-            int trueLen=0;//ÿ�λ��Ƶ���ʵ����
+            int trueLen=0;//ÿ�λ��Ƶ���ʵ����
             for (int i = 0; i < times; i++) {
         		if (i == times - 1) {
         			if(size_render % upLimitLen)
@@ -579,7 +712,7 @@ int CVectorTileLayer::drawPoint(int zoom, int col, int row, BufferManager* manag
 {
 	CStyle* style = getOrCreateStyle();
 
-	// 锟斤拷锟秸�?�拷锟斤拷锟斤拷锟斤�?-->锟斤拷锟斤拷锟斤拷锟斤拷-->锟斤拷锟斤拷顺锟斤拷锟斤拷锟斤拷锟斤拷锟?
+	// 锟斤拷锟秸�?�拷锟斤拷锟斤拷锟斤�?-->锟斤拷锟斤拷锟斤拷锟斤拷-->锟斤拷锟斤拷顺锟斤拷锟斤拷锟斤拷锟斤拷锟?
 	//string tileIndex = to_string(zoom) + "." + to_string(row) + "." + to_string((col % (int)pow(2, zoom)));
     ostringstream ost_temp;//ost_temp.str("");
 	ost_temp << (zoom) << "." << (row) << "." << ((col % (int)pow(2, zoom)));
@@ -620,10 +753,10 @@ int CVectorTileLayer::drawPoint(int zoom, int col, int row, BufferManager* manag
 		int size_render = vertices->size();
 		_amount += size_render;
 		float* pts_render = static_cast<float*>(vertices->data());
-		//TODO("鍔犱竴涓猄ymbol鐨勮矾�?�勫�?閰嶇疆鏂囦�??)
+		//TODO("鍔犱竴涓猄ymbol鐨勮矾�?�勫�?閰嶇疆鏂囦�??)
 		#ifdef WIN32
             string symbolPath = "./../data/mbtiles-jiangxi/symbols/" + layerName() + ".jpg";
-        #else//Ŀǰֻ������tm3
+        #else//Ŀǰֻ������tm3
             string symbolPath = "D:\\mbtiles-jiangxi/symbols/" + layerName() + ".jpg";
         #endif
 		if (draw)
@@ -724,7 +857,7 @@ int CVectorTileLayer::drawAnnotation(int zoom, int col, int row, BufferManager* 
 			//if (_anno == 2) {
 			//	#ifdef WIN32
    //                 string symbolPath = "./../data/mbtiles-jiangxi/symbols/" + layerName() + ".jpg";
-   //             #else//Ŀǰֻ������tm3
+   //             #else//Ŀǰֻ������tm3
    //                 string symbolPath = "D:\\mbtiles-jiangxi/symbols/" + layerName() + ".jpg";
    //             #endif
 			//	openglEngine::OpenGLRenderEngine::drawSymbolsAndAnnotations<float>(pts_render, size_render, symbolPath.c_str(),
@@ -768,7 +901,7 @@ int CVectorTileLayer::addPolygonBuffer(int zoom, int col, int row, BufferManager
 	string dataIndex = level2Index + ".vertice";
 	string path = _path + tileIndex + ".vertice";
 	int size;
-	//10.27更改数据�?
+	//10.27更改数据�?
 	//float* pts = openglEngine::OpenGLFileEngine::getVerticesFromDB<float>(db, zoom, row, col, CGeoUtil::Proj::WGS84, 2, size);
 	float* pts = openglEngine::OpenGLFileEngine::getVerticesFromBinary<float>(path.c_str(), CGeoUtil::WGS84, 2, size);
 	if (pts) {
@@ -816,7 +949,7 @@ int CVectorTileLayer::addPolylineBuffer(int zoom, int col, int row, BufferManage
 		if (!vertices) {
 			string path = _path + tileIndex + ".vertice";
 			int size;
-			//10.27更改数据�?
+			//10.27更改数据�?
 			//float* pts = openglEngine::OpenGLFileEngine::getVerticesFromDB<float>(db, zoom, row, col, CGeoUtil::Proj::WGS84, 2, size);
 			float* pts = openglEngine::OpenGLFileEngine::getVerticesFromBinary<float>(path.c_str(), CGeoUtil::WGS84, 2, size);
 			if (pts) {
@@ -837,7 +970,7 @@ int CVectorTileLayer::addPolylineBuffer(int zoom, int col, int row, BufferManage
 		if (!stops) {
 			string path = _path + tileIndex + ".stop";
 			int size, size1;
-			//10.27更改数据�?
+			//10.27更改数据�?
 			//int* pts = openglEngine::OpenGLFileEngine::getStopsFromDB<int>(db,zoom,row,col,size1,size);
 			int* pts = openglEngine::OpenGLFileEngine::getStopsFromBinary<int>(path.c_str(), size1, size);
 			if (pts) {
@@ -874,7 +1007,7 @@ int CVectorTileLayer::addPointBuffer(int zoom, int col, int row, BufferManager* 
 	string dataIndex = level2Index + ".vertices";
 		string path = _path + tileIndex + ".vertice";
 		int size;
-		//10.27更改数据�?
+		//10.27更改数据�?
 		//float* pts = openglEngine::OpenGLFileEngine::getVerticesFromDB<float>(db, zoom, row, col, CGeoUtil::Proj::WGS84, 2, size);
 		float* pts = openglEngine::OpenGLFileEngine::getVerticesFromBinary<float>(path.c_str(), CGeoUtil::WGS84, 2, size);
 		if (pts) {
@@ -915,7 +1048,7 @@ int CVectorTileLayer::addAnnotationBuffer(int zoom, int col, int row, BufferMana
 		if (!vertices) {
 			string path = _path + tileIndex + ".vertice";
 			int size;
-			//10.27更改数据�?
+			//10.27更改数据�?
 			//float* pts = openglEngine::OpenGLFileEngine::getVerticesFromDB<float>(db, zoom, row, col, CGeoUtil::Proj::WGS84, 2, size);
 			float* pts = openglEngine::OpenGLFileEngine::getVerticesFromBinary<float>(path.c_str(), CGeoUtil::WGS84, 2, size);
 			if (pts) {
@@ -935,7 +1068,7 @@ int CVectorTileLayer::addAnnotationBuffer(int zoom, int col, int row, BufferMana
 		if (!stops) {
 			string path = _path + tileIndex + ".stop";
 			int size, size1;
-			//10.27更改数据�?
+			//10.27更改数据�?
 			//int* pts = openglEngine::OpenGLFileEngine::getStopsFromDB<int>(db, zoom, row, col, size1, size);
 			int* pts = openglEngine::OpenGLFileEngine::getStopsFromBinary<int>(path.c_str(), size1, size);
 			if (pts) {

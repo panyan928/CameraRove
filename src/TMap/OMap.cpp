@@ -43,6 +43,7 @@ OMap::OMap(const char* path)
     isBreak2 = 0;
     _brightness = 100; // [0, 1]
     string path_s = path;
+    _globalBatchRenderer = new BatchRenderer();
     initialMap(path_s);
 }
 
@@ -63,6 +64,11 @@ OMap::~OMap()
     if (_manager != 0x00)
         delete _manager;
     _manager = 0x00;
+    if (_globalBatchRenderer) {
+        delete _globalBatchRenderer;
+        _globalBatchRenderer = nullptr;
+    }
+
     int len = _layers.size();
     for (int i = 0; i < len; i++) {
         if (_layers[i] != 0x00)
@@ -325,6 +331,7 @@ int OMap::getBuffer() {
     //isDoubleBufferLoaded = true;
     return 0;
 }
+
 int OMap::draw()
 {
     OMScheduler* scheduler2d = getOrCreateScheduler();
@@ -338,6 +345,7 @@ int OMap::draw()
     int zoom = scheduler2d->zoom();
     scheduler2d->getTiles(tiles, zoom);
 
+    clock_t begin, end;
     int state = 0;
     int len = _layers.size();
     for (int i = 0; i < len; i++) {
@@ -351,12 +359,112 @@ int OMap::draw()
             _layers[i]->draw(tiles, zoom, manager);
 #endif
         }
-            
+        begin = clock();
         if ((_display == 1 || _display == 3) && _layers[i]->geometryType().size() != 0)
             _layers[i]->draw(tiles, zoom, manager);
+        end = clock();
+        cout << "draw_batch time: " << end - begin << " ms" << endl;
+        
     }
     return 0;
 }
+
+int OMap::draw_batch()
+{
+    _globalBatchRenderer->clear();
+    OMScheduler* scheduler2d = getOrCreateScheduler();
+    OM3DScheduler* scheduler = getOrCreate3DScheduler();
+    BufferManager* manager = getOrCreateBufferManager();
+    BufferManager* managerH = getOrCreate2ndBufferManager();
+    vector<Vec3i> tiles;
+
+    clock_t begin, end;
+    begin = clock();
+    // 获取当前视口范围（墨卡托坐标）
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT, viewport);
+    
+    // 获取当前投影和模型视图矩阵
+    GLdouble projMatrix[16], mvMatrix[16];
+    glGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
+    glGetDoublev(GL_MODELVIEW_MATRIX, mvMatrix);
+    
+    // 计算视口的四个角在世界坐标系中的位置
+    GLdouble worldX1, worldY1, worldZ1;
+    GLdouble worldX2, worldY2, worldZ2;
+    GLdouble worldX3, worldY3, worldZ3;
+    GLdouble worldX4, worldY4, worldZ4;
+    
+    gluUnProject(viewport[0], viewport[1], 0.0, 
+                mvMatrix, projMatrix, viewport, 
+                &worldX1, &worldY1, &worldZ1);
+                
+    gluUnProject(viewport[0] + viewport[2], viewport[1], 0.0, 
+                mvMatrix, projMatrix, viewport, 
+                &worldX2, &worldY2, &worldZ2);
+                
+    gluUnProject(viewport[0], viewport[1] + viewport[3], 0.0, 
+                mvMatrix, projMatrix, viewport, 
+                &worldX3, &worldY3, &worldZ3);
+                
+    gluUnProject(viewport[0] + viewport[2], viewport[1] + viewport[3], 0.0, 
+                mvMatrix, projMatrix, viewport, 
+                &worldX4, &worldY4, &worldZ4);
+    
+    // 计算视口包围盒
+    double minX = std::min({worldX1, worldX2, worldX3, worldX4});
+    double minY = std::min({worldY1, worldY2, worldY3, worldY4});
+    double maxX = std::max({worldX1, worldX2, worldX3, worldX4});
+    double maxY = std::max({worldY1, worldY2, worldY3, worldY4});
+
+    int zoom = scheduler2d->zoom();
+    scheduler2d->getTiles(tiles, zoom);
+
+    int state = 0;
+    int len = _layers.size();
+    for (int i = 0; i < len; i++) {
+        if (!_layers[i]->isVisible())
+            continue;
+            
+        if ((_display == 2 || _display == 3) && _layers[i]->geometryType().size() == 0)
+        {
+#ifdef TIN
+            _layers[i]->drawTIN(tiles, zoom, manager);
+#else
+            _layers[i]->draw(tiles, zoom, manager);
+#endif
+        }
+        
+        if ((_display == 1 || _display == 3) && _layers[i]->geometryType().size() != 0) {
+            // 对于矢量图层，使用批处理渲染
+            CVectorTileLayer* vectorLayer = dynamic_cast<CVectorTileLayer*>(_layers[i]);
+            if (vectorLayer) {
+                // 加载数据到批处理渲染器后渲染
+                vectorLayer->draw_batch(tiles, zoom, manager, _globalBatchRenderer);
+            }
+            else {
+                cout<<"not vector layer"<<endl;
+                return -1;
+            }
+        }
+    }
+    //计算耗时
+    end = clock();
+    cout << "add_batch time: " << end - begin << " ms" << endl;
+    begin = clock();
+    // 准备批处理组
+    _globalBatchRenderer->prepareBatches(minX, minY, maxX, maxY);
+    end = clock();
+    cout << "prepare_batch time: " << end - begin << " ms" << endl;
+    begin = clock();
+    // 渲染批处理组
+    _globalBatchRenderer->render();
+    end = clock();
+    cout << "draw_batch time: " << end - begin << " ms" << endl;
+    return 0;
+}
+
+
 
 int OMap::draw1()
 {

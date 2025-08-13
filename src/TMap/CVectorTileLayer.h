@@ -8,14 +8,18 @@
 #include "../OpenGLEngine/openglengine.h"
 //#include "GL/glut.h"
 #include "../TMUtil/OMGeoUtil.h"
+#include "BatchRenderer.h"
 //#include <mutex>
+
+// 前向声明
+class BatchRenderer;
 
 class CVectorTileLayer : public CTileLayer
 {
 public:
     CVectorTileLayer();
     CVectorTileLayer(string path) : _path(path) {};
-    virtual ~CVectorTileLayer();
+    virtual ~CVectorTileLayer() = default;
     void setAnnotation(int anno, string label);
 
     int draw(Recti bounds, int zoom);
@@ -27,7 +31,10 @@ public:
     int drawMultiThreads(void* para);
     int getData(vector<Vec3i>& tiles, int zoom, BufferManager* manager);
     
-
+    // 新增：使用批处理渲染器渲染
+    int draw_batch(vector<Vec3i> tiles, int zoom, BufferManager* manager, BatchRenderer* batchRenderer);
+    // 新增：将数据添加到批处理渲染器
+    void addToBatchRenderer(int zoom, int col, int row, BufferManager* manager, BatchRenderer* batchRenderer);
 
 private:
     string _path;
@@ -45,6 +52,7 @@ private:
     int addPointBuffer(int zoom, int col, int row, BufferManager* manager,sqlite3* db);
     int addAnnotationBuffer(int zoom, int col, int row, BufferManager* manager,sqlite3* db);
     bool isDashArrayValid(vector<float>& dash);
+    
 
     DataUnit* getDataUnit(TMBuffer* buffer, DataType type); 
 };

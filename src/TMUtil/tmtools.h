@@ -98,6 +98,24 @@ public:
 			break;
 		}
 	};
+	
+	// 添加const版本的operator[]，用于const对象
+	const unsigned char& operator[](int i) const {
+		switch (i)
+		{
+		case 0:
+			return r;
+		case 1:
+			return g;
+		case 2:
+			return b;
+		case 3:
+			return a;
+		default:
+			printf("invalid index!\n");
+			break;
+		}
+	};
 private:
 	unsigned char r;
 	unsigned char g;

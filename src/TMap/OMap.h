@@ -10,6 +10,7 @@
 #include "crastertilelayer.h"
 #include "json/json.h"
 #include "../TMDataBuffer/buffermanager.h"
+#include "BatchRenderer.h"
 //#include <thread>
 
 /**
@@ -37,6 +38,7 @@ public:
     int initialMap(string path);
     int draw();
     int draw1();
+    int draw_batch();
     int getBuffer();
     //int drawMultiThreads();
     
@@ -77,6 +79,7 @@ private:
     BufferManager* _manager;
     //Ë«»º´æ
     BufferManager* _manager_2;
+    BatchRenderer* _globalBatchRenderer;
 
     //vector<thread> dataThreads;
     vector<DataParameter> dataParams;

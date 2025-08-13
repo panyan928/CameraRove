@@ -30,8 +30,8 @@ namespace openglEngine {
 		glDisableClientState(GL_VERTEX_ARRAY);
 		//glDisable(GL_CULL_FACE);
 
-		tCount += size / 3;
-		vCount += size;
+		//tCount += size / 3;
+		//vCount += size;
 
 		return 0;
 	}
@@ -41,6 +41,9 @@ namespace openglEngine {
 	{
 		if (pts == 0x00)
 			return -1;
+		//glDisable(GL_TEXTURE_2D);
+		//glDisable(GL_LIGHTING);
+		//	
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
 		glFrontFace(GL_CCW);
@@ -54,8 +57,8 @@ namespace openglEngine {
 		glDisableClientState(GL_VERTEX_ARRAY);
 		glDisable(GL_CULL_FACE);
 
-        tCount += size / 3;
-        vCount += size;
+        //tCount += size / 3;
+        //vCount += size;
 
 		return 0;
 	}
@@ -411,6 +414,95 @@ namespace openglEngine {
 
 		Vec3d world;
 		Vec3d screen;
+
+		string fontName;
+		try {
+			fontName = style->text(0)->font()->font();
+		}
+		catch (const std::out_of_range& e) {
+			char errorBuffer[1024];
+			int result = snprintf(errorBuffer, sizeof(errorBuffer), "POINT5 %s::::%s:::%d\n", e.what(), __FILE__, __LINE__);
+			OutputDebugStringA(errorBuffer);
+			return -1;
+		}
+		catch (const std::exception& e) {
+			char errorBuffer[1024];
+			int result = snprintf(errorBuffer, sizeof(errorBuffer), "POINT6 %s::::%s:::%d\n", e.what(), __FILE__, __LINE__);
+			OutputDebugStringA(errorBuffer);
+			return -1;
+		}
+		catch (...) {
+			char errorBuffer[1024];
+			int result = snprintf(errorBuffer, sizeof(errorBuffer), "POINT7 ::::%s:::%d\n", __FILE__, __LINE__);
+			OutputDebugStringA(errorBuffer);
+			return -1;
+		}
+
+		int fontSize = style->text(0)->font()->fontSize();
+		TMStyle::CColor* color = style->text(0)->getColor();
+		float r = 0.0f, g = 0.0f, b = 0.0f;
+		color->colorRGB(r, g, b);
+
+		// === 新增：将 buffer 按 \n 拆分为 labels ===
+		std::vector<std::string> labels;
+		size_t start = 0;
+		for (size_t i = 0; i <= buffer.size(); ++i) {
+			if (i == buffer.size() || buffer[i] == '\n') {
+				if (i > start) {
+					labels.push_back(buffer.substr(start, i - start));
+				}
+				else {
+					labels.push_back("");  // 空行也保留位置
+				}
+				start = i + 1;
+			}
+		}
+
+		// === 遍历每个点，绑定 labels[i] ===
+		int drawCount = 0;
+		int labelCount = static_cast<int>(labels.size());
+
+		for (int i = 0; i < pt_size && i < labelCount; ++i) {
+			world[0] = pts[3 * i];
+			world[1] = pts[3 * i + 1];
+			world[2] = pts[3 * i + 2];
+
+			// 获取第 i 个标注
+			string name = labels[i];
+
+			// 可选：跳过空文本
+			if (name.empty()) {
+				continue;
+			}
+
+			// 坐标转换
+			openGLCoordinatesEngine::world2Screen(screen[0], screen[1], screen[2], world[0], world[1], world[2]);
+
+			// 计算宽高
+			int height = 0;
+			int width = 0;
+			getHeightAndWidth(width, height, name);
+			height *= fontSize;
+			width = fontSize * width / 2;
+
+			// 防重叠检测
+			Recti item(screen[0] - width / 2, screen[1] - height / 2, screen[0] + width / 2, screen[1] + height / 2);
+			if (checkOverlap(item, render->getData())) {
+				continue;
+			}
+
+			// 渲染
+			char* name_char = const_cast<char*>(name.c_str());
+			render->render(name_char, Vec2i(screen[0] - width / 2, screen[1] - height / 2), fontSize, fontName.c_str(), Color(255, 255 * r, 255 * g, 255 * b));
+			++drawCount;
+		}
+
+		vCount += drawCount;
+		hudCount += drawCount;
+
+		return 0;
+	}
+#if 0
 		int index = 0;
 
         string fontName = style->text(0)->font()->font();
@@ -467,6 +559,8 @@ namespace openglEngine {
         hudCount += pt_size;
 		return 0;
 	}
+#endif
+
 #if 0
 	template<typename T>
 	int OpenGLRenderEngine::drawAnnotations(T* pts, int pt_size, string& buffer, int* stops, int symbol, TMStyle::CStyle* style, textRender::CFontRender* render)
