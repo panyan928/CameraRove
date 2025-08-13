@@ -9,7 +9,7 @@
     "layers": [
       {
         "layer-name": "raster",
-        "path": "D:\\pyan\\map_wd_20221219\\data\\uaedem_jpg/",
+        "path": "D:\\pyan\\map_wd_20221219\\data\\uae\\raster\\",
         "heightPath": "D:/pyan/map_wd_20221219/data/jiangxi_height/",
         "layer-type": "raster-tile",
         "height": 50,

@@ -1,16 +1,18 @@
-#include "mapDrv.h"
-#include "InputCApi.h"
-
-#define M_PI 3.141592653
-#include "gl\gl.h"	
-#include "gl\glu.h"
-#include "TMap/JSONLayer.h"
-#include "OpenGLEngine/openglengine.h"
-#include "TMap/OMap.h"
 #include <string>
 #include <time.h>
 #include <sstream>
 #include <stdio.h>
+
+#include "gl\gl.h"	
+#include "gl\glu.h"
+
+#include "mapDrv.h"
+#include "InputCApi.h"
+#include "TMap/JSONLayer.h"
+#include "OpenGLEngine/openglengine.h"
+#include "TMap/OMap.h"
+#include "airlineDraw.h"
+
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "../libs/stb_image.h"
@@ -27,8 +29,10 @@ pthread_mutex_t g_mutex;
 #include "taskLib.h"
 #endif
 
+#define M_PI 3.141592653
+
 #ifdef WIN32
-OMap* _map = new OMap("D://pyan//map_wd_20250507//3d//map_jx.json");
+OMap* _map = new OMap("D://pyan//map_wd_20221219//data//map_zd_vector.json");
 //OMap* _map = new OMap("./../data/map_night.json");
 //JSONLayer *queryLayer = new JSONLayer("./../data/jiangxi.geojson");
 #else//目前只适用于tm3
@@ -669,8 +673,11 @@ void Display2d(){
         _map->isDoubleBufferLoaded = false;
     }
     _map->draw(); 
+    //飞行计划绘制
+    drawSampleRoute();
+    drawSamplePoint(55.3, 25.271);
     // 绘制飞机图标
-    drawAirplaneIcon();
+    //drawAirplaneIcon();
 
 }
 
