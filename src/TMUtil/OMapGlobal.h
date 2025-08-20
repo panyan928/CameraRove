@@ -18,8 +18,8 @@ using namespace std;
 //
 //extern consoleType consoleSettings;
 
-extern int screenWidth;
-extern int screenHeight;
+extern int windowWidth;
+extern int windowHeight;
 
 extern int tileWidth;
 extern int tileHeight;

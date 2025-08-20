@@ -2,7 +2,7 @@
 
 void OMGeoUtil::WebMecator2Lonlat(Vec2d proj, Vec2d& lonlat)
 {
-	CGeoUtil::WebMercator2lonLat(proj[0], proj[1], lonlat[1], lonlat[2]);
+	CGeoUtil::WebMercator2lonLat(proj[0], proj[1], lonlat[1], lonlat[0]);
 }
 
 void OMGeoUtil::Lonlat2WebMecator(Vec2d lonlat, Vec2d& proj)

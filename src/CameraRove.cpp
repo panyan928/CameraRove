@@ -191,18 +191,16 @@ void CameraRove::UpdateCamera()
 	{
 		m_Keys.SetReleased('O');
 		//angle += 1;
-		if(!_scheduler->rotate(1))
+		if(!_scheduler2d->rotate(1))
 			_map->isViewChanged = true;
-		_scheduler2d->rotate(1);
 		Sleep(TIME);
 	}
 	else if (m_Keys.IsPressed('P'))
 	{
 		m_Keys.SetReleased('P');
 		//angle -= 1;
-		if(!_scheduler->rotate(-1))
+		if(!_scheduler2d->rotate(-1))
 			_map->isViewChanged = true;
-		_scheduler2d->rotate(-1);
 		Sleep(TIME);
 	}	
 	/*else if (m_Keys.IsPressed('C')) 
@@ -377,6 +375,7 @@ void CameraRove::CaculateFrameRate(){
         framesPerSecond = 0;                      /**< 将帧数置零 */                    
     }
 }
+
 /** 输出文字信息 */
 void CameraRove::PrintText()
 {	
@@ -384,7 +383,7 @@ void CameraRove::PrintText()
 	//输出帧速
 	char a[30];
 	CaculateFrameRate();
-    sprintf(a,"帧率FPS:%3.0f", m_Fps);
+    sprintf(a,"FPS:%3.0f", m_Fps);
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -401,6 +400,7 @@ void CameraRove::PrintText()
     sprintf(a,"zoom = %d", _scheduler2d->zoom());
     oglfDrawString(hzFont[1], 30.0, 730.0, (const unsigned char*)a, FONT_JUST_HLEFT, FONT_JUST_VTOP);
 	//renderArray();
+
 #if 0
 	//测试文件读取绘制
 	ifstream infile;

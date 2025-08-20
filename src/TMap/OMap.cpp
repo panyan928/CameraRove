@@ -35,7 +35,7 @@ OMap::OMap(const char* path)
     _manager = 0x00;
     _manager_2 = 0x00;
     _layers.clear();
-    _display = 1;  // 0 nothing, 1 vector, 2 raster, 3 all
+    _display = 2;  // 0 nothing, 1 vector, 2 raster, 3 all
     lastDisplay=_display;
     isViewChanged = true;
     lastZoom = 0;
@@ -78,7 +78,7 @@ OMap::~OMap()
  * 缩放等级、地图图层以及其它可变配�?
  * @param path map.json 配置路径
 */
-int OMap::initialMap(string path)
+int OMap::initialMap(string json_path)
 {
 //#ifndef WIN32
 //        chdir("D:\\");
@@ -86,15 +86,15 @@ int OMap::initialMap(string path)
     
     long len=0;//�ļ�����
     char* content;//�ļ�����
-    FILE* ifs = fopen(path.c_str(), "r");
+    FILE* ifs = fopen(json_path.c_str(), "r");
     if (!ifs)
     {
-        cout << "Error opening "<<path<<endl;
+        cout << "Error opening "<< json_path<<endl;
         //fclose(ifs);
         return -1;
     }
     else{
-        cout << "ok opening "<<path<<endl;
+        cout << "ok opening "<< json_path<<endl;
     }
     fseek(ifs,0,SEEK_END);
     len = ftell(ifs);
@@ -337,7 +337,7 @@ int OMap::draw()
     // scheduler->getTiles(tiles, zoom,1);
     int zoom = scheduler2d->zoom();
     scheduler2d->getTiles(tiles, zoom);
-
+    cout << "draw tiles: " << tiles.size() << endl;
     int state = 0;
     int len = _layers.size();
     for (int i = 0; i < len; i++) {

@@ -53,21 +53,10 @@ int OMScheduler::compute()
 
 	// 计算当前级别下一个像素在墨卡托坐标系下的大小
 	double pixel = 2 * CGeoUtil::PI * CGeoUtil::Web_Mecator_R / pow(2, zoom_i) / 256;
-	//_windowRect[0] = _center[0] - viewportWidth / 2.0 * pixel; // 左边界
-	//_windowRect[2] = _center[0] + viewportWidth / 2.0 * pixel; // 右边界
-	//_windowRect[1] = _center[1] - viewportHeight / 2.0 * pixel; // 下边界
-	//_windowRect[3] = _center[1] + viewportHeight / 2.0 * pixel; // 上边界
 
    // 计算墨卡托坐标范围对应的瓦片索引范围
 	double begin = -CGeoUtil::PI * CGeoUtil::Web_Mecator_R;
 	double span = 2 * CGeoUtil::PI * CGeoUtil::Web_Mecator_R / pow(2, zoom_i);
-
-	// // 计算视口边界对应的瓦片索引
-	 //_tileBound[0] = floor((_windowRect[0] - begin) / span); // 左边界瓦片
-	 //_tileBound[2] = ceil((_windowRect[2] - begin) / span);  // 右边界瓦片
-	 //_tileBound[1] = floor((_windowRect[1] - begin) / span); // 下边界瓦片
-	 //_tileBound[3] = ceil((_windowRect[3] - begin) / span);  // 上边界瓦片
-
 
 	//基于旋转视口四角的精确计算
 	double viewWidth = viewportWidth * pixel; //屏幕横向墨卡托坐标范围
@@ -82,7 +71,8 @@ int OMScheduler::compute()
 	};
 
 	// 旋转角度（弧度）
-	double rotationRad = _rotationAngle * CGeoUtil::PI / 180.0;
+	//0820 添加负号，地图坐标系向左旋转，相当于四个角点向右旋转，重新计算在新坐标系下角点的墨卡托坐标
+	double rotationRad = -_rotationAngle * CGeoUtil::PI / 180.0;
 	double cosAngle = cos(rotationRad);
 	double sinAngle = sin(rotationRad);
 
@@ -92,6 +82,7 @@ int OMScheduler::compute()
 		double y = corners[i][1];
 		corners[i][0] = x * cosAngle - y * sinAngle + _center[0];
 		corners[i][1] = x * sinAngle + y * cosAngle + _center[1];
+		_rotatedViewportCorners[i] = corners[i];
 	}
 	// 计算旋转后角点的最小外接矩形
 	double minX = corners[0][0], maxX = corners[0][0];
@@ -105,9 +96,9 @@ int OMScheduler::compute()
 	}
 	// 计算视口边界对应的瓦片索引
 	_tileBound[0] = floor((minX - begin) / span); // 左边界瓦片
-	_tileBound[2] = ceil((maxX - begin) / span);  // 右边界瓦片
+	_tileBound[2] = floor((maxX - begin) / span);  // 右边界瓦片
 	_tileBound[1] = floor((minY - begin) / span); // 下边界瓦片
-	_tileBound[3] = ceil((maxY - begin) / span);  // 上边界瓦片
+	_tileBound[3] = floor((maxY - begin) / span);  // 上边界瓦片
 
 	return 0;
 }
@@ -182,7 +173,7 @@ int OMScheduler::rotate(double angle){
 	//_rotationAngle = angle;
 	if(_rotationAngle<0) _rotationAngle = _rotationAngle + 360;
 	if(_rotationAngle>360) _rotationAngle = _rotationAngle - 360;
-	return 0;
+	return isSameTiles();
 }
 
 double OMScheduler::getRotation() const
@@ -198,9 +189,8 @@ int OMScheduler::getTilesBuffer(vector<Vec3i>& tiles, int zoom)
     // 计算一个像素在墨卡托坐标系下的大小
     double pixel = 2 * CGeoUtil::PI * CGeoUtil::Web_Mecator_R / pow(2, zoom) / 256;
     
-    // 获取视口大小
 	GLint viewport[4];
-    glGetIntegerv(GL_VIEWPORT, viewport);
+	glGetIntegerv(GL_VIEWPORT, viewport);
     int viewportWidth = 1920;
     int viewportHeight = 1080;
     
@@ -222,9 +212,9 @@ int OMScheduler::getTilesBuffer(vector<Vec3i>& tiles, int zoom)
 	int tileBuffer = 1; // 额外加载视口外1个瓦片的范围
     // 计算视口边界对应的瓦片索引
     tileBound2[0] = floor((windowRect2[0] - begin) / span) - tileBuffer;  // 左边界瓦片
-    tileBound2[2] = ceil((windowRect2[2] - begin) / span) + tileBuffer;  // 右边界瓦片
+    tileBound2[2] = floor((windowRect2[2] - begin) / span) + tileBuffer;  // 右边界瓦片
     tileBound2[1] = floor((windowRect2[1] - begin) / span) - tileBuffer; // 下边界瓦片
-    tileBound2[3] = ceil((windowRect2[3] - begin) / span) + tileBuffer;  // 上边界瓦片
+    tileBound2[3] = floor((windowRect2[3] - begin) / span) + tileBuffer;  // 上边界瓦片
 
 	
 	//tileBound2[0] = _tileBound[0] - tileBuffer;  // 左边界瓦片
@@ -268,9 +258,9 @@ int OMScheduler::getTiles(vector<Vec3i>& tiles, int zoom)
 	// 遍历并添加所有可见瓦片
 	for (int col = minCol; col <= maxCol; col++) {
 		for (int row = minRow; row <= maxRow; row++) {
-			//if (isTileVisible(zoom, col, row)) {
+			if (isTileVisible(zoom, col, row)) {
                 tiles.push_back(Vec3i(zoom, col, row));
-            //}
+            }
 		}
 	}
 	
@@ -288,9 +278,98 @@ bool OMScheduler::isTileVisible(int zoom, int col, int row)
     double tileBottom = begin + row * span;
     double tileTop = tileBottom + span;
     
-    // 检查瓦片是否与视口相交
-    return !(tileRight < _windowRect[0] || 
-             tileLeft > _windowRect[1] || 
-             tileTop < _windowRect[2] || 
-             tileBottom > _windowRect[3]);
+	// 创建瓦片的四个角点
+    Vec2d tileCorners[4] = {
+        {tileLeft, tileBottom},   // 左下
+        {tileRight, tileBottom},  // 右下
+        {tileRight, tileTop},     // 右上
+        {tileLeft, tileTop}       // 左上
+    };
+    
+    // 使用多边形相交测试
+    return doPolygonsIntersect(_rotatedViewportCorners, 4, tileCorners, 4);
+}
+
+// 多边形相交测试 - 使用分离轴定理(SAT)
+bool OMScheduler::doPolygonsIntersect(Vec2d* poly1, int size1, Vec2d* poly2, int size2)
+{
+    // 1. 检查_rotatedViewportCorners的每个角点是否在tileCorners内
+    for (int i = 0; i < size1; i++) {
+        if (isPointInPolygon(poly1[i], poly2, size2)) {
+            return true;
+        }
+    }
+
+     //2. 检查poly2的每个角点是否在poly1内
+    for (int i = 0; i < size2; i++) {
+        if (isPointInPolygon(poly2[i], poly1, size1)) {
+            return true;
+        }
+    }
+	/*
+	0820：因为poly1是正方形，所以不需要只用检查前面两种情况
+	*/
+    
+    //// 3. 检查两个多边形的边是否相交
+    //for (int i = 0; i < size1; i++) {
+    //    int j = (i + 1) % size1;
+    //    for (int k = 0; k < size2; k++) {
+    //        int l = (k + 1) % size2;
+    //        if (doLineSegmentsIntersect(poly1[i], poly1[j], poly2[k], poly2[l])) {
+    //            return true;
+    //        }
+    //    }
+    //}
+    
+    // 如果以上测试都通过，则多边形不相交
+    return false;
+}
+
+// 判断点是否在多边形内 - 射线法
+bool OMScheduler::isPointInPolygon(Vec2d& point, Vec2d* polygon, int size)
+{
+    bool inside = false;
+    for (int i = 0, j = size - 1; i < size; j = i++) {
+        if (((polygon[i][1] > point[1]) != (polygon[j][1] > point[1])) &&
+            (point[0] < (polygon[j][0] - polygon[i][0]) * (point[1] - polygon[i][1]) / 
+                        (polygon[j][1] - polygon[i][1]) + polygon[i][0])) {
+            inside = !inside;
+        }
+    }
+    return inside;
+}
+
+// 判断两条线段是否相交
+bool OMScheduler::doLineSegmentsIntersect(Vec2d& p1, Vec2d& p2, 
+                                         Vec2d& q1, Vec2d& q2)
+{
+    // 计算方向
+    auto direction = [](Vec2d& p, Vec2d& q, Vec2d& r) -> int {
+        double val = (q[1] - p[1]) * (r[0] - q[0]) - (q[0] - p[0]) * (r[1] - q[1]);
+        if (fabs(val) < 1e-10) return 0;  // 共线
+        return (val > 0) ? 1 : 2;         // 顺时针或逆时针
+    };
+    
+    // 判断点q是否在线段pr上
+    auto onSegment = [](Vec2d& p, Vec2d& q, Vec2d& r) -> bool {
+        return q[0] <= max(p[0], r[0]) && q[0] >= min(p[0], r[0]) &&
+               q[1] <= max(p[1], r[1]) && q[1] >= min(p[1], r[1]);
+    };
+    
+    // 获取四个方向
+    int d1 = direction(p1, p2, q1);
+    int d2 = direction(p1, p2, q2);
+    int d3 = direction(q1, q2, p1);
+    int d4 = direction(q1, q2, p2);
+    
+    // 如果方向不同，则线段相交
+    if (d1 != d2 && d3 != d4) return true;
+    
+    // 特殊情况：共线
+    if (d1 == 0 && onSegment(p1, q1, p2)) return true;
+    if (d2 == 0 && onSegment(p1, q2, p2)) return true;
+    if (d3 == 0 && onSegment(q1, p1, q2)) return true;
+    if (d4 == 0 && onSegment(q1, p2, q2)) return true;
+    
+    return false;
 }

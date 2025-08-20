@@ -17,7 +17,7 @@
 *		执行所有的绘制操作
 */																			
 //======================================================================
-
+#include<iostream>
 #include "stdafx.h"
 #include "GLFrame.h"													/**< 包含GLFrame.h头文件 */
 #include "Camera.h"	
@@ -279,13 +279,25 @@ int GLApplication::Main(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCm
 							
 							Update(tickCount - m_LastTickCount);		/**< 调用用户自定义的更新函数 */
 							m_LastTickCount = tickCount;				/**< 重新设置上一次，计数器的值 */						
-							
+							//float t1 = GetTickCount() * 0.001f;
 							//myDisplay();
 							Display2d();									/**< 调用用户自定义的绘制函数 */
 							//drawText();
                             Draw();
 							renderFontArray();
-                            
+							//static int count=0;
+							//static float tpfArray[30];		/**< 用于计算帧率的数组 */
+							//float t2 = GetTickCount() * 0.001f;
+							//count %= 30;
+							//tpfArray[count] = t2 - t1;
+							//count++;
+							//float sum = 0.0f;				/**< 用于计算平均帧率的变量 */
+							//int j = 0;
+							//for (j = 0; j < 30; j++) {
+							//	sum += tpfArray[j];
+							//}
+							//float frameRate = 30 / sum;
+							//std::cout << "frameRate1 = " << frameRate << std::endl;
 							//drawFontE(300,300,"你好");
                             
 							m_Window.SwapBuffers();/**< 交换前后帧缓存 */

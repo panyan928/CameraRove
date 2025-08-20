@@ -37,13 +37,20 @@ public:
 	bool isTileVisible(int zoom, int col, int row);
 
 private:
-	Recti _tileBound;
-	Rectd _windowRect;
+	Recti _tileBound; //row,col,row,col
+	 Rectd _windowRect; //minX,minY,maxX,maxY
 	int _zoom;
 	Vec2d _center;
 	double _rotationAngle=0.0;
 
+	// 新增成员
+    Vec2d _rotatedViewportCorners[4]; // 存储旋转后的视口四角点
+
 	int isSameTiles();
+	// 辅助函数
+	bool doPolygonsIntersect(Vec2d* poly1, int size1, Vec2d* poly2, int size2);
+	bool isPointInPolygon(Vec2d& point, Vec2d* polygon, int size);
+	bool doLineSegmentsIntersect(Vec2d& p1, Vec2d& p2, Vec2d& q1, Vec2d& q2);
 };
 
 #endif

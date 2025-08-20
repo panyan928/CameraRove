@@ -109,6 +109,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="include\airlineDraw.h" />
+    <ClInclude Include="include\airplaneDraw.h" />
     <ClInclude Include="include\Camera.h" />
     <ClInclude Include="include\CameraRove.h" />
     <ClInclude Include="include\GLFrame.h" />
@@ -174,6 +176,8 @@
     <ClInclude Include="src\TMUtil\tmtools.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\airlineDraw.cpp" />
+    <ClCompile Include="src\airplaneDraw.cpp" />
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\CameraRove.cpp" />
     <ClCompile Include="src\GLFrame.cpp" />
