@@ -1,9 +1,11 @@
+#include <windows.h>
+#include <stdio.h>
+
 #include "CameraRove.h"	
 #include "TMap/OMap.h"
 #include "mapDrv.h"
 #include "InputCApi.h"
-#include <windows.h>
-#include <stdio.h>
+#include "TMUtil/OMapGlobal.h"
 
 #define MY_PI 3.14159F
 extern OM3DScheduler* _scheduler;
@@ -70,7 +72,7 @@ void CameraRove::UpdateCamera()
 	{
 		m_Keys.SetReleased(VK_UP);
 		m_Keys.SetReleased('W');
-		if(!_scheduler2d->pan(4))
+		if (!_scheduler2d->pan(4)) //计算像素移动的距离
 			_map->isViewChanged = true;
 		//_scheduler2d->pan(4);
 		Sleep(TIME);
@@ -118,21 +120,22 @@ void CameraRove::UpdateCamera()
 		//_scheduler2d->zoomOut();
 		Sleep(TIME);
 	}		
-	//else if (m_Keys.IsPressed('I'))
-	//	_scheduler->translate(2);
-	//else if (m_Keys.IsPressed('J'))
-	//	_scheduler->translate(3);		
-	//else if (m_Keys.IsPressed('K'))
-	//	_scheduler->translate(4);		
-	//else if (m_Keys.IsPressed('L'))
-	//	_scheduler->translate(1);	
-	else if (m_Keys.IsPressed('T'))
-	{	
+	else if (m_Keys.IsPressed('R')) //地形图
+	{
+		m_Keys.SetReleased('R');
+		if (_map->Dislpay() != 0) {
+			_map->setDislpay(0);
+			_map->isViewChanged = true;
+		}
+		Sleep(TIME);
+	}
+	else if (m_Keys.IsPressed('T')) //二维矢量
+	{
 		m_Keys.SetReleased('T');
 		if (_map->Dislpay() != 1) {
 			_map->setDislpay(1);
 			_map->isViewChanged = true;
-		}	
+		}
 		//��
 		_map->turnOnLayer(1);
 		_map->turnOnLayer(4);
@@ -151,8 +154,8 @@ void CameraRove::UpdateCamera()
 		_map->turnOnLayer(23);
 		_map->turnOnLayer(29);
 		Sleep(TIME);
-	}	
-	else if (m_Keys.IsPressed('Y'))
+	}
+	else if (m_Keys.IsPressed('Y')) //卫星影像
 	{
 		m_Keys.SetReleased('Y');
 		if (_map->Dislpay() != 2) {
@@ -160,73 +163,57 @@ void CameraRove::UpdateCamera()
 			_map->isViewChanged = true;
 		}
 		Sleep(TIME);
-	}	
-	else if (m_Keys.IsPressed('U'))
+	}
+	else if (m_Keys.IsPressed('U')) //卫星+二维矢量
 	{
 		m_Keys.SetReleased('U');
 		if (_map->Dislpay() != 3) {
 			_map->setDislpay(3);
 			_map->isViewChanged = true;
 		}
-		//��
-		_map->turnOffLayer(1);
-		_map->turnOffLayer(4);
-		_map->turnOffLayer(5);
-		_map->turnOffLayer(9);
-		_map->turnOffLayer(10);
-		_map->turnOffLayer(11);
-		//��
 		_map->turnOffLayer(2);
 		_map->turnOffLayer(6);
 		_map->turnOffLayer(7);
-		_map->turnOffLayer(12);
-		_map->turnOffLayer(13);
-		_map->turnOffLayer(14);
-		_map->turnOffLayer(15);
-		_map->turnOffLayer(23);
-		_map->turnOffLayer(29);
+		Sleep(TIME);
+	}
+	else if (m_Keys.IsPressed('I')) //二维矢量+地形图
+	{
+		m_Keys.SetReleased('I');
+		if (_map->Dislpay() != 4) {
+			_map->setDislpay(4);
+			_map->isViewChanged = true;
+		}
+		_map->turnOffLayer(2);
+		_map->turnOffLayer(6);
+		_map->turnOffLayer(7);
 		Sleep(TIME);
 	}
 	else if (m_Keys.IsPressed('O'))
 	{
 		m_Keys.SetReleased('O');
-		//angle += 1;
-		if(!_scheduler2d->rotate(1))
-			_map->isViewChanged = true;
+		angle += 10;
+		//if(!_scheduler2d->rotate(1))
+		//	_map->isViewChanged = true;
+		_scheduler2d->rotate(angle);
+		_map->isViewChanged = true;
 		Sleep(TIME);
 	}
 	else if (m_Keys.IsPressed('P'))
 	{
 		m_Keys.SetReleased('P');
-		//angle -= 1;
-		if(!_scheduler2d->rotate(-1))
-			_map->isViewChanged = true;
+		angle -= 10;
+		_scheduler2d->rotate(angle);
+		_map->isViewChanged = true;
+		Sleep(TIME);
+	}
+	else if (m_Keys.IsPressed('C'))
+	{
+		m_Keys.SetReleased('C');
+		static bool isDayMode = true; // true = day, false = night
+		isDayMode = !isDayMode;
+		SwitchMapStyle(isDayMode);
 		Sleep(TIME);
 	}	
-	/*else if (m_Keys.IsPressed('C')) 
-	{
-		if(!_scheduler->changeViewer(1, 4))
-			_map->isViewChanged = true;
-		Sleep(500);
-	}
-	else if (m_Keys.IsPressed('X'))
-	{
-		if(!_scheduler->changeViewer(0, 2.5))
-			_map->isViewChanged = true;
-		Sleep(500);
-	}
-	else if (m_Keys.IsPressed('Z'))
-	{
-		if(!_scheduler->changeViewer(1, 2.5))
-			_map->isViewChanged = true;
-		Sleep(500);
-	}
-    else if (m_Keys.IsPressed('V'))
-	{
-		if(!_scheduler->changeViewer(1, 3.25))
-			_map->isViewChanged = true;
-		Sleep(500);
-	}*/
 	else if (m_Keys.IsPressed('Q'))
 	{
 		m_Keys.SetReleased('Q');
@@ -237,7 +224,43 @@ void CameraRove::UpdateCamera()
 		m_Keys.SetReleased('E');
 		_map->turnDownBrightness();
 	}
-	else if (m_Keys.IsPressed('B'))
+    else if (m_Keys.IsPressed('1'))
+	{
+		_map->setCrowd(1);
+	}
+	else if (m_Keys.IsPressed('2'))
+	{
+		_map->setCrowd(2);
+	}
+    else if (m_Keys.IsPressed('3'))
+	{
+		_map->setCrowd(3);
+	}
+	else if (m_Keys.IsPressed('4'))
+	{
+		_map->setCrowd(4);
+	}
+	else if (m_Keys.IsPressed('5'))
+	{
+		_map->setCrowd(5);
+	}
+	else if (m_Keys.IsPressed('6'))
+	{
+		_map->setCrowd(6);
+	}
+	else if (m_Keys.IsPressed('F'))
+	{
+		_scheduler2d->setCenter(116, 28.5);
+	}
+	else if (m_Keys.IsPressed('G'))
+	{
+		_scheduler2d->setCenter(109, 34.2);
+		}
+	else if (m_Keys.IsPressed('H'))
+	{
+		_scheduler2d->setCenter(116.3, 39.9);
+	}
+	/*else if (m_Keys.IsPressed('B'))
 	{
 		m_Keys.SetReleased('B');
 		isRoma = 1;
@@ -246,54 +269,39 @@ void CameraRove::UpdateCamera()
 	{
 		m_Keys.SetReleased('G');
 		isRoma = 0;
-	}
-    else if (m_Keys.IsPressed('2'))
-	{
-		m_Keys.SetReleased('2');
-		if (!_scheduler->changePitch(60.0))
-		{
-			_map->isViewChanged = true;			
-		}
-		if (isFPV == 0) {
-			_scheduler->_isFirstPerson = 1;
-			Vec3d eye = _scheduler->eye();
-			eye[2] /= 4;
-			_scheduler->eyeSet(eye);
-			isFPV = 1;
-		}
-		Sleep(TIME);
-	}
-	else if (m_Keys.IsPressed('4'))
-	{
-		m_Keys.SetReleased('4');
-			if(!_scheduler->changeYaw(1))
-			_map->isViewChanged = true;
-		Sleep(TIME);
-	}
-    else if (m_Keys.IsPressed('5'))
-	{
-		m_Keys.SetReleased('5');
-		if(!_scheduler->changeYaw(-1))
-			_map->isViewChanged = true;
-		Sleep(TIME);
-	}
-	else if (m_Keys.IsPressed('3'))
-	{
-		m_Keys.SetReleased('3');
-		if (!_scheduler->changePitch(-60.0)) {
-			_map->isViewChanged = true;			
-		}
-		if (isFPV == 1)
-		{
-			_scheduler->_isFirstPerson = 0;
-			Vec3d eye = _scheduler->eye();
-			eye[2] *= 4;
-			_scheduler->eyeSet(eye);
-			isFPV = 0;
-		}
-			
-		Sleep(TIME);
-	}
+	}*/
+	//else if (m_Keys.IsPressed('I'))
+//	_scheduler->translate(2);
+//else if (m_Keys.IsPressed('J'))
+//	_scheduler->translate(3);		
+//else if (m_Keys.IsPressed('K'))
+//	_scheduler->translate(4);		
+//else if (m_Keys.IsPressed('L'))
+//	_scheduler2d->translate(1);	
+	/*else if (m_Keys.IsPressed('C'))
+{
+	if(!_scheduler->changeViewer(1, 4))
+		_map->isViewChanged = true;
+	Sleep(500);
+}
+else if (m_Keys.IsPressed('X'))
+{
+	if(!_scheduler->changeViewer(0, 2.5))
+		_map->isViewChanged = true;
+	Sleep(500);
+}
+else if (m_Keys.IsPressed('Z'))
+{
+	if(!_scheduler->changeViewer(1, 2.5))
+		_map->isViewChanged = true;
+	Sleep(500);
+}
+else if (m_Keys.IsPressed('V'))
+{
+	if(!_scheduler->changeViewer(1, 3.25))
+		_map->isViewChanged = true;
+	Sleep(500);
+}*/
 	/*else if (m_Keys.IsPressed('J'))
 	{
 		_map->turnOffLayer(0);
@@ -368,10 +376,10 @@ void CameraRove::CaculateFrameRate(){
 
 	++framesPerSecond;                           /**< 显示帧数递增1 */
     /** 如果时间差大于1.0秒 */
-	if( currentTime - lastTime > 1.0f )          
+	if( currentTime - lastTime > 2.0f )          
     {
+		m_Fps = framesPerSecond / (currentTime - lastTime);                  /**< 当前帧数传给m_Fps */
 	    lastTime = currentTime;                   /**< 保存当前时间 */
-		m_Fps = framesPerSecond;                  /**< 当前帧数传给m_Fps */
         framesPerSecond = 0;                      /**< 将帧数置零 */                    
     }
 }
@@ -383,22 +391,17 @@ void CameraRove::PrintText()
 	//输出帧速
 	char a[30];
 	CaculateFrameRate();
-    sprintf(a,"FPS:%3.0f", m_Fps);
-
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(0, 1024, 0, 768, -10.0, 10.0);
-
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-
+    sprintf(a,"FPS:%.4f", m_Fps);
+	//cout <<"FPS: " << m_Fps << endl;
+	GLint viewport[4];
+	glGetIntegerv(GL_VIEWPORT, viewport);
 	glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
 	//oglfSetFontSize(hzFont[1], 24);
-	oglfDrawString(hzFont[1], 30.0, 750.0, (const unsigned char*)a, FONT_JUST_HLEFT, FONT_JUST_VTOP);
+	oglfDrawString(hzFont[1], 30.0, viewport[3] - 30.0, (const unsigned char*)a, FONT_JUST_HLEFT, FONT_JUST_VTOP);
 
     memset(a, 0, 30);
     sprintf(a,"zoom = %d", _scheduler2d->zoom());
-    oglfDrawString(hzFont[1], 30.0, 730.0, (const unsigned char*)a, FONT_JUST_HLEFT, FONT_JUST_VTOP);
+    oglfDrawString(hzFont[1], 30.0, viewport[3] - 50.0, (const unsigned char*)a, FONT_JUST_HLEFT, FONT_JUST_VTOP);
 	//renderArray();
 
 #if 0

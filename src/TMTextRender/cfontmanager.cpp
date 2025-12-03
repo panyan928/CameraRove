@@ -70,7 +70,7 @@ namespace textRender {
         return font->getFontTall();
     }
 
-    void CFontManager::renderChar(int font_index, char* text, unsigned char *screen, Vec2i& position, Color color)
+    void CFontManager::renderChar(int font_index, char* text, Vec2i& position, Color color)
     {
 
         int i = CONVERT_FONT_INDEX(font_index);
@@ -83,9 +83,9 @@ namespace textRender {
 
         CFont *font = m_fonts[i];
         font->setColor(color);
-        font->renderChar(text, screen, position);
+        font->renderChar(text, position);
     }
-    void CFontManager::renderChar(int font_index, int code, unsigned char *screen, Vec2i& position, Color color)
+    void CFontManager::renderChar(int font_index, int code, Vec2i& position, Color color)
     {
 
         int i = CONVERT_FONT_INDEX(font_index);

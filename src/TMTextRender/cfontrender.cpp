@@ -2,8 +2,10 @@
 namespace textRender {
     CFontRender::CFontRender(int screenWidth, int screenHeight)
     {
-        m_screen = new unsigned char[screenHeight * screenWidth * 4];
-        memset(m_screen, 0, screenHeight * screenWidth * 4);
+        _screenWidth = screenWidth;
+        _screenHeight = screenHeight;
+        m_screen = new unsigned int[(screenHeight) * (screenWidth) * 5];
+        memset(m_screen, 0, screenHeight * screenWidth * 5 * sizeof(unsigned int));
     }
 
     CFontRender::~CFontRender()
@@ -110,7 +112,7 @@ namespace textRender {
 
         m_fontManager->setStartPosition(pos);
 
-        m_fontManager->renderChar(fontIndex, text, m_screen, pos, fontColor);
+        m_fontManager->renderChar(fontIndex, text, pos, fontColor);
 
 
         return 0;
@@ -131,7 +133,7 @@ namespace textRender {
         m_fontManager->setStartPosition(pos);
 
         for (size_t i = 0; i < size; i++) {
-            m_fontManager->renderChar(fontIndex, text[i], m_screen, pos, fontColor);
+            m_fontManager->renderChar(fontIndex, text[i], pos, fontColor);
         }
 
         return 0;
@@ -144,7 +146,7 @@ namespace textRender {
         m_fontManager->setStartPosition(pos);
 
         for (size_t i = 0; i < size; i++) {
-            m_fontManager->renderChar(fontIndex, text[i], m_screen, pos, fontColor);
+            m_fontManager->renderChar(fontIndex, text[i], pos, fontColor);
         }
 
         return 0;
@@ -227,10 +229,10 @@ namespace textRender {
 
     void CFontRender::clearScreen()
     {
-        memset(m_screen, 0, 1024 * 768 * 4);
+        memset(m_screen, 0, _screenWidth * _screenHeight * 5 * sizeof(unsigned int));
     }
 
-    unsigned char *CFontRender::getData() const
+    unsigned int *CFontRender::getData() const
     {
         return m_screen;
     }

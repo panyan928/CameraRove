@@ -17,14 +17,17 @@ void drawText(void) ;
 void myDisplay1(void);
 void myDisplay(void);
 void Display2d();
+void DisplayTest();
 void* romaFucn(void* args);
 void drawEarth(void);
 void drawEarth1(void);
 void drawRaster(int zoom, int row, int col);
+void drawRaster_sim(int zoom, int row, int col, bool isdraw);
 void drawRasters(int zoom, int beginRow, int endRow, int beginCol, int endCol);
 void renderFontArray();
 void romaCreate();
 void drawAirplaneIcon(float aircraftLat, float aircraftLon, float aircraftHeading,
     int screenWidth, int screenHeight, float currentZoom);
+void SwitchMapStyle(bool toDayMode);
 #endif
 

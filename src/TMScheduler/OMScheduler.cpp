@@ -23,8 +23,12 @@ Vec2d OMScheduler::center() const
 {
 	return _center;
 }
+Vec2d OMScheduler::center()
+{
+	return _center;
+}
 
-int OMScheduler::zoom() const
+int OMScheduler::zoom()
 {
 	return _zoom;
 }
@@ -124,6 +128,12 @@ int OMScheduler::updateMapParameter(Vec2d center, int zoom)
 	return 0;
 }
 
+int OMScheduler::setCenter(float lon, float lat) {
+	Vec2d center(lon, lat);
+	OMGeoUtil::Lonlat2WebMecator(center, _center);
+	return 0;
+}
+
 int OMScheduler::zoomIn()
 {
 	_zoom++;
@@ -164,15 +174,16 @@ int OMScheduler::pan(int direction)
 }
 
 int OMScheduler::rotate(double angle){
-	if (angle < 1) {
-		_rotationAngle -= 10;
-	}
-	else {
-		_rotationAngle += 10;
-	}
-	//_rotationAngle = angle;
-	if(_rotationAngle<0) _rotationAngle = _rotationAngle + 360;
-	if(_rotationAngle>360) _rotationAngle = _rotationAngle - 360;
+	//if (angle < 1) {
+	//	_rotationAngle -= 10;
+	//}
+	//else {
+	//	_rotationAngle += 10;
+	//}
+	////_rotationAngle = angle;
+	//if(_rotationAngle<0) _rotationAngle = _rotationAngle + 360;
+	//if(_rotationAngle>360) _rotationAngle = _rotationAngle - 360;
+	_rotationAngle = angle;
 	return isSameTiles();
 }
 
@@ -187,7 +198,7 @@ int OMScheduler::getTilesBuffer(vector<Vec3i>& tiles, int zoom)
 	tiles.clear();
     
     // 计算一个像素在墨卡托坐标系下的大小
-    double pixel = 2 * CGeoUtil::PI * CGeoUtil::Web_Mecator_R / pow(2, zoom) / 256;
+	double pixel = 2 * CGeoUtil::PI * CGeoUtil::Web_Mecator_R / pow(2, zoom) / 256;
     
 	GLint viewport[4];
 	glGetIntegerv(GL_VIEWPORT, viewport);

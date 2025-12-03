@@ -131,4 +131,3 @@ void Camera::setLook()
 			  m_View.x,	m_View.y, m_View.z,	
 			  m_UpVector.x, m_UpVector.y, m_UpVector.z);
 }
-

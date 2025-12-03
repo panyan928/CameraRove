@@ -99,22 +99,36 @@ void CFont::renderChar(int code, glyphMetrics *metrics, unsigned char *screen, V
     loadChar(code, metrics, screen, position);
 }
 
-void CFont::renderChar(char* text, unsigned char* screen, Vec2i& position)
+void CFont::renderChar(char* text, Vec2i& position)
 {    
 #if 0
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT, viewport);
+    int viewportWidth = viewport[2];
+    int viewportHeight = viewport[3];
     glPushMatrix();
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(0, 1024, 0, 768, -10.0, 10.0);
+    glOrtho(0, viewport[2], 0, viewport[3], -10.0, 10.0);
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    glColor4f(m_color[0], m_color[1], m_color[2], m_color[3]);    
-    oglfDrawString(m_font, position[0], 768-position[1], (const unsigned char*)text, FONT_JUST_HLEFT, FONT_JUST_VTOP, true);
+    //Flong新增
+    glColor4f(m_color[0] / 255.0, m_color[1] / 255.0, m_color[2] / 255.0, m_color[3] / 255.0);
+    //glColor4f(m_color[0], m_color[1], m_color[2], m_color[3]);
+    //oglfDrawString(m_font, position[0], 768 - position[1], (const unsigned char*)text, FONT_JUST_HLEFT, FONT_JUST_VTOP, false);
+    oglfDrawString(m_font, position[0], 768 - position[1], (const unsigned char*)text, FONT_JUST_HLEFT, FONT_JUST_VTOP);
     glPopMatrix();
 #else
-    glColor4f(m_color[0], m_color[1], m_color[2], m_color[3]);
-    oglfDrawString(m_font, position[0], 768 - position[1], (const unsigned char*)text, FONT_JUST_HCENTER, FONT_JUST_VCENTER);
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT, viewport);
+
+    //Flong新增
+    glColor4f(m_color[0] / 255.0, m_color[1] / 255.0, m_color[2] / 255.0, m_color[3] / 255.0);
+    //glColor4f(m_color[0], m_color[1], m_color[2], m_color[3]);
+
+    //oglfDrawString(m_font, position[0], viewport[3] - position[1], (const unsigned char*)text, FONT_JUST_HLEFT, FONT_JUST_VBOTTOM);
+    oglfDrawString(m_font, position[0], viewport[3] - position[1], (const unsigned char*)text, FONT_JUST_HCENTER, FONT_JUST_VCENTER);
 #endif
 }
 void CFont::setColor(Color color)

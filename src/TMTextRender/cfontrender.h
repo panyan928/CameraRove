@@ -28,11 +28,12 @@ namespace textRender {
 
         void clearScreen();
 
-        unsigned char* getData() const;
+        unsigned int* getData() const;
 
 
     private:
-        unsigned char* m_screen;
+        int _screenWidth, _screenHeight;
+        unsigned int* m_screen;
         CFontManager * m_fontManager;
 
     };

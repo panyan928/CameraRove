@@ -18,7 +18,6 @@
 #include <map>
 #include <iostream>
 
-#include "cglobal.h"
 #include "../TMUtil/cstringutil.h"
 #include "cbuffer.h"
 #include "InputCApi.h"
@@ -41,7 +40,7 @@ namespace textRender {
       int                     getFontTall(void) const;
 
       void                    renderChar(int code, glyphMetrics *metrics, unsigned char* screen, Vec2i& position);
-      void                    renderChar(char* text, unsigned char* screen, Vec2i& position);
+      void                    renderChar(char* text, Vec2i& position);
 
       void                    setColor(Color color);
       void                    setOutline(bool type);

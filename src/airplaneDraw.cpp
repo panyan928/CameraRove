@@ -1,19 +1,17 @@
 #include <stdio.h>
 #include <math.h>
 #include <vector>
+#include <map>
+#include <iostream>
 #include "gl\gl.h"
 #include "TMUtil/tmtools.h"
+#include "TMUtil/OMGeoUtil.h"
+#include "stb_image.h"
 
 #define M_PI 3.141592653
 
 // 新增函数：绘制飞机图标
 void drawAirplaneIcon(Vec2d  posMec, Vec2d center, float aircraftHeading, float viewportWidth, float viewportHeight) {
-    double rotationRad = - aircraftHeading * M_PI / 180.0;
-    double centerX = (center[0] - posMec[0]) * 2 / viewportWidth;
-    double centerY = (center[1] - posMec[1]) * 2 / viewportHeight;
-    //centerX = centerX * cos(rotationRad) - centerY * sin(rotationRad);
-    //centerY = centerX * sin(rotationRad) + centerY * cos(rotationRad);
-
     // 保存模型视图矩阵
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
@@ -35,30 +33,28 @@ void drawAirplaneIcon(Vec2d  posMec, Vec2d center, float aircraftHeading, float 
     glDisable(GL_LIGHTING);      // 禁用光照
     glDisable(GL_TEXTURE_2D);    // 禁用纹理
     glDisable(GL_BLEND);         // 禁用混合
-
-    // 设置飞机渲染状态
-    glDisable(GL_DEPTH_TEST);    // 确保飞机在最前
-    glDisable(GL_CULL_FACE);     // 禁用面剔除
-
-    // 设置飞机渲染状态
-    glDisable(GL_DEPTH_TEST);     // 禁用深度测试（确保在最前面）
-    glDisable(GL_BLEND);          // 禁用混合（使用不透明色）
     glDisable(GL_CULL_FACE);      // 禁用面剔除
+    glDisable(GL_DEPTH_TEST);     // 禁用深度测试（确保在最前面）
 
+    double centerX = (center[0] - posMec[0]) * 2 / viewportWidth;
+    double centerY = (center[1] - posMec[1]) * 2 / viewportHeight;
+    //centerX = centerX * cos(rotationRad) - centerY * sin(rotationRad);
+    //centerY = centerX * sin(rotationRad) + centerY * cos(rotationRad);
+    // 计算旋转角度（弧度）
+    float angleRad = aircraftHeading * M_PI / 180.0f;
+    float cosA = cos(angleRad);
+    float sinA = sin(angleRad);
+
+    // 计算旋转后的偏移量
+    float offsetX = centerX * cosA - centerY * sinA;
+    float offsetY = centerX * sinA + centerY * cosA;
     // 5. 计算缩放比例
     float aircraftScale = 1.5;
 
-    //// 6. 计算航向角（弧度）
-    //float headingRad = aircraftHeading * M_PI / 180.0f;
-
-    // 变换步骤（实现以飞机为中心的缩放）：
-    // 1. 将飞机位置移动到坐标系原点
-    // 2. 执行缩放和旋转
-    // 3. 移回屏幕位置
     //glTranslatef(x_ndc, y_ndc, 0.0f);      // 步骤3：移回
-    glRotatef(aircraftHeading, 0.0f, 0.0f, 1.0f); // 旋转
-    glTranslatef(-centerX, -centerY, 0.0f);    // 步骤1：移到原点
-
+    // glRotatef(aircraftHeading, 0.0f, 0.0f, 1.0f); // 旋转
+    glTranslatef(-offsetX, -offsetY, 0.0f);    // 步骤1：移到原点
+	glRotatef(aircraftHeading, 0.0f, 0.0f, 1.0f); // 飞机旋转
     
     glScalef(aircraftScale, aircraftScale, 1.0f); // 缩放
     // 进一步缩小坐标值
@@ -396,4 +392,434 @@ void drawAirplaneIcon(Vec2d  posMec, Vec2d center, float aircraftHeading, float 
     glMatrixMode(GL_PROJECTION);  // 切回投影矩阵
     glPopMatrix();                // 恢复投影矩阵
 
+}
+#if 0
+void drawAirportIcon(double lon, double lat, const char* iconPath, Vec2d center, double viewportWidth, double viewportHeight, double iconSize)
+{
+    if (!iconPath) {
+        std::cout << "错误：机场图标路径为空" << std::endl;
+        return;
+    }
+
+    // 加载PNG图片
+    int width, height, nrChannels;
+    unsigned char* imageData = stbi_load(iconPath, &width, &height, &nrChannels, 0);
+
+    if (!imageData) {
+        // 图片加载失败，输出错误信息
+        const char* reason = stbi_failure_reason();
+        std::cout << "错误：无法加载机场图标文件 \"" << iconPath << "\": " << (reason ? reason : "未知错误") << std::endl;
+        return;
+    }
+
+    std::cout << "成功加载机场图标: " << iconPath << " (" << width << "x" << height << ", " << nrChannels << "通道)" << std::endl;
+
+    // 保存当前OpenGL状态（OpenGL ES 1.1不支持glPushAttrib，需要手动保存）
+    GLboolean texture2DEnabled = glIsEnabled(GL_TEXTURE_2D);
+    GLboolean blendEnabled = glIsEnabled(GL_BLEND);
+    GLboolean depthTestEnabled = glIsEnabled(GL_DEPTH_TEST);
+    GLboolean lightingEnabled = glIsEnabled(GL_LIGHTING);
+    GLfloat currentColor[4];
+    glGetFloatv(GL_CURRENT_COLOR, currentColor);
+    GLint currentTexture;
+    glGetIntegerv(GL_TEXTURE_BINDING_2D, &currentTexture);
+    GLint currentBlendSrc, currentBlendDst;
+    glGetIntegerv(GL_BLEND_SRC, &currentBlendSrc);
+    glGetIntegerv(GL_BLEND_DST, &currentBlendDst);
+
+    // 设置投影矩阵（使用标准化设备坐标，与飞机图标一致）
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(-1.0, 1.0, -1.0, 1.0, 0.0, 10.0);
+
+    // 设置模型视图矩阵
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+    // 将经纬度转换为墨卡托坐标
+    Vec2d airportLonLat(lon, lat);
+    Vec2d airportMec;
+    OMGeoUtil::Lonlat2WebMecator(airportLonLat, airportMec);
+
+    // 计算机场相对于地图中心的屏幕坐标（标准化设备坐标）
+    // 使用与飞机图标相同的计算方法
+    double centerX = (center[0] - airportMec[0]) * 2.0 / viewportWidth;
+    double centerY = (center[1] - airportMec[1]) * 2.0 / viewportHeight;
+
+    // 计算图标大小（标准化设备坐标）
+    if (iconSize <= 0.0) {
+        // 图标大小设为标准化设备坐标的0.05（可根据需要调整）
+        iconSize = 0.05;
+    }
+    double iconHalfSize = iconSize / 2.0;
+
+    // 平移到机场位置
+    glTranslatef(-centerX, -centerY, 0.0f);
+
+    // 创建OpenGL纹理
+    GLuint texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    // 设置纹理参数
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    // 上传纹理数据
+    GLenum format = (nrChannels == 3) ? GL_RGB : GL_RGBA;
+    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, imageData);
+
+    // 启用纹理和混合
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_LIGHTING);
+
+    // 设置颜色为白色，确保纹理颜色正确显示
+    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+
+    // 使用顶点数组绘制纹理四边形（OpenGL ES 1.1兼容方式）
+    // 定义顶点坐标（两个三角形组成一个四边形）
+    GLfloat vertices[] = {
+        // 第一个三角形：左下、右下、左上
+        -iconHalfSize, -iconHalfSize,  // 左下
+        iconHalfSize, -iconHalfSize,    // 右下
+        -iconHalfSize, iconHalfSize,    // 左上
+        // 第二个三角形：右下、右上、左上
+        iconHalfSize, -iconHalfSize,    // 右下
+        iconHalfSize, iconHalfSize,     // 右上
+        -iconHalfSize, iconHalfSize     // 左上
+    };
+
+    // 定义纹理坐标（与顶点对应）
+    GLfloat texCoords[] = {
+        // 第一个三角形
+        0.0f, 0.0f,  // 左下
+        1.0f, 0.0f,  // 右下
+        0.0f, 1.0f,  // 左上
+        // 第二个三角形
+        1.0f, 0.0f,  // 右下
+        1.0f, 1.0f,  // 右上
+        0.0f, 1.0f   // 左上
+    };
+
+    // 启用顶点数组和纹理坐标数组
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+    // 设置顶点数组和纹理坐标数组
+    glVertexPointer(2, GL_FLOAT, 0, vertices);
+    glTexCoordPointer(2, GL_FLOAT, 0, texCoords);
+
+    // 绘制两个三角形（共6个顶点）
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+
+    // 禁用顶点数组
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+    glDisableClientState(GL_VERTEX_ARRAY);
+
+    // 清理资源
+    glDeleteTextures(1, &texture);
+    stbi_image_free(imageData);
+
+    // 恢复OpenGL状态
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+
+    // 恢复之前的状态
+    if (texture2DEnabled) {
+        glEnable(GL_TEXTURE_2D);
+    }
+    else {
+        glDisable(GL_TEXTURE_2D);
+    }
+    if (blendEnabled) {
+        glEnable(GL_BLEND);
+    }
+    else {
+        glDisable(GL_BLEND);
+    }
+    if (depthTestEnabled) {
+        glEnable(GL_DEPTH_TEST);
+    }
+    else {
+        glDisable(GL_DEPTH_TEST);
+    }
+    if (lightingEnabled) {
+        glEnable(GL_LIGHTING);
+    }
+    else {
+        glDisable(GL_LIGHTING);
+    }
+    glColor4f(currentColor[0], currentColor[1], currentColor[2], currentColor[3]);
+    glBindTexture(GL_TEXTURE_2D, currentTexture);
+    glBlendFunc(currentBlendSrc, currentBlendDst);
+
+    //    glTranslatef(-centerX, -centerY, 0.0f);
+}
+#endif
+void MecatorToScreen(double mercatorX, double mercatorY, int& screenX, int& screenY, Vec2d now_center, double zoom, float screenWidth, float screenHeight, double aircraftHeading) {
+    // 1. 地图中心墨卡托
+    //Vec2d now_center = _scheduler2d->center();
+    double centerMercatorX = now_center[0];
+    double centerMercatorY = now_center[1];
+
+    //2. 计算米/像素
+    double worldSize = 20037508.34 * 2;  //全局墨卡托宽度（米）
+    /*const int zoom = _scheduler2d->zoom();*/
+    double tilesAtZoom = pow(2, zoom);
+    double mercatorPerPixel = worldSize / (tilesAtZoom * 256);  //米/像素
+
+    //3. 屏幕中心像素
+    double centerScreenX = screenWidth / 2.0;
+    double centerScreenY = screenHeight / 2.0;
+
+    //4. 墨卡托相对偏移 -> 像素（与现有实现保持一致，使用 / (..../2.0)）
+    double dX_merc = mercatorX - centerMercatorX;
+    double dY_merc = mercatorY - centerMercatorY;
+    double pxX = dX_merc / mercatorPerPixel;
+    double pxY = dY_merc / mercatorPerPixel;
+
+    // 5. 应用正向旋转（screenToMercator 用的是逆旋转）
+    double rotationDegrees = aircraftHeading;
+    double rotationRad = rotationDegrees * M_PI / 180.0;
+    double offsetX = pxX * cos(rotationRad) - pxY * sin(rotationRad);
+    double offsetY = pxX * sin(rotationRad) + pxY * cos(rotationRad);
+
+    // 6. 转为屏幕坐标（Y 轴向下）
+    screenX = static_cast<int>(std::round(centerScreenX + offsetX));
+    screenY = static_cast<int>(std::round(centerScreenY - offsetY));
+    return;
+}
+// 纹理缓存结构
+struct TextureCacheEntry {
+    GLuint textureID;
+    int width;
+    int height;
+    int channels;
+};
+
+// 静态纹理缓存
+static std::map<std::string, TextureCacheEntry> textureCache;
+
+// 获取或创建纹理（带缓存）
+static GLuint getOrCreateTexture(const char* iconPath, int& width, int& height, int& nrChannels) {
+    if (!iconPath) {
+        return 0;
+    }
+
+    std::string pathStr(iconPath);
+
+    // 检查缓存
+    auto it = textureCache.find(pathStr);
+    if (it != textureCache.end()) {
+        // 使用缓存的纹理
+        width = it->second.width;
+        height = it->second.height;
+        nrChannels = it->second.channels;
+        return it->second.textureID;
+    }
+
+    // 缓存未命中，加载图片
+    unsigned char* imageData = stbi_load(iconPath, &width, &height, &nrChannels, 0);
+    if (!imageData) {
+        const char* reason = stbi_failure_reason();
+        std::cout << "错误：无法加载机场图标文件 \"" << iconPath << "\": " << (reason ? reason : "未知错误") << std::endl;
+        return 0;
+    }
+
+    // 创建纹理
+    GLuint texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    // 设置纹理参数
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    // 上传纹理数据
+    GLenum format = (nrChannels == 3) ? GL_RGB : GL_RGBA;
+    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, imageData);
+
+    // 释放图片数据（纹理已上传到GPU）
+    stbi_image_free(imageData);
+
+    // 存入缓存
+    TextureCacheEntry entry;
+    entry.textureID = texture;
+    entry.width = width;
+    entry.height = height;
+    entry.channels = nrChannels;
+    textureCache[pathStr] = entry;
+
+    std::cout << "成功加载并缓存机场图标: " << iconPath << " (" << width << "x" << height << ", " << nrChannels << "通道)" << std::endl;
+
+    return texture;
+}
+
+void drawAirportIcon(double lon, double lat, const char* iconPath, Vec2d center, float viewportWidth, float viewportHeight, double iconSize, double aircraftHeading, double zoom)
+{
+    if (!iconPath) {
+        std::cout << "错误：机场图标路径为空" << std::endl;
+        return;
+    }
+
+    // 使用纹理缓存获取或创建纹理
+    int width, height, nrChannels;
+    GLuint texture = getOrCreateTexture(iconPath, width, height, nrChannels);
+    if (texture == 0) {
+        return; // 加载失败，已在getOrCreateTexture中输出错误信息
+    }
+
+    // 保存当前OpenGL状态（OpenGL ES 1.1不支持glPushAttrib，需要手动保存）
+    GLboolean texture2DEnabled = glIsEnabled(GL_TEXTURE_2D);
+    GLboolean blendEnabled = glIsEnabled(GL_BLEND);
+    GLboolean depthTestEnabled = glIsEnabled(GL_DEPTH_TEST);
+    GLboolean lightingEnabled = glIsEnabled(GL_LIGHTING);
+    GLfloat currentColor[4];
+    glGetFloatv(GL_CURRENT_COLOR, currentColor);
+    GLint currentTexture;
+    glGetIntegerv(GL_TEXTURE_BINDING_2D, &currentTexture);
+    GLint currentBlendSrc, currentBlendDst;
+    glGetIntegerv(GL_BLEND_SRC, &currentBlendSrc);
+    glGetIntegerv(GL_BLEND_DST, &currentBlendDst);
+
+    //// 设置投影矩阵（使用标准化设备坐标，与飞机图标一致）
+    //glMatrixMode(GL_PROJECTION);
+    ////glPushMatrix();
+    //glLoadIdentity();
+    ////glOrtho(left, right, bottom, top, -1.0, 1.0);
+    ////glOrtho(-1.0, 1.0, -1.0, 1.0, 0.0, 10.0);
+    //glOrtho(0, viewportWidth, 0, viewportHeight, 0.0, 10.0);
+
+    ////// 设置模型视图矩阵
+    //glMatrixMode(GL_MODELVIEW);
+    ////glPushMatrix();
+    //glLoadIdentity();
+
+
+    // 将经纬度转换为墨卡托坐标
+    Vec2d airportLonLat(lon, lat);
+    Vec2d airportMec;
+    OMGeoUtil::Lonlat2WebMecator(airportLonLat, airportMec);
+    int centerX;
+    int centerY;
+    MecatorToScreen(airportMec[0], airportMec[1], centerX, centerY, center, zoom, viewportWidth, viewportHeight, aircraftHeading);
+    // 计算机场相对于地图中心的屏幕坐标（标准化设备坐标）
+    // 使用与飞机图标相同的计算方法
+    //double centerX = (center[0] - airportMec[0]) * 2.0 / viewportWidth;
+    //double centerY = (center[1] - airportMec[1]) * 2.0 / viewportHeight;
+
+    // 计算图标大小（标准化设备坐标）
+    if (iconSize <= 0.0) {
+        // 图标大小设为标准化设备坐标的0.05（可根据需要调整）
+        iconSize = 0.05;
+    }
+    double iconHalfSize = iconSize / 2.0;
+
+    // 绑定缓存的纹理
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    // 启用纹理和混合
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_LIGHTING);
+
+    // 设置颜色为白色，确保纹理颜色正确显示
+    glColor4f(1.0f, 1.0f, 0.0f, 1.0f);
+
+    // 使用顶点数组绘制纹理四边形（OpenGL ES 1.1兼容方式）
+    // 定义顶点坐标（两个三角形组成一个四边形）
+    GLfloat vertices[] = {
+        // 第一个三角形：左下、右下、左上
+        -iconHalfSize + centerX, -iconHalfSize + viewportHeight - centerY,  // 左下
+        iconHalfSize + centerX, -iconHalfSize + viewportHeight - centerY,    // 右下
+        -iconHalfSize + centerX, iconHalfSize + viewportHeight - centerY,    // 左上
+        // 第二个三角形：右下、右上、左上
+        iconHalfSize + centerX, -iconHalfSize + viewportHeight - centerY,   // 右下
+        iconHalfSize + centerX, iconHalfSize + viewportHeight - centerY,    // 右上
+        -iconHalfSize + centerX, iconHalfSize + viewportHeight - centerY    // 左上
+    };
+    glTranslatef(centerX, viewportHeight - centerY, 0.0f);
+    glRotatef(aircraftHeading, 0.0, 0.0, 1.0);
+    glTranslatef(-centerX, -viewportHeight + centerY, 0.0f);
+
+    // 定义纹理坐标（与顶点对应）
+    GLfloat texCoords[] = {
+        // 第一个三角形
+        0.0f, 0.0f,  // 左下
+        1.0f, 0.0f,  // 右下
+        0.0f, 1.0f,  // 左上
+        // 第二个三角形
+        1.0f, 0.0f,  // 右下
+        1.0f, 1.0f,  // 右上
+        0.0f, 1.0f   // 左上
+    };
+
+    // 启用顶点数组和纹理坐标数组
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+    // 设置顶点数组和纹理坐标数组
+    glVertexPointer(2, GL_FLOAT, 0, vertices);
+    glTexCoordPointer(2, GL_FLOAT, 0, texCoords);
+
+
+
+    // 绘制两个三角形（共6个顶点）
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+
+
+
+    // 禁用顶点数组
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+    glDisableClientState(GL_VERTEX_ARRAY);
+
+    // 注意：不再删除纹理，因为纹理已缓存供后续使用
+
+    // 恢复OpenGL状态
+    //glPopMatrix();
+    //glMatrixMode(GL_PROJECTION);
+    //glPopMatrix();
+    //glMatrixMode(GL_MODELVIEW);
+
+    // 恢复之前的状态
+    if (texture2DEnabled) {
+        glEnable(GL_TEXTURE_2D);
+    }
+    else {
+        glDisable(GL_TEXTURE_2D);
+    }
+    if (blendEnabled) {
+        glEnable(GL_BLEND);
+    }
+    else {
+        glDisable(GL_BLEND);
+    }
+    if (depthTestEnabled) {
+        glEnable(GL_DEPTH_TEST);
+    }
+    else {
+        glDisable(GL_DEPTH_TEST);
+    }
+    if (lightingEnabled) {
+        glEnable(GL_LIGHTING);
+    }
+    else {
+        glDisable(GL_LIGHTING);
+    }
+    glColor4f(currentColor[0], currentColor[1], currentColor[2], currentColor[3]);
+    glBindTexture(GL_TEXTURE_2D, currentTexture);
+    glBlendFunc(currentBlendSrc, currentBlendDst);
 }

@@ -192,7 +192,7 @@ int CVectorTileLayer::draw(Recti bounds, int zoom, BufferManager* manager)
 	return 0;
 }
 
-int CVectorTileLayer::draw(vector<Vec3i> tiles, int zoom, BufferManager* manager)
+int CVectorTileLayer::draw(vector<Vec3i> tiles, int zoom, BufferManager* manager, int crowdLevel)
 {
 	Vec2i visibleZoom = this->zoom();
 	if (zoom < visibleZoom[0] || zoom > visibleZoom[1])
@@ -228,8 +228,10 @@ int CVectorTileLayer::draw(vector<Vec3i> tiles, int zoom, BufferManager* manager
 		}
 		if (geometryType().compare("point") == 0) {
 			//drawPoint(zoom, i, j, manager);
-			if (_anno)
-				drawAnnotation(zoom, i, j, manager, 1);
+			if (_anno) {
+				if(_anno >= crowdLevel) 
+					drawAnnotation(zoom, i, j, manager, crowdLevel); //_anno 1-6 crowdLevelÖµÔ½´ó£¬ÏÔÊ¾µÄ_annoÔ½ÉÙ
+			}
 			else
 				drawPoint(zoom, i, j, manager, 1);
 		}
@@ -365,7 +367,7 @@ int CVectorTileLayer::getData(vector<Vec3i>& tiles, int zoom, BufferManager* man
 int CVectorTileLayer::drawPolygon(int zoom, int col, int row, BufferManager* manager, int draw)
 {
 	//clock_t t1, t2;
-	/***************å›¾é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·é”Ÿç»?*********************/
+	/***************Í¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê?*********************/
 	//t1 = clock();
 	CStyle* style = getOrCreateStyle();
 	float r=0.0, g=0.0, b=0.0;
@@ -376,7 +378,7 @@ int CVectorTileLayer::drawPolygon(int zoom, int col, int row, BufferManager* man
 	style->fill(0)->getColor()->colorRGB(r, g, b);
 	Color color(255 * r, 255 * g, 255 * b, 255);
 
-    // é”Ÿæ–¤æ‹·é”Ÿç§¸è?¹æ‹·é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹?-->é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·-->é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·é¡ºé”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·é”Ÿ?
+    // ï¿½ï¿½ï¿½Õ???¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï??-->ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½-->ï¿½ï¿½ï¿½ï¿½Ë³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿?
     //string tileIndex = to_string(zoom) + "." + to_string(row) + "." + to_string((col % (int)pow(2, zoom)));
     ostringstream ost_temp;//ost_temp.str("");
 	ost_temp << (zoom) << "." << (row) << "." << ((col % (int)pow(2, zoom)));
@@ -409,13 +411,13 @@ int CVectorTileLayer::drawPolygon(int zoom, int col, int row, BufferManager* man
 		_amount += size_render;
 		float* pts_render = static_cast<float*>(vertices->data());
 		if (draw){
-            int upLimitLen = 65500;	//ÏŞ¶¨»æÖÆ×ø±êµã¸öÊıÊıÁ¿
-    	    int times=0;//ĞèÒª»æÖÆµÄ´ÎÊı
+            int upLimitLen = 65500;	//???????????????????
+    	    int times=0;//???????????
             if(size_render % upLimitLen)
         		times=size_render / upLimitLen + 1;
         	else
         		times = size_render / upLimitLen ;
-            int trueLen=0;//Ã¿´Î»æÖÆµÄÕæÊµ³¤¶È
+            int trueLen=0;//??¦Ë???????????
             for (int i = 0; i < times; i++) {
         		if (i == times - 1) {
         			if(size_render % upLimitLen)
@@ -521,7 +523,7 @@ int CVectorTileLayer::drawPolyline(int zoom, int col, int row, BufferManager* ma
 		   manager->insert(2, mBuffer, level2Index);
 	   }
 	   else
-		   cout << "é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·" << endl;*/
+		   cout << "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" << endl;*/
 
 		   //Vertices* vertices = mBuffer->vData();
 		   //Stop* stops = mBuffer->sData();
@@ -579,7 +581,7 @@ int CVectorTileLayer::drawPoint(int zoom, int col, int row, BufferManager* manag
 {
 	CStyle* style = getOrCreateStyle();
 
-	// é”Ÿæ–¤æ‹·é”Ÿç§¸è?¹æ‹·é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹?-->é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·-->é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·é¡ºé”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·é”Ÿ?
+	// ï¿½ï¿½ï¿½Õ???¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï??-->ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½-->ï¿½ï¿½ï¿½ï¿½Ë³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿?
 	//string tileIndex = to_string(zoom) + "." + to_string(row) + "." + to_string((col % (int)pow(2, zoom)));
     ostringstream ost_temp;//ost_temp.str("");
 	ost_temp << (zoom) << "." << (row) << "." << ((col % (int)pow(2, zoom)));
@@ -620,11 +622,11 @@ int CVectorTileLayer::drawPoint(int zoom, int col, int row, BufferManager* manag
 		int size_render = vertices->size();
 		_amount += size_render;
 		float* pts_render = static_cast<float*>(vertices->data());
-		//TODO("é”çŠ±ç«´æ¶“çŒ„ymbolé¨å‹®çŸ¾å?°å‹«æ¹?é–°å¶‡ç–†é‚å›¦æ??)
+		//TODO("åŠ ä¸€ä¸ªSymbolçš„è·¯???„å??é…ç½®æ–‡ä???)
 		#ifdef WIN32
-            string symbolPath = "./../data/mbtiles-jiangxi/symbols/" + layerName() + ".jpg";
-        #else//Ä¿Ç°Ö»ÊÊÓÃÓÚtm3
-            string symbolPath = "D:\\mbtiles-jiangxi/symbols/" + layerName() + ".jpg";
+            string symbolPath = "D:/pyan/map_wd_20221219/data/mbtiles-jiangxi/symbols/" + layerName() + ".png";
+        #else//?????????tm3
+            string symbolPath = "D:\\mbtiles-jiangxi/symbols/" + layerName() + ".png";
         #endif
 		if (draw)
 			openglEngine::OpenGLRenderEngine::drawSymbols<float>(pts_render, size_render, symbolPath.c_str(), _render);
@@ -653,66 +655,6 @@ int CVectorTileLayer::drawAnnotation(int zoom, int col, int row, BufferManager* 
 
 		count++;
 	}
-	//else {
-
-	//	string dataIndex = level2Index + ".vertices";
-	//	string stopIndex = level2Index + ".stops";
-	//	string annoIndex = level2Index + ".text";
-	//	if (!vertices) {
-	//		//allCount++;
-
-	//		string path = _path + tileIndex + ".vertice";
-	//		int size;
-	//		float* pts = openglEngine::OpenGLFileEngine::getVerticesFromBinary<float>(path.c_str(), CGeoUtil::Proj::WGS84, 2, size);
-	//		if (pts) {
-	//			mBuffer = new TMBuffer(BufferType::PolylineBuffer, level2Index);
-	//			string dataIndex = level2Index + ".vertices";
-	//			vertices = new Vertices(pts, size, dataIndex);
-	//			mBuffer->setData(vertices, DataType::Vertice);
-	//		}
-	//		else {
-	//			if (mBuffer != 0x00)
-	//				delete mBuffer;
-	//			mBuffer = 0x00;
-	//			pierce++;
-	//			return -1;
-	//		}
-	//	}
-
-	//	if (!stops) {
-	//		string path = _path + tileIndex + ".stop";
-	//		int size, size1;
-	//		int* pts = openglEngine::OpenGLFileEngine::getStopsFromBinary<int>(path.c_str(), size1, size);
-	//		if (pts) {
-	//			stops = new Stop(pts, size, stopIndex);
-	//			mBuffer->setData(stops, DataType::Stop);
-	//		}
-	//		else {
-	//			if (mBuffer != 0x00)
-	//				delete mBuffer;
-	//			mBuffer = 0x00;
-	//			return -1;
-	//		}
-	//	}
-
-	//	if (!annos) {
-	//		string path = _path + tileIndex + ".anno";
-	//		string tData = openglEngine::OpenGLFileEngine::getStringFromBinary<char>(path.c_str());
-	//		int size = tData.length();
-	//		if (size) {
-	//			annos = new Text(const_cast<char*>(tData.c_str()), size, annoIndex);
-	//			mBuffer->setData(annos, DataType::Text);
-	//		}
-	//		else {
-	//			if (mBuffer != 0x00)
-	//				delete mBuffer;
-	//			mBuffer = 0x00;
-	//			return -1;
-	//		}
-	//	}
-	//	manager->insert(2, mBuffer, level2Index);
-
-	//}
 	int state = -1;
 	if (vertices && annos && stops) {
 		int size_render = vertices->size();
@@ -720,26 +662,8 @@ int CVectorTileLayer::drawAnnotation(int zoom, int col, int row, BufferManager* 
 		float* pts_render = static_cast<float*>(vertices->data());
 		int* stops_render = static_cast<int*>(stops->data());
 		string text_render = static_cast<char*>(annos->data());
-		if (draw) {
-			//if (_anno == 2) {
-			//	#ifdef WIN32
-   //                 string symbolPath = "./../data/mbtiles-jiangxi/symbols/" + layerName() + ".jpg";
-   //             #else//Ä¿Ç°Ö»ÊÊÓÃÓÚtm3
-   //                 string symbolPath = "D:\\mbtiles-jiangxi/symbols/" + layerName() + ".jpg";
-   //             #endif
-			//	openglEngine::OpenGLRenderEngine::drawSymbolsAndAnnotations<float>(pts_render, size_render, symbolPath.c_str(),
-			//		text_render, stops_render, getOrCreateStyle(), _render);
-			//	//openglEngine::OpenGLRenderEngine::drawSymbols<float>(pts_render, size_render, symbolPath.c_str(), _render);
-			//}
-			///*CColor* color = getOrCreateStyle()->text(0)->getColor();
-			//float r, g, b;
-			//color->colorRGB(r, g, b);
-			//openglEngine::OpenGLRenderEngine::drawAnnotations(pts_render, size_render,
-			//	text_render, stops_render, Color(255, 255 * r, 255 * g, 255 * b), _render);*/
-			//else
-				openglEngine::OpenGLRenderEngine::drawAnnotations(pts_render, size_render,
-					text_render, stops_render, getOrCreateStyle(), _render);
-		}
+		openglEngine::OpenGLRenderEngine::drawAnnotations(pts_render, size_render,
+				text_render, stops_render, getOrCreateStyle(), _render, _anno);
 	}
 	return state;
 }
@@ -768,7 +692,7 @@ int CVectorTileLayer::addPolygonBuffer(int zoom, int col, int row, BufferManager
 	string dataIndex = level2Index + ".vertice";
 	string path = _path + tileIndex + ".vertice";
 	int size;
-	//10.27æ›´æ”¹æ•°æ®æº?
+	//10.27¸ü¸ÄÊı¾İ??
 	//float* pts = openglEngine::OpenGLFileEngine::getVerticesFromDB<float>(db, zoom, row, col, CGeoUtil::Proj::WGS84, 2, size);
 	float* pts = openglEngine::OpenGLFileEngine::getVerticesFromBinary<float>(path.c_str(), CGeoUtil::WGS84, 2, size);
 	if (pts) {
@@ -816,7 +740,7 @@ int CVectorTileLayer::addPolylineBuffer(int zoom, int col, int row, BufferManage
 		if (!vertices) {
 			string path = _path + tileIndex + ".vertice";
 			int size;
-			//10.27æ›´æ”¹æ•°æ®æº?
+			//10.27¸ü¸ÄÊı¾İ??
 			//float* pts = openglEngine::OpenGLFileEngine::getVerticesFromDB<float>(db, zoom, row, col, CGeoUtil::Proj::WGS84, 2, size);
 			float* pts = openglEngine::OpenGLFileEngine::getVerticesFromBinary<float>(path.c_str(), CGeoUtil::WGS84, 2, size);
 			if (pts) {
@@ -837,7 +761,7 @@ int CVectorTileLayer::addPolylineBuffer(int zoom, int col, int row, BufferManage
 		if (!stops) {
 			string path = _path + tileIndex + ".stop";
 			int size, size1;
-			//10.27æ›´æ”¹æ•°æ®æº?
+			//10.27¸ü¸ÄÊı¾İ??
 			//int* pts = openglEngine::OpenGLFileEngine::getStopsFromDB<int>(db,zoom,row,col,size1,size);
 			int* pts = openglEngine::OpenGLFileEngine::getStopsFromBinary<int>(path.c_str(), size1, size);
 			if (pts) {
@@ -874,7 +798,7 @@ int CVectorTileLayer::addPointBuffer(int zoom, int col, int row, BufferManager* 
 	string dataIndex = level2Index + ".vertices";
 		string path = _path + tileIndex + ".vertice";
 		int size;
-		//10.27æ›´æ”¹æ•°æ®æº?
+		//10.27¸ü¸ÄÊı¾İ??
 		//float* pts = openglEngine::OpenGLFileEngine::getVerticesFromDB<float>(db, zoom, row, col, CGeoUtil::Proj::WGS84, 2, size);
 		float* pts = openglEngine::OpenGLFileEngine::getVerticesFromBinary<float>(path.c_str(), CGeoUtil::WGS84, 2, size);
 		if (pts) {
@@ -915,7 +839,7 @@ int CVectorTileLayer::addAnnotationBuffer(int zoom, int col, int row, BufferMana
 		if (!vertices) {
 			string path = _path + tileIndex + ".vertice";
 			int size;
-			//10.27æ›´æ”¹æ•°æ®æº?
+			//10.27¸ü¸ÄÊı¾İ??
 			//float* pts = openglEngine::OpenGLFileEngine::getVerticesFromDB<float>(db, zoom, row, col, CGeoUtil::Proj::WGS84, 2, size);
 			float* pts = openglEngine::OpenGLFileEngine::getVerticesFromBinary<float>(path.c_str(), CGeoUtil::WGS84, 2, size);
 			if (pts) {
@@ -935,7 +859,7 @@ int CVectorTileLayer::addAnnotationBuffer(int zoom, int col, int row, BufferMana
 		if (!stops) {
 			string path = _path + tileIndex + ".stop";
 			int size, size1;
-			//10.27æ›´æ”¹æ•°æ®æº?
+			//10.27¸ü¸ÄÊı¾İ??
 			//int* pts = openglEngine::OpenGLFileEngine::getStopsFromDB<int>(db, zoom, row, col, size1, size);
 			int* pts = openglEngine::OpenGLFileEngine::getStopsFromBinary<int>(path.c_str(), size1, size);
 			if (pts) {

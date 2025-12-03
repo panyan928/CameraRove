@@ -3,7 +3,7 @@
  * @author	flq
  */
 #include "InputVString1.h"
-#include "InputCharsets1.h"
+#include "InputCharsets.h"
 
 
 void GB2312toUnicode2wchart(const char* src, wchar_t* wchar,int* dstLen)

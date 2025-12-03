@@ -45,6 +45,8 @@ public:
     void setDislpay(int mode);
     CGeoLayer* getLayer(int i);
     int Dislpay();
+    int getCrowd();
+    void setCrowd(int level);
 
     void turnOffLayer(int index);
     void turnOnLayer(int index);
@@ -87,6 +89,7 @@ private:
     int            lastDisplay;
     int            _viewer;
     int            _brightness;
+    int            _crowd = 6; //防拥级别1-6 1 - 水系 2 - 县以下 3 - 道路 4 - 大城市 5 - 机场 6 - 全显示
     int isSameTiles(vector<Vec3i> nearTiles, vector<Vec3i> lastNearTiles);
 };
 

@@ -41,6 +41,7 @@ namespace openglEngine {
 	{
 		if (pts == 0x00)
 			return -1;
+		// glDisable(GL_TEXTURE_2D);
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
 		glFrontFace(GL_CCW);
@@ -53,6 +54,7 @@ namespace openglEngine {
 		
 		glDisableClientState(GL_VERTEX_ARRAY);
 		glDisable(GL_CULL_FACE);
+		// glEnable(GL_TEXTURE_2D);
 
         tCount += size / 3;
         vCount += size;
@@ -88,7 +90,8 @@ namespace openglEngine {
 		if (pts == 0x00)
 			return -1;
 
-
+		glDisable(GL_BLEND);
+		//glDisable(GL_TEXTURE_2D);
 		glEnable(GL_LINE_SMOOTH); 
 		glHint(GL_LINE_SMOOTH, GL_NICEST);
 		glEnableClientState(GL_VERTEX_ARRAY);
@@ -112,7 +115,8 @@ namespace openglEngine {
 		}
 		glDisableClientState(GL_VERTEX_ARRAY);
 		glDisable(GL_LINE_SMOOTH);
-
+		glEnable(GL_BLEND);
+		// glEnable(GL_TEXTURE_2D);
         vCount += stops[stopsCount - 1];
 
 		return 0;
@@ -147,6 +151,8 @@ namespace openglEngine {
 		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 		if (nrChannels == 3)
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
@@ -234,15 +240,15 @@ namespace openglEngine {
 			Level2Indexs[textureIndex] = level2Index;
 			textureIndex++;
 			if (textureIndex == 48) textureIndex = 0;
-
+			cout << "load new texture:" << level2Index << endl;
 			if (nrChannels == 3)
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
 			else
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
 		}
-
-		glEnable(GL_BLEND); //开混合模式贴图
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);// 指定混合模式算法
+		glDisable(GL_BLEND);
+		//glEnable(GL_BLEND); //开混合模式贴图
+		//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);// 指定混合模式算法
 		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -265,9 +271,8 @@ namespace openglEngine {
 		glDisableClientState(GL_VERTEX_ARRAY);
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
-
 		//glDeleteTextures(1, &texture);
-		//glDisable(GL_TEXTURE_2D);
+		glDisable(GL_TEXTURE_2D);
 		//glDisable(GL_CULL_FACE);
 		//glDisable(GL_BLEND);
 		//glDepthMask(GL_TRUE);
@@ -404,67 +409,100 @@ namespace openglEngine {
 	
 
 	template<typename T>
-	int OpenGLRenderEngine::drawAnnotations(T* pts, int pt_size, string& buffer, int* stops, TMStyle::CStyle* style, textRender::CFontRender* render)
+	int OpenGLRenderEngine::drawAnnotations(T* pts, int pt_size, string& buffer, int* stops, TMStyle::CStyle* style, textRender::CFontRender* render, int anno)
 	{
-		if (pts == 0x00 || stops == 0x00 || pt_size == 0 || render == 0x00)
+		if (pts == 0x00 || pt_size == 0 || render == 0x00)
 			return -1;
 
 		Vec3d world;
 		Vec3d screen;
-		int index = 0;
 
-        string fontName = style->text(0)->font()->font();
+		string fontName;
+		try {
+			fontName = style->text(0)->font()->font();
+		}
+		catch (const std::out_of_range& e) {
+			char errorBuffer[1024];
+			int result = snprintf(errorBuffer, sizeof(errorBuffer), "POINT5 %s::::%s:::%d\n", e.what(), __FILE__, __LINE__);
+			OutputDebugStringA(errorBuffer);
+			return -1;
+		}
+		catch (const std::exception& e) {
+			char errorBuffer[1024];
+			int result = snprintf(errorBuffer, sizeof(errorBuffer), "POINT6 %s::::%s:::%d\n", e.what(), __FILE__, __LINE__);
+			OutputDebugStringA(errorBuffer);
+			return -1;
+		}
+		catch (...) {
+			char errorBuffer[1024];
+			int result = snprintf(errorBuffer, sizeof(errorBuffer), "POINT7 ::::%s:::%d\n", __FILE__, __LINE__);
+			OutputDebugStringA(errorBuffer);
+			return -1;
+		}
+
 		int fontSize = style->text(0)->font()->fontSize();
 		TMStyle::CColor* color = style->text(0)->getColor();
-		float r=0.0, g=0.0, b=0.0;
+		float r = 0.0f, g = 0.0f, b = 0.0f;
 		color->colorRGB(r, g, b);
-            
-		for (int i = 0; i < pt_size; i++) {
+
+		// === 新增：将 buffer 按 \n 拆分为 labels ===
+		std::vector<std::string> labels;
+		size_t start = 0;
+		for (size_t i = 0; i <= buffer.size(); ++i) {
+			if (i == buffer.size() || buffer[i] == '\n') {
+				if (i > start) {
+					labels.push_back(buffer.substr(start, i - start));
+				}
+				else {
+					labels.push_back("");  // 空行也保留位置
+				}
+				start = i + 1;
+			}
+		}
+
+		// === 遍历每个点，绑定 labels[i] ===
+		int drawCount = 0;
+		int labelCount = static_cast<int>(labels.size());
+
+		for (int i = 0; i < pt_size && i < labelCount; ++i) {
 			world[0] = pts[3 * i];
 			world[1] = pts[3 * i + 1];
 			world[2] = pts[3 * i + 2];
 
-			string name = buffer.substr(index, stops[i]);
-            char *name_char = (char*)name.data();
-            
-			wchar_t wchar[50];
-			memset(wchar, 0, 50);
-            int des_len=0;            
-            GB2312toUnicode2wchart(name_char, wchar,&des_len);
-            
-			index = index + stops[i];
+			// 获取第 i 个标注
+			string name = labels[i];
+			//cout << "name" << name << endl;
 
+			// 可选：跳过空文本
+			if (name.empty()) {
+				continue;
+			}
+
+			// 坐标转换
 			openGLCoordinatesEngine::world2Screen(screen[0], screen[1], screen[2], world[0], world[1], world[2]);
-			
-			
-			//int height = fontSize;
-			//int widht = fontSize * name.size() / 2;
 
+			// 计算宽高
 			int height = 0;
 			int width = 0;
 			getHeightAndWidth(width, height, name);
 			height *= fontSize;
 			width = fontSize * width / 2;
+
+			// 防重叠检测
 			Recti item(screen[0] - width / 2, screen[1] - height / 2, screen[0] + width / 2, screen[1] + height / 2);
-			//Recti item(screen[0], screen[1], screen[0] + name.size() * fontSize / 2, screen[1] + fontSize);
-			//Recti item(screen[0] - widht / 2, screen[1] - height / 2, screen[0] + widht / 2, screen[1]  height / 2);
-			if (checkOverlap(item, render->getData())) continue;
-
-			//wchar_t wstr[30];
-            //swprintf(wstr, 30,L"%s", const_cast<char*>(name.c_str()));
-			//UTF2Unicode(wstr, 30, const_cast<char*>(name.c_str()));
-			//std::wstring anno = wstr;
-			//std::wstring_convert<std::codecvt<wchar_t, char, std::mbstate_t>> decode(new std::codecvt<wchar_t, char, std::mbstate_t>("CHS"));
-			//anno = decode.from_bytes(name);
-
-			//wcout << anno << endl;		
-			//if (screen[0] >= 0 && (name.size() * 36 + screen[0]) <= 1024 && screen[1] >= 0 && (screen[1] + 18) <= 768)
+			if (checkOverlap(item, render->getData(), anno)) {
+				continue;
+			}
 			
-			render->render(name_char, Vec2i(screen[0] - width / 2, screen[1] - height / 2), fontSize, fontName.c_str(), Color(255, 255 * r, 255 * g, 255 * b));
+			// 渲染
+			char* name_char = const_cast<char*>(name.c_str());
+			render->render(name_char, Vec2i(screen[0], screen[1]), fontSize, fontName.c_str(), Color(255 * r, 255 * g, 255 * b, 255));
+			++drawCount;
 		}
-		//render->render()
-        vCount += pt_size;
-        hudCount += pt_size;
+
+		vCount += drawCount;
+		hudCount += drawCount;
+
 		return 0;
 	}
 #if 0
@@ -542,7 +580,7 @@ namespace openglEngine {
 		float r=0.0, g=0.0, b=0.0;
 		color->colorRGB(r, g, b);
 
-		unsigned char* pixels = render->getData();
+		unsigned int* pixels = render->getData();
 		for (int i = 0; i < pt_size; i++) {
 			world[0] = pts[3 * i];
 			world[1] = pts[3 * i + 1];
@@ -551,7 +589,7 @@ namespace openglEngine {
 			openGLCoordinatesEngine::world2Screen(screen[0], screen[1], screen[2], world[0], world[1], world[2]);
 			Recti item(screen[0] - width / 2, screen[1] - height / 2, screen[0] + width / 2, screen[1] + 1 * height / 2);
 
-			if (!checkOverlap(item, pixels)) {
+			if (!checkOverlap(item, pixels, 6)) {
 				for (int i = item[1]; i < item[3]; i++) {
 					memcpy(pixels + (i * 1024 + item[0]) * 4, data + ((i - item[1]) * width + item[0] - item[0]) * nrChannels, nrChannels * width);
 				}
@@ -563,7 +601,7 @@ namespace openglEngine {
 			wchar_t wchar[50];
 			memset(wchar, 0, 50);
             int des_len=0;            
-            GB2312toUnicode2wchart(name_char, wchar,&des_len);
+            //GB2312toUnicode2wchart(name_char, wchar,&des_len);
 			index = index + stops[i];
 			Recti item_anno(item[2], item[1], item[2] + name.size() * fontSize / 2, item[3] + fontSize);
 
@@ -597,7 +635,7 @@ namespace openglEngine {
 		}
 		Vec3d world;
 		Vec3d screen;
-		unsigned char* pixels = render->getData();
+		unsigned int* pixels = render->getData();
 		for (int i = 0; i < pt_size; i++) {
 
 			world[0] = pts[3 * i];
@@ -608,7 +646,7 @@ namespace openglEngine {
 			//Recti item(screen[0], screen[1], screen[0] + width, screen[1] + height);
 			Recti item(screen[0] - width / 2, screen[1] - height / 2, screen[0] + width / 2, screen[1] + 1 * height / 2);
 			
-			if (checkOverlap(item, pixels)) continue;
+			if (checkOverlap(item, pixels, 6)) continue;
 
 			for (int i = item[1]; i < item[3]; i++) {
 				memcpy(pixels + (i * 1024 + item[0]) * 4, data + ((i - item[1]) * width + item[0] - item[0]) * nrChannels, nrChannels * width);

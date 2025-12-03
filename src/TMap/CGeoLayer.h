@@ -18,7 +18,7 @@ public:
     virtual ~CGeoLayer();
     virtual int draw(Recti bounds, int zoom) = 0;
     virtual int draw(Recti bounds, int zoom, BufferManager* manager) = 0;
-    virtual int draw(vector<Vec3i> tiles, int zoom, BufferManager* manager) = 0;
+    virtual int draw(vector<Vec3i> tiles, int zoom, BufferManager* manager, int crowdLevel) = 0;
     virtual int drawTIN(vector<Vec3i> tiles, int zoom, BufferManager* manager) = 0;
 
     virtual int addBuffer(vector<Vec3i> tiles, int zoom, BufferManager* manager) = 0;

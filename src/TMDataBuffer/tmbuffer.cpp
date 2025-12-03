@@ -1,5 +1,6 @@
 #include "tmbuffer.h"
-
+//#define STB_IMAGE_WRITE_IMPLEMENTATION
+//#include "stb_image_write.h"
 TMBuffer::~TMBuffer()
 {
     if (_Texture)
@@ -18,6 +19,11 @@ TMBuffer::~TMBuffer()
         delete _sData;
     if (_style)
         delete _style;
+    if (_imData) {
+        //unsigned char* image = static_cast<unsigned char*>(_imData->data());
+        //stbi_write_bmp("D://test.bmp", 256, 256, 3, image);
+        delete _imData; //yzo
+    }
 
     _Texture = 0x00;
     _cData = 0x00;
@@ -27,6 +33,7 @@ TMBuffer::~TMBuffer()
     _tData = 0x00;
     _sData = 0x00;
     _style = 0x00;
+    _imData = 0x00;
 }
 
 GLuint* TMBuffer::texture() const

@@ -17,7 +17,7 @@ public:
 
     int draw(Recti bounds, int zoom);
     int draw(Recti bounds, int zoom, BufferManager* manager);
-    int draw(vector<Vec3i> tiles, int zoom, BufferManager* manager);
+    int draw(vector<Vec3i> tiles, int zoom, BufferManager* manager, int crowdLevel);
     int drawTIN(vector<Vec3i> tiles, int zoom, BufferManager* manager);
     int addBuffer(vector<Vec3i> tiles, int zoom, BufferManager* manager);
     int addBufferTIN(vector<Vec3i> tiles, int zoom, BufferManager* manager);

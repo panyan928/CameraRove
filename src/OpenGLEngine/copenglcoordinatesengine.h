@@ -12,6 +12,7 @@ namespace openglEngine {
 	class openGLCoordinatesEngine
 	{
 	public:
+		//static void MecatorToScreen(double mercatorX, double mercatorY, int& screenX, int& screenY);
 		static void screen2World(double screen_x, double screen_y, double screen_z,
 			double& world_x, double& world_y, double& world_z);
 	

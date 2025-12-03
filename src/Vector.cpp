@@ -115,16 +115,3 @@ float Vector3::angle(Vector3& v){
 	Vector3 vec( - x,- y, - z);
 	return vec;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

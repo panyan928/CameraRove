@@ -1,12 +1,15 @@
 #include "crastertilelayer.h"
 #include "sqlite/sqlite3.h"
 #include <sstream>
+#include "../libs/stb_image.h"
 
 CRasterTileLayer::CRasterTileLayer(string path)
 {
 	/************ 构造通用纹理数组 **************/
 	int interval = 4;
 	int size = 256 / interval + 2;
+	//size = 10;
+	size = 2;
 	_textures = new float[size * size * 2];
 	int index_t = 0;
 	for (int i = 0; i < size; i++) {
@@ -15,8 +18,10 @@ CRasterTileLayer::CRasterTileLayer(string path)
 			_textures[index_t++] = 1.0 * (i) / (size - 1);
 		}
 	}
+	//cout <<"index_t: "<< index_t << endl;
 	_path = path;
-	index_num = (size * size - 2 * size + 1) * 20;
+	//index_num = (size * size - 2 * size + 1) * 20;
+	//index_num = size * size * 3;
 }
 
 CRasterTileLayer::~CRasterTileLayer()
@@ -94,7 +99,7 @@ int CRasterTileLayer::draw(Recti bounds, int zoom, BufferManager* manager)
  * @param zoom      调度等级
  * @param manager   缓存管理对象
  */
-int CRasterTileLayer::draw(vector<Vec3i> tiles, int zoom, BufferManager* manager)
+int CRasterTileLayer::draw(vector<Vec3i> tiles, int zoom, BufferManager* manager, int crowdLevel)
 {
 
 	Vec2i visibleZoom = this->zoom();
@@ -103,7 +108,7 @@ int CRasterTileLayer::draw(vector<Vec3i> tiles, int zoom, BufferManager* manager
 
 	int interval = 4;
 	int size = 256 / interval + 2;
-
+	//cout << "raster tile layer draw , tile num: " << tiles.size() << endl;
 	for (int k = 0; k < tiles.size(); k++) {
 		int zoom = tiles[k][0];
 		int col = tiles[k][1];
@@ -215,8 +220,9 @@ int CRasterTileLayer::addBuffer(vector<Vec3i> tiles, int zoom, BufferManager* ma
 
 	//height文件是66*66
 	int interval = 4;
-    int stride = 5; //数据抽取
+    int stride = 1; //数据抽取
 	int size = 256 / interval + 2;
+	size = 2;
 
 	for (int k = 0; k < tiles.size(); k++) {
 		int zoom = tiles[k][0];
@@ -284,13 +290,12 @@ int CRasterTileLayer::addBuffer(vector<Vec3i> tiles, int zoom, BufferManager* ma
 				//10.27数据源更改
 				//short int* height = openglEngine::OpenGLFileEngine::getHeightFromDB<short int>(heightDB,zoom, row,col,hSize);
 				// short int* height = openglEngine::OpenGLFileEngine::getHeightFromBinary<short int>(hPath.c_str(), hSize);
-
 				Vec2d leftTop, pt;
 				CGeoUtil::getTileLeftTop(zoom, col, row, leftTop[0], leftTop[1]);
 				double span = 2 * CGeoUtil::PI * CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom) / (size - 1);
 				double x, y, z;
 
-
+				
 				int index_t = 0; int index_v = 0; int index_color = 0;  int index_i = 0;
 				for (int i = 0; i < size; i++) {
 					for (int j = 0; j < size; j++) {
@@ -298,6 +303,7 @@ int CRasterTileLayer::addBuffer(vector<Vec3i> tiles, int zoom, BufferManager* ma
 						pt[1] = leftTop[1] - (i - 0) * span;					
 						double lat, lon;
 						CGeoUtil::WebMercator2lonLat(pt[0], pt[1], lat, lon);
+						printf("%lf , %lf\n", pt[0], pt[1]);
 						//  if (height == 0x00)
 						CGeoUtil::lonLatHeight2XYZ(lon * CGeoUtil::PI / 180, lat * CGeoUtil::PI / 180, 0, x, y, z);
 						//  else {
@@ -315,6 +321,7 @@ int CRasterTileLayer::addBuffer(vector<Vec3i> tiles, int zoom, BufferManager* ma
 						vertices[index_v++] = pt[0];
 						vertices[index_v++] = pt[1];
 						vertices[index_v++] = 0.1;
+						
 						Vec3d color = calColor(h1);
 						colors[index_color++] = color[0];
 						colors[index_color++] = color[1];
@@ -327,7 +334,8 @@ int CRasterTileLayer::addBuffer(vector<Vec3i> tiles, int zoom, BufferManager* ma
 								((j == (size - 1)) && (i % stride == 0)) || \
 								((i == (size - 1)) && (j == (size - 1))) || \
 								((i % stride == 0) && (j % stride == 0))
-								) {
+								) 
+							{
 								index[index_i++] = (i)*size + j;
 								index[index_i++] = (i)*size + j - stride;
 								index[index_i++] = (i - stride) * size + j;
@@ -338,7 +346,7 @@ int CRasterTileLayer::addBuffer(vector<Vec3i> tiles, int zoom, BufferManager* ma
 						}
 					}
 				}
-                
+				//cout << index_v << endl;
 				//GLuint* texture = new GLuint();
 				//glGenTextures(1, texture);
                 index_num = index_i;

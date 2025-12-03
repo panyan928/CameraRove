@@ -1,10 +1,49 @@
 #include "copenglcoordinatesengine.h"
 #include "../TMUtil/cgeoutil.h"
+#include "TMUtil/OMapGlobal.h"
+#include "TMScheduler/OMScheduler.h"
+
+extern OMScheduler* _scheduler2d;
+#define M_PI 3.141592653
+
+void MecatorToScreen(double mercatorX, double mercatorY, int& screenX, int& screenY) {
+    // 1. 地图中心墨卡托
+     Vec2d now_center = _scheduler2d->center();
+    double centerMercatorX = now_center[0];
+    double centerMercatorY = now_center[1];
+
+     //2. 计算米/像素
+    double worldSize = 20037508.34 * 2;  //全局墨卡托宽度（米）
+    /*const int zoom = _scheduler2d->zoom();*/
+    double tilesAtZoom = pow(2, _scheduler2d->zoom());
+    double mercatorPerPixel = worldSize / (tilesAtZoom * 256);  //米/像素
+
+     //3. 屏幕中心像素
+    double centerScreenX = screenWidth / 2.0;
+    double centerScreenY = screenHeight / 2.0;
+
+     //4. 墨卡托相对偏移 -> 像素（与现有实现保持一致，使用 / (..../2.0)）
+    double dX_merc = mercatorX - centerMercatorX;
+    double dY_merc = mercatorY - centerMercatorY;
+    double pxX = dX_merc / mercatorPerPixel;
+    double pxY = dY_merc / mercatorPerPixel;
+
+    // 5. 应用正向旋转（screenToMercator 用的是逆旋转）
+    double rotationDegrees = _scheduler2d->getRotation();
+    double rotationRad = rotationDegrees * M_PI / 180.0;
+    double offsetX = pxX * cos(rotationRad) - pxY * sin(rotationRad);
+    double offsetY = pxX * sin(rotationRad) + pxY * cos(rotationRad);
+
+    // 6. 转为屏幕坐标（Y 轴向下）
+    screenX = static_cast<int>(std::round(centerScreenX + offsetX));
+    screenY = static_cast<int>(std::round(centerScreenY - offsetY));
+    return;
+}
 
 namespace openglEngine {
     /**
     * @brief screen2World
-    * @details 灞忓箷鍧愭爣杞笘鐣屽潗鏍?
+    * @details 灞忓箷鍧愭爣杞?涓栫晫鍧愭??
     */
 	void openGLCoordinatesEngine::screen2World(double screen_x, double screen_y, double screen_z, double& world_x, double& world_y, double& world_z)
 	{
@@ -25,6 +64,38 @@ namespace openglEngine {
 
         return;
 	}
+    #if 0
+    void screenToMercator(int screenX, int screenY, double& mercatorX, double& mercatorY) {
+        // 1. ???????????????
+        Vec2d now_center = _scheduler2d->center();
+        double centerMercatorX = now_center[0];
+        double centerMercatorY = now_center[1];
+    
+        // 2. ???????????????/??
+        double worldSize = 20037508.34 * 2; // ??????????
+        double tilesAtZoom = pow(2, _scheduler2d->zoom()); // ??????????
+        double mercatorPerPixel = worldSize / (tilesAtZoom * 256); // ?/??
+    
+        // 3. ????????????
+        double centerScreenX = screenWidth / 2.0;
+        double centerScreenY = screenHeight / 2.0;
+    
+        // 4. ???????????????Y????
+        double offsetX = screenX - centerScreenX;
+        double offsetY = centerScreenY - screenY; // ??Y???????Y???
+        
+        double rotationDegrees = _scheduler2d->get_angle();
+        // 5. ??????????????
+        double rotationRad = -rotationDegrees * M_PI / 180.0;
+        double rotatedOffsetX = offsetX * cos(rotationRad) - offsetY * sin(rotationRad);
+        double rotatedOffsetY = offsetX * sin(rotationRad) + offsetY * cos(rotationRad);
+    
+        // 6. ????????????????2.0?
+        mercatorX = centerMercatorX + rotatedOffsetX * mercatorPerPixel/2.0;
+        mercatorY = centerMercatorY + rotatedOffsetY * mercatorPerPixel/2.0;
+    }
+    #endif
+    
 
     /**
     * @brife world2Screen
@@ -42,13 +113,16 @@ namespace openglEngine {
         glGetIntegerv(GL_VIEWPORT, viewport);
 
         
+		int screen_x2, screen_y2;
+        //gluProject(world_x, world_y, world_z, modelview, projection, viewport, &winX, &winY, &winZ);
+        MecatorToScreen(world_x, world_y, screen_x2, screen_y2);
 
-        gluProject(world_x, world_y, world_z, modelview, projection, viewport, &winX, &winY, &winZ);
-        
-
-        screen_x = (winX);
+        /*screen_x = (winX);
         screen_y = ((GLdouble)viewport[3] - winY);
-        screen_z = (winZ);
+        screen_z = (winZ);*/
+        screen_x = screen_x2;
+        screen_y = screen_y2;
+        screen_z = 0.01;
         
         return;
     }

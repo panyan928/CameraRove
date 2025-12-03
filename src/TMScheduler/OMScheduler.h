@@ -15,8 +15,9 @@ public:
 	OMScheduler(int zoom, Vec2d center);
 
 	virtual ~OMScheduler();
-	Vec2d center()const;
-	int zoom() const;
+	Vec2d center() const;
+	Vec2d center();
+	int zoom();
 	Recti tileBound() const;
 	Rectd windowRect() const;
 	double getRotation() const;
@@ -24,7 +25,7 @@ public:
 	int compute();
 	
 	int updateMapParameter(Vec2d center, int zoom);
-
+	int setCenter(float lon, float lat);
 	int zoomIn();
 	int zoomOut();
 	

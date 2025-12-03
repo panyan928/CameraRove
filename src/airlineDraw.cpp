@@ -77,7 +77,7 @@ void drawSampleRoute() {
     
     // 绘制红色实线路线，线宽2像素
     Color redColor(255, 0, 0, 255); // 红色
-    drawGeoPolyline(routePoints, 4, redColor, 2, false);
+    drawGeoPolyline(routePoints, 3, redColor, 2, false);
     
     //// 绘制蓝色虚线路线，线宽2像素
     //Color blueColor(0, 0, 255, 255); // 蓝色

@@ -21,8 +21,9 @@
 #include "stdafx.h"
 #include "GLFrame.h"													/**< 包含GLFrame.h头文件 */
 #include "Camera.h"	
-
+#include "TMUtil/OMapGlobal.h"
 #include "mapDrv.h"
+#include "specific.h"
 
 #ifdef WIN32
 
@@ -241,7 +242,11 @@ int GLApplication::Main(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCm
 			}
 			else														/**< 成功开始消息循环 */
 			{
-				Initial(); 				
+				Initial(); 	
+				/*oglx_init();
+				init_scene();*/
+				 //_render->initialize("D:/pyan/map_wd_20221219/data/fonts/");	
+				 //_render->getFontManager()->getFontIndex("SIMHEI", 14);
 				UINT uResult = SetTimer(
 					m_Window.m_hWnd,		// handle to main window 
 					0,						// timer identifier 
@@ -282,9 +287,11 @@ int GLApplication::Main(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCm
 							//float t1 = GetTickCount() * 0.001f;
 							//myDisplay();
 							Display2d();									/**< 调用用户自定义的绘制函数 */
+							//DisplayTest();
 							//drawText();
                             Draw();
 							renderFontArray();
+							//draw_scene();
 							//static int count=0;
 							//static float tpfArray[30];		/**< 用于计算帧率的数组 */
 							//float t2 = GetTickCount() * 0.001f;

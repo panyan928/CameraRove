@@ -50,7 +50,7 @@ namespace openglEngine {
 		static int drawAnnotations(T* pts, int pt_size, string& buffer, int* stops, Color color, CFontRender* render);
 
 		template <typename T>
-		static int drawAnnotations(T* pts, int pt_size, string& buffer, int* stops, TMStyle::CStyle* style, CFontRender* render);
+		static int drawAnnotations(T* pts, int pt_size, string& buffer, int* stops, TMStyle::CStyle* style, CFontRender* render, int anno);
 
 		template <typename T>
 		static int drawAnnotations(T* pts, int pt_size, string& buffer, int* stops, int symbol, TMStyle::CStyle* style, CFontRender* render);
@@ -62,17 +62,54 @@ namespace openglEngine {
 		static int drawSymbols(T* pts, int pt_size, const char* path, CFontRender* render);
 
 	private:
-		static bool checkOverlap(Recti& item, unsigned char* pixels) {
-			if (item[0] < 0 || item[2] >= 1024 || item[1] < 0 || item[3] >= 768)
+		static bool checkOverlap(Recti& item, unsigned int* pixels, int anno) {
+			if (item[0] < 0 || item[2] >= screenWidth || item[1] < 0 || item[3] >= screenHeight)
 				return true;
+			//return false;
+			// 检查重复
 			for (int i = item[1]; i < item[3]; i++) {
 				for (int j = item[0]; j < item[2]; j++) {
 					//if (pixels[4 * (i * 1024 + j)] != 0 || pixels[4 * (i * 1024 + j) + 1] != 0
 						//|| pixels[4 * (i * 1024 + j) + 2] != 0)
-					if (!(pixels[4 * (i * 1024 + j) + 0] == 0 && pixels[4 * (i * 1024 + j) + 1] == 0
-						&& pixels[4 * (i * 1024 + j) + 0] == 0 && pixels[4 * (i * 1024 + j) + 3] == 0))
-						return true;
+					/*if (!(pixels[4 * (i * screenWidth + j) + 0] == 0 && pixels[4 * (i * screenWidth + j) + 1] == 0
+						&& pixels[4 * (i * screenWidth + j) + 2] == 0 && pixels[4 * (i * screenWidth + j) + 3] == 0))
+						return true;*/
+					/*if (!(pixels[4 * (i * screenWidth + j) + 0] == 0 && pixels[4 * (i * screenWidth + j) + 1] == 0
+						&& pixels[4 * (i * screenWidth + j) + 2] == 0 && pixels[4 * (i * screenWidth + j) + 3] == 0))
+			 		return true;*/
+					
+					//if (anno <= pixels[5 * (i * screenWidth + j)]) return true; 
+					if (pixels[5 * i * screenWidth + j] != 0){
+						/*当前级别小于已有地标点级别，判断重复，直接跳过绘制， 不需要修改pixels*/
+						if (anno <= pixels[5 * i * screenWidth + j]) return true;
+						// 级别更高，需要覆盖原有区域
+						else {
+							int xmin = pixels[5 * i * screenWidth + screenWidth + j];
+							int ymin = pixels[5 * i * screenWidth + screenWidth * 2 + j];
+							int xmax = pixels[5 * i * screenWidth + screenWidth * 3 + j];
+							int ymax = pixels[5 * i * screenWidth + screenWidth * 4 + j];
+							for (int i = ymin; i < ymax; i++) {
+								memset(&(pixels[5 * i * screenWidth + xmin]), 0, (xmax - xmin + 1) * sizeof(unsigned int)); //重置低级别区域的pixels
+							}
+							break;
+						}
+					}
 				}
+			}
+			
+			// 没有重复，直接填充标志位
+			for (int i = item[1]; i < item[3]; i++) {
+				std::fill(&(pixels[5 * i * screenWidth + item[0]]), &(pixels[5 * i * screenWidth + item[0]]) + item[2] - item[0], anno);
+				std::fill(&(pixels[5 * i * screenWidth + screenWidth + item[0]]), &(pixels[5 * i * screenWidth + screenWidth + item[0]]) + item[2] - item[0], item[0]);
+				std::fill(&(pixels[5 * i * screenWidth + screenWidth * 2 + item[0]]), &(pixels[5 * i * screenWidth + screenWidth * 2 + item[0]]) + item[2] - item[0], item[1]);
+				std::fill(&(pixels[5 * i * screenWidth + screenWidth * 3 + item[0]]), &(pixels[5 * i * screenWidth + screenWidth * 3 + item[0]]) + item[2] - item[0], item[2]);
+				std::fill(&(pixels[5 * i * screenWidth + screenWidth * 4 + item[0]]), &(pixels[5 * i * screenWidth + screenWidth * 4 + item[0]]) + item[2] - item[0], item[3]);
+
+				//memset(&(pixels[5 * i * screenWidth + item[0]]), anno * 255/ 6, (item[2] - item[0] + 1) * sizeof(unsigned int)); //第一个W*H存储 anno
+				//memset(&(pixels[5 * i * screenWidth + screenWidth + item[0]]), item[0], (item[2] - item[0] + 1) * sizeof(unsigned int)); //第二个W*H存储 item[0] xmin
+				//memset(&(pixels[5 * i * screenWidth + screenWidth * 2 + item[0]]), item[1], (item[2] - item[0] + 1) * sizeof(unsigned int)); //第三个W*H存储 item[1] ymin
+				//memset(&(pixels[5 * i * screenWidth + screenWidth * 3 + item[0]]), item[2], (item[2] - item[0] + 1) * sizeof(unsigned int)); //第四个W*H存储 item[2] xmax
+				//memset(&(pixels[5 * i * screenWidth + screenWidth * 4 + item[0]]), item[3], (item[2] - item[0] + 1) * sizeof(unsigned int)); //第五个W*H存储 item[3] ymax
 			}
 			return false;
 		}

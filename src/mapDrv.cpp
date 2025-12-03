@@ -32,7 +32,10 @@ pthread_mutex_t g_mutex;
 #define M_PI 3.141592653
 
 #ifdef WIN32
-OMap* _map = new OMap("D://pyan//map_wd_20221219//data//map_zd_vector.json");
+OMap* _map = new OMap("D:/pyan/map_wd_20221219/data/map.json");
+//OMap* _map = new OMap("C://Users/pyan/Documents/pyan/map_wd_20221219/data/map_zd_vector.json");
+//OMap* _map = new OMap("D://pyan/DATA/data/map_win_zd.json");
+
 //OMap* _map = new OMap("./../data/map_night.json");
 //JSONLayer *queryLayer = new JSONLayer("./../data/jiangxi.geojson");
 #else//目前只适用于tm3
@@ -44,7 +47,7 @@ OMap* _map = new OMap("D:\\map_tm.json");
 #endif
 
 JTFONT hzFont[2];
-CFontRender* render = new CFontRender(1920, 1080);
+//CFontRender* render = new CFontRender(1920, 1080);
 OM3DScheduler* _scheduler = _map->getOrCreate3DScheduler();
 OMScheduler* _scheduler2d = _map->getOrCreateScheduler();   
 BufferManager* manager = _map->getOrCreateBufferManager();
@@ -57,15 +60,20 @@ float* pts_earth;
 int* index_temp;
 float* texcoords;
 int angle1 = 0;
-
+#define COUNT 5304
 using namespace textRender;
-
-float* textures;
+float* _Vertices[COUNT];
+unsigned char* _Images[COUNT];
+int _indexImage = 0;
+float* _textures;
+int* _indexes;
+int index_num;
 bool earth = true;
 
 int isRoma=0;
 
 void* romaFucn(void* args);
+void drawRaster_single();
 
 Vec3d getHeight(double lon, double lat) {
     int zoom = 10;
@@ -168,6 +176,14 @@ void* getBuffer(void* args) {
 
 void renderFontArray()
 {
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    GLint    viewport[4];
+    glGetIntegerv(GL_VIEWPORT, viewport);
+    glOrtho(0, viewport[2], 0, viewport[3], -10.0, 10.0);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
     renderArray();
 }
 
@@ -182,19 +198,27 @@ void drawFontE(float x,float y,char* a) {
     glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
     oglfDrawString(hzFont[0], x, y, (const unsigned char*)a, FONT_JUST_HLEFT, FONT_JUST_VTOP);
 
-    memset(a,0,30);
-	sprintf(a,"zoom=%d", _scheduler->zoom());
-	oglfDrawString(hzFont[1], x, y-20, (const unsigned char*)a, FONT_JUST_HLEFT, FONT_JUST_VTOP);
+ //   memset(a, 0, 30*sizeof(char));
+	//sprintf(a,"zoom=%d", _scheduler2d->zoom());
+	//oglfDrawString(hzFont[1], x, y-20, (const unsigned char*)a, FONT_JUST_HLEFT, FONT_JUST_VTOP);
 
-	memset(a,0,30);
-	sprintf(a,"Version: 1.0");
-	oglfDrawString(hzFont[1], x, y-40, (const unsigned char*)a, FONT_JUST_HLEFT, FONT_JUST_VTOP);
+	//memset(a, 0, 30 * sizeof(char));
+	//sprintf(a,"Version: 1.0");
+	//oglfDrawString(hzFont[1], x, y-40, (const unsigned char*)a, FONT_JUST_HLEFT, FONT_JUST_VTOP);
 }
 
 void drawRasters(int zoom, int beginRow, int endRow, int beginCol, int endCol) {
     for (int i = beginRow; i <= endRow; i++) {
         for (int j = beginCol; j <= endCol; j++) {
             drawRaster(zoom, i, j);
+        }
+    }
+}
+
+void drawRasters2(int zoom, int beginRow, int endRow, int beginCol, int endCol, bool isdraw = 0) {
+    for (int i = beginRow; i <= endRow; i++) {
+        for (int j = beginCol; j <= endCol; j++) {
+            drawRaster_sim(zoom, i, j, isdraw);
         }
     }
 }
@@ -285,19 +309,48 @@ return;
 
 void Initial(void)
 {
+    // 查询实际支持的纹理单元数量
+	GLint maxUnits;
+	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxUnits);
+	cout<<"maxUnits="<<maxUnits<<"\r\n"<<endl;
 	//functionTest();                       //测试函数
     /*pyan 0625 注释，没用到，似乎drawEarth才用到*/
-    int interval = 4;
-    int size = 256 / interval + 2;
-    textures = new float[size * size * 2];
+    //int interval = 4;
+    //int size = 256 / interval + 2;
+    int stride = 1;
+    int size = 2;
+    _textures = new float[size * size * 2];
+    _indexes = new int[(size * size - 2 * size + 1) * 6];
     int index_t = 0;
+    int index_i = 0;
     for (int i = 0; i < size; i++) {
         for (int j = 0; j < size; j++) {
-            textures[index_t++] = 1.0 * (j) / (size - 1);
-            textures[index_t++] = 1.0 * (i) / (size - 1);
+            _textures[index_t++] = 1.0 * (j) / (size - 1);
+            _textures[index_t++] = 1.0 * (i) / (size - 1);
+            if (i > 0 && j > 0)
+            {
+                if (
+                    ((i == (size - 1)) && (j % stride == 0)) || \
+                    ((j == (size - 1)) && (i % stride == 0)) || \
+                    ((i == (size - 1)) && (j == (size - 1))) || \
+                    ((i % stride == 0) && (j % stride == 0))
+                    ) {
+                    _indexes[index_i++] = (i)*size + j;
+                    _indexes[index_i++] = (i)*size + j - stride;
+                    _indexes[index_i++] = (i - stride) * size + j;
+                    _indexes[index_i++] = i * size + j - stride;
+                    _indexes[index_i++] = (i - stride) * size + j - stride;
+                    _indexes[index_i++] = (i - stride) * size + j;
+                }
+            }
         }
     }
-
+    /*drawRasters2(12, 1748, 1753, 2675, 2679, 0);*/
+    //drawRasters2(12, 1729, 1796, 2629, 2706, 0);
+    //读取全部图像后重置索引
+    _indexImage = 0;
+    index_num = index_i;
+#if 0
     pts = new float[(49 * 49) * 3];               int pt_i = 0;
     index_temp = new int[(49 * 49 - 49 * 2 + 1) * 6];    int index_i = 0;
     texcoords = new float[(49 * 49) * 2];         int texture_i = 0;
@@ -327,7 +380,7 @@ void Initial(void)
             }
         }
     }
-
+#endif
     /*  initialize the fontRnder */
     //_render->initialize("./../data/fonts/");
     #ifdef WIN32
@@ -339,13 +392,13 @@ void Initial(void)
         oglfCreateFont("D:\\fonts/SIMHEI.TTF","SIMHEI", 14, &hzFont[0]);
         oglfCreateFont("D:\\fonts/青鸟华光简大黑.TTF", "青鸟华光简大黑", 14, &hzFont[1]);
     #endif
-        _render->getFontManager()->getFontIndex("SIMHEI", 14);
-        _render->getFontManager()->getFontIndex("青鸟华光简大黑", 14);
+        //_render->getFontManager()->getFontIndex("SIMHEI", 14);
+        //_render->getFontManager()->getFontIndex("青鸟华光简大黑", 14);
     int fontSize = 18;
 
 //    /*  load font file */
-    _render->loadFont("D:/pyan/map_wd_20221219/data/fonts/SIMHEI.TTF", 0, 18, 0, 0, 1);
-    _render->loadFont("D:/pyan/map_wd_20221219/data/fonts/SIMHEI.TTF", 0, 18, 1, 0, 1);
+    //_render->loadFont("D:/pyan/map_wd_20221219/data/fonts/SIMHEI.TTF", 0, 18, 0, 0, 1);
+    //_render->loadFont("D:/pyan/map_wd_20221219/data/fonts/SIMHEI.TTF", 0, 18, 1, 0, 1);
     ///*  render text to the screen texture */
     //_render->render(L"滚滚长江东逝水，浪花淘尽英雄。", Vec2i(0, 0), fontSize, "SIMHEI", Color(255, 0, 0, 255));
     //render->render(L"是非成败转头空。", Vec2i(0, fontSize), fontSize, "SIMHEI", Color(255, 0, 0, 255));
@@ -388,7 +441,7 @@ void Initial(void)
 	#ifdef WIN32
     	pthread_mutex_init(&g_mutex, NULL);
 		int ret = pthread_create(&bufferTid[0], NULL, getBuffer, NULL);
-        int ret1 = pthread_create(&bufferTid[1], NULL, romaFucn, NULL);
+        //int ret1 = pthread_create(&bufferTid[1], NULL, romaFucn, NULL);
         
     	typedef BOOL(APIENTRY* PFNWGLSWAPINTERVALFARPROC)(int);
     	PFNWGLSWAPINTERVALFARPROC wglSwapIntervalEXT = 0;
@@ -443,7 +496,7 @@ void drawText(void) {
 	gluLookAt(0, 0, 1, 0, 0, 0, 0, 1, 0);
 	//glPopMatrix();
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1024, 768, 0, GL_RGBA, GL_UNSIGNED_BYTE, _render->getData());
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1024, 768, 0, GL_RGBA, GL_UNSIGNED_INT, _render->getData());
 
 
 	glBegin(GL_POLYGON);
@@ -620,7 +673,8 @@ void Display2d(){
     //GLint textureNum;
 	//glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &textureNum); //获取当前视口尺寸
 	//cout << "当前视口支持的纹理单元数量：" << textureNum << endl;
-
+    //glViewport(0, 0, screenWidth, screenHeight);
+    _render->clearScreen();
     glClearColor(48 / 255.0, 168 / 255.0, 224 / 255.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);        //用当前背景色填充窗口
     
@@ -674,21 +728,127 @@ void Display2d(){
     }
     _map->draw(); 
     //飞行计划绘制
-    drawSampleRoute();
-    
+    //drawSampleRoute();
+    drawAirportIcon(108.94, 34.266, "D:/pyan/map_wd_20221219/data/icons/capital_3.png", center, pixelWidth, pixelHeight, 15, _scheduler2d->getRotation(), zoom); // 西安
     // 绘制飞机图标
     static float air_lng = 55.0f;
     static float air_lat = 25.0f;
     air_lng -= 0.01f;
     air_lat -= 0.01f;
-    Vec2d posAir(55.17, 25.21);
-    Vec2d posMec;
+    //Vec2d posAir(55.3, 25.271);
+    //Vec2d posMec;
     //OMGeoUtil::WebMecator2Lonlat(center, posAir);
-    drawSamplePoint(55.17, 25.21);
-    OMGeoUtil::Lonlat2WebMecator(posAir, posMec);
-    drawAirplaneIcon(posMec, center, _scheduler2d->getRotation(), viewportWidth, viewportHeight);
+    //drawSamplePoint(116, 28.5);
+    //OMGeoUtil::Lonlat2WebMecator(posAir, posMec);
+    //drawAirplaneIcon(posMec, center, _scheduler2d->getRotation(), viewportWidth, viewportHeight);
     //drawAirplaneIcon();
+    //drawAirportIcon(111.67, 32.38, "D:/pyan/map_wd_20221219/data/milairport_3.png", center, viewportWidth, viewportHeight, 0.05);
+    
+    //glMatrixMode(GL_PROJECTION);
+    //glPushMatrix();
+    //glLoadIdentity();
+    //glOrtho(0, screenWidth, 0, screenHeight, -10.0, 10.0);
+    //glMatrixMode(GL_MODELVIEW);
+    //glPushMatrix();
+    //glLoadIdentity();
 
+    //
+
+    //// 绘制矩形（使用三角形带）
+    ////glBegin(GL_TRIANGLE_STRIP); // 注意：glBegin/glEnd在OpenGL ES 2.0及更高版本中不可用
+    ////glVertex3f(screenWidth - 50, 0.0f, 0.0f); // 左下
+    ////glVertex3f(screenWidth, 0.0f, 0.0f); // 右下
+    ////glVertex3f(screenWidth - 50, 80.0f, 0.0f); // 左上
+    ////glVertex3f(screenWidth, 80.0f, 0.0f); // 右上
+    ////glEnd();
+    //// 设置颜色：蓝色，50%透明度
+    //glColor4f(1.0f, 1.0f, 0.0f, 0.7f);
+    ///*绘制三角形*/
+    //static GLshort vertexArray[] = { screenWidth - 200, 0, 0,
+    //                                screenWidth, 0, 0,
+    //                                screenWidth - 200, 240, 0,
+    //                                screenWidth,  240, 0 };
+    //glEnableClientState(GL_VERTEX_ARRAY);
+    //glVertexPointer(3, GL_SHORT, 0, vertexArray);
+
+    //glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    //glDisableClientState(GL_VERTEX_ARRAY);
+    ////绘制线段
+    //glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
+    ///*static GLshort vertexLine[] = { screenWidth - 200, 0, 0,
+    //                                screenWidth - 200, 240, 0,
+    //                                screenWidth - 200, 240, 0,
+    //                                screenWidth,  240, 0,
+    //                                screenWidth,  240, 0,
+    //                                screenWidth,  0, 0,
+    //                                screenWidth,  0, 0, 
+    //                                screenWidth - 200, 0, 0};*/
+    //static GLshort vertexLine[] = { screenWidth - 200, 0, 0,
+    //                                screenWidth - 200, 240, 0,
+    //                                screenWidth, 240, 0,
+    //                                screenWidth, 0, 0 };
+    //glEnableClientState(GL_VERTEX_ARRAY);
+    //glVertexPointer(3, GL_SHORT, 0, vertexLine);
+
+    //glDrawArrays(GL_LINE_LOOP, 0, 4);
+
+    //glDisableClientState(GL_VERTEX_ARRAY);
+    ////glViewport(screenWidth - 150, 0, 150, 240);
+    ////glOrtho(0, 60, 0, 100, -1, 1);
+    //glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
+    ////oglfSetFontSize(hzFont[1], 24);
+    //oglfDrawString(hzFont[1], screenWidth - 200 + 5, 12 + 24 * 9, (const unsigned char*)"模式", FONT_JUST_HLEFT, FONT_JUST_VTOP);
+    //oglfDrawString(hzFont[1], screenWidth - 200 + 5, 12 + 24 * 8, (const unsigned char*)"地速", FONT_JUST_HLEFT, FONT_JUST_VTOP);
+    //oglfDrawString(hzFont[1], screenWidth - 200 + 5, 12 + 24 * 7, (const unsigned char*)"真航向", FONT_JUST_HLEFT, FONT_JUST_VTOP);
+    //oglfDrawString(hzFont[1], screenWidth - 200 + 5, 12 + 24 * 6, (const unsigned char*)"到点", FONT_JUST_HLEFT, FONT_JUST_VTOP);
+    //oglfDrawString(hzFont[1], screenWidth - 200 + 5, 12 + 24 * 5, (const unsigned char*)"待飞距离", FONT_JUST_HLEFT, FONT_JUST_VTOP);
+    //oglfDrawString(hzFont[1], screenWidth - 200 + 5, 12 + 24 * 4, (const unsigned char*)"应飞航向", FONT_JUST_HLEFT, FONT_JUST_VTOP);
+    //oglfDrawString(hzFont[1], screenWidth - 200 + 5, 12 + 24 * 3, (const unsigned char*)"偏航距", FONT_JUST_HLEFT, FONT_JUST_VTOP);
+    //oglfDrawString(hzFont[1], screenWidth - 200 + 5, 12 + 24 * 2, (const unsigned char*)"标准气压高度", FONT_JUST_HLEFT, FONT_JUST_VTOP);
+    //oglfDrawString(hzFont[1], screenWidth - 200 + 5, 12 + 24, (const unsigned char*)"待飞时", FONT_JUST_HLEFT, FONT_JUST_VTOP);
+    //oglfDrawString(hzFont[1], screenWidth - 200 + 5, 12, (const unsigned char*)"时区时间", FONT_JUST_HLEFT, FONT_JUST_VTOP);
+    //glPopMatrix();
+    //glMatrixMode(GL_PROJECTION);
+    //glPopMatrix();
+}
+
+void DisplayTest() {
+    glClearColor(48 / 255.0, 168 / 255.0, 224 / 255.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT);        //用当前背景色填充窗口
+
+    glEnable(GL_BLEND); //开混合模式贴图
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glMatrixMode(GL_PROJECTION);                    //指定设定投影参数
+    glLoadIdentity();
+    Vec2d center{6157802.3286899561, 2915182.7160115866 }; //地图中心点，即视点
+    int zoom = 12;
+
+    // 获取当前视口尺寸
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT, viewport);
+    int pixelWidth = viewport[2];
+    int pixelHeight = viewport[3];
+
+    // 计算墨卡托单位的视口尺寸
+    double mercatorPerPixel = 2 * 20037508.34 / pow(2, zoom) / 256;
+    double viewportWidth = pixelWidth * mercatorPerPixel;
+    double viewportHeight = pixelHeight * mercatorPerPixel;
+
+    // 优化后：提取公共表达式，减少重复计算
+    double left = center[0] - viewportWidth / 2.0;
+    double right = center[0] + viewportWidth / 2.0;
+    double bottom = center[1] - viewportHeight / 2.0;
+    double top = center[1] + viewportHeight / 2.0;
+    glOrtho(left, right, bottom, top, -1.0, 1.0);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    //drawRasters(12, 1748, 1753, 2675, 2679);
+    //drawRasters2(12, 1729, 1796, 2629, 2706, 1);
+    //drawRasters(12, 1729, 1796, 2629, 2706);
+    drawRaster_single();
 }
 
 int isRotate = 0,rotateconut=0;
@@ -902,7 +1062,136 @@ void drawEarth1() {
     //glDisableClientState(GL_VERTEX_ARRAY);
 }
 
+void drawRaster_single() {
+    //	int width, height, nrChannels;
+        // 测试512*512瓦片
+    string path1 = "D:/pyan/map_wd_20221219/data/uae/raster/12/2676/1751.jpg";
+    string path2 = "D:/pyan/map_wd_20221219/data/uae/raster/12/2677/1751.jpg";
+    string path3 = "D:/pyan/map_wd_20221219/data/uae/raster/12/2676/1752.jpg";
+    string path4 = "D:/pyan/map_wd_20221219/data/uae/raster/12/2677/1752.jpg";
 
+    int w1, h1, c1, w2, h2, c2, w3, h3, c3, w4, h4, c4;
+    unsigned char* data1 = stbi_load(path1.c_str(), &w1, &h1, &c1, 3);
+    unsigned char* data2 = stbi_load(path2.c_str(), &w2, &h2, &c2, 3);
+    unsigned char* data3 = stbi_load(path3.c_str(), &w3, &h3, &c3, 3);
+    unsigned char* data4 = stbi_load(path4.c_str(), &w4, &h4, &c4, 3);
+    if (!data1 || !data2 || !data3 || !data4) {
+        if (data1) stbi_image_free(data1);
+        if (data2) stbi_image_free(data2);
+        if (data3) stbi_image_free(data3);
+        if (data4) stbi_image_free(data4);
+        // 图片加载失败，提前返回或记录日志
+        cout << "read image error" << endl;
+        return;
+    }
+
+    // 要求四张图尺寸一致
+    if (!(w1 == w2 && w1 == w3 && w1 == w4 && h1 == h2 && h1 == h3 && h1 == h4)) {
+        stbi_image_free(data1);
+        stbi_image_free(data2);
+        stbi_image_free(data3);
+        stbi_image_free(data4);
+        cout << "different image" << endl;
+        return;
+    }
+    const int tileW = w1;
+    const int tileH = h1;
+    const int channels = 3; // 已强制为3通道
+    const int outW = tileW * 2;
+    const int outH = tileH * 2;
+
+    const int rowBytesTile = tileW * channels;
+    const int rowBytesOut = outW * channels;
+    unsigned char* image = new unsigned char[outW * outH * channels];
+
+    // 左上（data1）
+    for (int y = 0; y < tileH; ++y) {
+        unsigned char* dst = image + y * rowBytesOut;
+        unsigned char* src = data1 + y * rowBytesTile;
+        memcpy(dst, src, rowBytesTile);
+    }
+
+    // 右上（data2）
+    for (int y = 0; y < tileH; ++y) {
+        unsigned char* dst = image + y * rowBytesOut + tileW * channels;
+        unsigned char* src = data2 + y * rowBytesTile;
+        memcpy(dst, src, rowBytesTile);
+    }
+
+    // 左下（data3）
+    for (int y = 0; y < tileH; ++y) {
+        unsigned char* dst = image + (y + tileH) * rowBytesOut;
+        unsigned char* src = data3 + y * rowBytesTile;
+        memcpy(dst, src, rowBytesTile);
+    }
+
+    // 右下（data4）
+    for (int y = 0; y < tileH; ++y) {
+        unsigned char* dst = image + (y + tileH) * rowBytesOut + tileW * channels;
+        unsigned char* src = data4 + y * rowBytesTile;
+        memcpy(dst, src, rowBytesTile);
+    }
+
+    //构造顶点坐标，索引坐标
+    int size = 2;
+    float* vertices = new float[size * size * 3];
+    double leftTop[2], pt[2];
+    CGeoUtil::getTileLeftTop(12, 2676, 1749, leftTop[0], leftTop[1]);
+    //	    double span = 2 * CGeoUtil::PI * CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom) / 256 * interval;
+    double span = 2 * CGeoUtil::PI * CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, 12) * 2.0;
+    int index_v = 0;
+    for (int i = 0; i < size; i++) {
+        for (int j = 0; j < size; j++) {
+
+            pt[0] = leftTop[0] + j * span;
+            pt[1] = leftTop[1] - i * span;
+
+            vertices[index_v++] = pt[0];
+            vertices[index_v++] = pt[1];
+            vertices[index_v++] = 0.1;
+        }
+    }
+    //openglEngine::OpenGLRenderEngine::drawRasters(vertices, _textures, _indexes, image, 512, 512, 3, index_num);
+    
+    GLuint tex = 0;
+    glEnable(GL_TEXTURE_2D);
+    glGenTextures(1, &tex);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 512, 512, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+    glEnable(GL_BLEND); //开混合模式贴图
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);// 指定混合模式算法
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glDisable(GL_DEPTH_TEST);
+
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    glEnableClientState(GL_VERTEX_ARRAY); //启用顶点数组
+
+    glTexCoordPointer(2, GL_FLOAT, 0, _textures);
+    glVertexPointer(3, GL_FLOAT, 0, vertices); //设置顶点数组属性
+    //		cout<<"pt_size:"<<pt_size<<endl;
+    //		ACoreOs_clock_get_timestamp(&time1);
+    glDrawElements(GL_TRIANGLES, index_num, GL_UNSIGNED_INT, _indexes);//GL_TRIANGLES
+    //		ACoreOs_clock_get_timestamp(&time2);
+    //		cout<<"drawelements time: "<<time2- time1 <<endl;
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
+    //stbi_image_free(data1);
+    //stbi_image_free(data2);
+    //stbi_image_free(data3);
+    //stbi_image_free(data4);
+    stbi_image_free(data1);
+    stbi_image_free(data2);
+    stbi_image_free(data3);
+    stbi_image_free(data4);
+    delete[] image;
+    delete[] vertices;
+    return;
+}
 
 void drawRaster(int zoom, int row, int col) {
     int interval = 4;
@@ -947,7 +1236,7 @@ void drawRaster(int zoom, int row, int col) {
                 ostringstream ost_temp;//ost_temp.str("");
                 
                 #ifdef WIN32
-                    ost_temp << "D://pyan/map_wd_20221219/data/uae/" << (zoom) << "/" << (col) << "/" << (row) << ".jpg";
+                    ost_temp << "D://pyan/map_wd_20221219/data/uae/raster/" << (zoom) << "/" << (col) << "/" << (row) << ".jpg";
                 #else//目前只适用于tm3
                     ost_temp << "raster/satellite/" << (zoom) << "/" << (col) << "/" << (row) << ".jpg";
                 #endif
@@ -957,12 +1246,12 @@ void drawRaster(int zoom, int row, int col) {
                 if (data) {
                     pImage = new Image(data, width * height, imIndex);
                     pImage->setInfo(height, width, nrChannels);
-                    cout << path << "open success" << endl;
+                    cout << path << " open success" << endl;
                 }
 
                 else {
                     stbi_image_free(data);
-                    cout << path << "open failed" << endl;
+                    cout << path << " open failed" << endl;
                     return;
                 }
             }
@@ -1028,9 +1317,68 @@ void drawRaster(int zoom, int row, int col) {
         int width, height1, nrChannels;
         pImage->getInfo(width, height1, nrChannels);
         if (_vertices && indexes)
-            openglEngine::OpenGLRenderEngine::drawRasters(_vertices, textures, indexes, image, width, height1, nrChannels,
+            openglEngine::OpenGLRenderEngine::drawRasters(_vertices, _textures, indexes, image, width, height1, nrChannels,
                 (size * size - 2 * size + 1) * 6);
     return ;
+}
+
+void drawRaster_sim(int zoom, int row, int col, bool isdraw) {
+    int interval = 4;
+    int size = 256 / interval + 2;
+    //size = 2;
+    ostringstream ost_temp;//ost_temp.str("");
+    ost_temp << (zoom) << "." << (row) << "." << (col);
+    string tileIndex = ost_temp.str();
+
+    std::ostringstream ost_temp2;
+    ost_temp2 << "D:/pyan/map_wd_20221219/data/uae/raster/" << (zoom) << "/" << (col) << "/" << (row) << ".jpg";
+    int width, height, nrChannels;
+    string path = ost_temp2.str();
+    //unsigned char* image = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
+    // 数据读取
+    if (!isdraw) {
+        unsigned char* image = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
+        if (!image) {
+            stbi_image_free(image);
+            cout << path << " open failed" << endl;
+            return;
+        }
+        //cout << path << " open success" << endl;
+        _Images[_indexImage] = image;
+        //构造顶点坐标，索引坐标
+        float* vertices = new float[size * size * 3];
+        double leftTop[2], pt[2];
+        CGeoUtil::getTileLeftTop(zoom, col, row, leftTop[0], leftTop[1]);
+        double span = 2 * CGeoUtil::PI * CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom) / (size - 1);
+
+        int index_v = 0;
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+
+                pt[0] = leftTop[0] + j * span;
+                pt[1] = leftTop[1] - i * span;
+
+                vertices[index_v++] = pt[0];
+                vertices[index_v++] = pt[1];
+                vertices[index_v++] = 0.1;
+            }
+        }
+		_Vertices[_indexImage] = vertices;
+        _indexImage++;
+        _indexImage %= COUNT;
+    }
+    else {
+        
+        openglEngine::OpenGLRenderEngine::drawRasters(_Vertices[_indexImage], _textures, _indexes, _Images[_indexImage], 256, 256, 3,
+            index_num, tileIndex);
+        _indexImage++;
+		_indexImage %= COUNT;
+        //stbi_image_free(image);
+        //delete[] vertices;
+        //delete[] indexes;
+        //delete[] image;
+    }
+    return;
 }
 
 void check(int zoom) {
@@ -1065,4 +1413,120 @@ void cancelThread() {
     //_map->_bufferLock = false;
     //pthread_mutex_unlock(&g_mutex);
     //cout << "解锁" << endl;
+}
+
+// 添加静态变量防止重复调用
+static bool isSwitching = false;
+static bool switchRequested = false;
+static bool toDayModeRequested = false;
+static pthread_mutex_t switchMutex = PTHREAD_MUTEX_INITIALIZER;
+
+// 异步切换函数
+void* asyncSwitchMapStyle(void* args) {
+    pthread_mutex_lock(&switchMutex);
+
+    bool toDayMode = *(bool*)args;
+
+    printf("AsyncSwitchMapStyle: 开始异步切换样式...\n");
+
+    // 1) 保存状态
+    Vec2d center =  _scheduler2d->center();
+    int displayMode = _map->Dislpay();
+    int brightness = _map->getBrightness();
+    int zoom = _scheduler2d ? _scheduler2d->zoom() : _map->getOrCreateScheduler()->zoom();
+
+    double angle = 0.0;
+    if (_scheduler2d) {
+        angle = _scheduler2d->getRotation();
+        printf("AsyncSwitchMapStyle: 保存角度 = %f\n", angle);
+    }
+
+    printf("AsyncSwitchMapStyle: 保存状态 - displayMode=%d, brightness=%d, zoom=%d\n",
+        displayMode, brightness, zoom);
+
+    // 2) 停止后台线程
+#ifdef WIN32
+    printf("AsyncSwitchMapStyle: 停止后台线程...\n");
+    for (int i = 0; i < 10; i++) {
+        pthread_cancel(bufferTid[i]);
+    }
+    Sleep(5); // 最小等待时间
+#endif
+
+    // 3) 重建 OMap
+    printf("AsyncSwitchMapStyle: 重建地图对象...\n");
+    delete _map;
+    _map = nullptr;
+    const char* cfg = toDayMode ? "E:/2C/data/map.json" : "E:/2C/data/map2.json";
+    _map = new OMap(cfg);
+    _map->turnOffLayer(6);
+    _map->turnOffLayer(2);
+    _map->turnOffLayer(7);
+    // 4) 重绑全局调度器
+    _scheduler2d = _map->getOrCreateScheduler();
+
+    // 5) 恢复状态
+    printf("AsyncSwitchMapStyle: 恢复状态...\n");
+    _map->setDislpay(displayMode);
+    _map->changeBrightness(brightness);
+    _scheduler2d->updateMapParameter(center, zoom);
+    _scheduler2d->rotate(angle);
+    printf("AsyncSwitchMapStyle: 恢复角度 = %f, 验证角度 = %f\n", angle, _scheduler2d->getRotation());
+    printf("AsyncSwitchMapStyle: 恢复状态 - displayMode=%d, brightness=%d, zoom=%d\n",
+        displayMode,  brightness, zoom);
+    printf("AsyncSwitchMapStyle: 验证恢复后 - 实际displayMode=%d\n", _map->Dislpay());
+
+    _map->isViewChanged = true;
+
+    // 6) 重新启动后台线程
+#ifdef WIN32
+    printf("AsyncSwitchMapStyle: 重新启动后台线程...\n");
+    for (int i = 0; i < 10; i++) {
+        pthread_create(&bufferTid[i], NULL, getBuffer, NULL);
+    }
+#endif
+
+    // 7) 最终验证状态
+    printf("AsyncSwitchMapStyle: 最终验证 - displayMode=%d, angle=%f\n",
+        _map->Dislpay(), _scheduler2d->getRotation());
+
+    printf("AsyncSwitchMapStyle: 异步切换完成\n");
+    isSwitching = false;
+    switchRequested = false;
+
+    pthread_mutex_unlock(&switchMutex);
+    return NULL;
+}
+
+void SwitchMapStyle(bool toDayMode)
+{
+    // 防止重复调用
+    if (isSwitching || switchRequested) {
+        printf("SwitchMapStyle: 正在切换中，忽略重复调用\n");
+        return;
+    }
+
+    // 检查地图对象是否有效
+    if (!_map) {
+        printf("SwitchMapStyle: 地图对象无效，无法切换\n");
+        return;
+    }
+
+    switchRequested = true;
+    toDayModeRequested = toDayMode;
+
+    printf("SwitchMapStyle: 启动异步切换到 %s 模式...\n", toDayMode ? "白天" : "夜间");
+
+    // 启动异步切换线程
+#ifdef WIN32
+    pthread_t switchThread;
+    int result = pthread_create(&switchThread, NULL, asyncSwitchMapStyle, &toDayModeRequested);
+    if (result != 0) {
+        printf("SwitchMapStyle: 创建切换线程失败，错误码: %d\n", result);
+        switchRequested = false;
+        return;
+    }
+    pthread_detach(switchThread); // 分离线程，让它自动清理
+    printf("SwitchMapStyle: 异步切换线程已启动\n");
+#endif
 }

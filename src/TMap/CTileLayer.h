@@ -13,7 +13,7 @@ public:
 	virtual ~CTileLayer();
 	virtual int draw(Recti bounds, int zoom) = 0;
 	virtual int draw(Recti bounds, int zoom, BufferManager* manager) = 0;
-	virtual int draw(vector<Vec3i> tiles, int zoom, BufferManager* manager) = 0;
+	virtual int draw(vector<Vec3i> tiles, int zoom, BufferManager* manager, int crowdLevel) = 0;
 	virtual int drawMultiThreads(void* para) = 0;
 	virtual int getData(vector<Vec3i>& tiles, int zoom, BufferManager* manager) = 0;
 

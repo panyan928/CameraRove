@@ -39,9 +39,6 @@
     <ClInclude Include="src\OpenGLEngine\glstateengine.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\OpenGLEngine\InputCharsets1.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="src\OpenGLEngine\InputVString1.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -129,9 +126,6 @@
     <ClInclude Include="src\TMScheduler\OM3DScheduler.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\TMScheduler\OMScheduler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="src\TMStyle\ccolor.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -174,9 +168,6 @@
     <ClInclude Include="src\TMTextRender\cfontrender.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\TMTextRender\cglobal.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="src\TMTextRender\cpage.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -210,6 +201,84 @@
     <ClInclude Include="include\airplaneDraw.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="include\cJSON.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMScheduler\OMScheduler.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="oglx\src\mth\mth.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="oglx\src\sgl\sgl_private.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="oglx\src\sgl\sgl_shaders.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="oglx\include\glf.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="oglx\include\oglx.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="oglx\include\oglx_port.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="oglx\include\oglx_version.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="oglx\include\sgl.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="oglx\include\sglConstants.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="oglx\include\sgl_context_types.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="oglx\include\sgl_types.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="kcg\aol_color_table.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="kcg\aol_font_table.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="kcg\aol_imported_functions.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="kcg\aol_line_stipple_table.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="kcg\aol_line_width_table.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="kcg\aol_symbology_layer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="kcg\aol_texture_table.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="kcg\kcg_assign.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="kcg\target_configuration.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="include\specific.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="integrated\animation.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="integrated\oglxReadErrors.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="integrated\specific.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Camera.cpp">
@@ -233,9 +302,6 @@
     <ClCompile Include="src\OpenGLEngine\glstateengine.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="src\OpenGLEngine\InputCharsets1.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="src\OpenGLEngine\InputVString1.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -243,9 +309,6 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="src\OpenGLEngine\openglfileengine.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="src\OpenGLEngine\openglrenderengine.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="src\TMap\CGeoLayer.cpp">
@@ -362,9 +425,6 @@
     <ClCompile Include="src\TMTextRender\cfontrender.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="src\TMTextRender\cglobal.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="src\TMTextRender\cpage.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -395,5 +455,442 @@
     <ClCompile Include="src\airplaneDraw.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="src\OpenGLEngine\openglrenderengine.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\cJSON.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\mth\mth_acos_degree.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\mth\mth_asin_radian.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\mth\mth_atan_degree.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\mth\mth_cos_degree.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\mth\mth_cos_sin_degree.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\mth\mth_functions.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\mth\mth_next_higher_power2.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\mth\mth_sin_degree.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\mth\mth_sqrtf.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\appearance\oglxBindTexture.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\appearance\oglxColor4f.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\appearance\oglxColor4fv.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\appearance\oglxSelectFont.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\appearance\sglBindTexture.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\appearance\sglFormatTexture.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\appearance\sglIndexColori.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\appearance\sglIndexFonti.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\appearance\sglIndexFontLineWidthi.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\appearance\sglIndexHaloColori.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\appearance\sglIndexLineStipplei.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\appearance\sglIndexLineWidthi.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\appearance\sglSetLineCaps.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\appearance\sglSetTextAlignment.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\appearance\sglTransparency8.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\clipping\sglAllocateMaskID.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\clipping\sglBeginScissor.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\clipping\sglClipBox.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\clipping\sglClipPlane.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\clipping\sglContinueStencil.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\clipping\sglEndScissor.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\clipping\sglFreeMaskID.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\clipping\sglGetActiveMasks.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\clipping\sglPointIsInsideScissors.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\clipping\sglRectangleIntersectsScissors.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\clipping\sglSetActiveMasks.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\clipping\sgl_stencil_buffer.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\errors\oglxSetError.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\errors\sglClearErrors.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\errors\sglGetErrors.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\initialization\oglx_default_fonts.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\initialization\sglColorPointerf.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\initialization\sglCompressedTexImage2D.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\initialization\sglGetCurrentContext.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\initialization\sglGetVersion.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\initialization\sglInit.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\initialization\sglLineStipplePointer.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\initialization\sglLineWidthPointerf.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\initialization\sglReset.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\initialization\sglResetOpenGLSettings.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\initialization\sglSetCurrentContext.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\initialization\sglSetRenderMode.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\initialization\sglSetTextureInternalFormat.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\initialization\sglTerminate.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\initialization\sglTexImage2Dubv.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\initialization\sgluLoadFonts.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\interactivity\sglCircleActiveAreaGetAngle.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\interactivity\sglCircleActiveAreaGetRate.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\interactivity\sglCircleActiveAreaGetStatus.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\interactivity\sglRectangleActiveAreaGetHeightRate.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\interactivity\sglRectangleActiveAreaGetStatus.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\interactivity\sglRectangleActiveAreaGetWidthRate.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\interactivity\sglShapeActiveAreaGetStatus.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\modes\oglxDisable.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\modes\oglxEnable.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\modes\sglDisable.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\modes\sglEnable.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\modes\sglRestoreStates.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\primitives\oglxDrawTexVertexArray.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\primitives\oglxDrawVertexArray.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\primitives\sglBegin.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\primitives\sglEnd.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\primitives\sglGetArcSegmentBounds.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\primitives\sglTexVertex4f.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\primitives\sgluArcCircleLinePointsList2f.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\primitives\sgluArcEllipse2f.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\primitives\sgluArcSector2f.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\primitives\sgluArcSegment.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\primitives\sgluCrown2f.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\primitives\sgluDrawBitmap.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\primitives\sglVertex2f.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\primitives\sgl_end.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\primitives\sgl_line.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\sgl_intern_data.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\sgl_shaders.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\sgl_utils.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\static_sequences\sglBeginStaticSequence.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\static_sequences\sglCallStaticSequence.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\static_sequences\sglCreateStaticBitmap.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\static_sequences\sglDrawStaticBitmap.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\static_sequences\sglEndStaticSequence.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\text\oglx_fonts_encoding.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\text\sglGetFontValue.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\text\sglGetRichTextBounds.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\text\sglGetTextAreaBounds.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\text\sglGetTextAreaUnicodeBounds.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\text\sglGetTextMultilineBounds.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\text\sglGetTextMultilineUnicodeBounds.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\text\sglSetCharsetEncoding.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\text\sglSetDefaultRichTextAttributes.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\text\sglSetLinesSeparators.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\text\sglSetSecondFontAttributes.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\text\sglSetWordsSeparators.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\text\sgluWriteFloat.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\text\sgluWriteRichText.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\text\sgluWriteText.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\text\sgluWriteTextArea.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\text\sgluWriteUnicodeText.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\text\sgluWriteUnicodeTextArea.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\text\sgluWriteWideText.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\text\sgluWriteWideTextArea.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\text\str_functions.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\transformation\oglxLoadMatrixf.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\transformation\oglxPopMatrix.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\transformation\oglxPushMatrix.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\transformation\sglConvertPixelToPoint.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\transformation\sglConvertPointToPixel.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\transformation\sglConvertPointToScreen.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\transformation\sglConvertScreenToPoint.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\transformation\sglLoadIdentity.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\transformation\sglMatrixtf.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\transformation\sglOrtho.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\transformation\sglPopMatrix.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\transformation\sglPopMatrixAndTranslate.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\transformation\sglPushMatrix.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\transformation\sglPushMatrixAndTranslate.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\transformation\sglRotatef.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\transformation\sglScalef.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\transformation\sglTranslatef.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="oglx\src\sgl\transformation\sglViewport.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="kcg\aol_color_table.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="kcg\aol_font_table.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="kcg\aol_font_table1.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="kcg\aol_font_table2.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="kcg\aol_line_stipple_table.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="kcg\aol_line_width_table.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="kcg\aol_symbology_layer.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="kcg\aol_texture_table.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="kcg\target_configuration.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\specific.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="integrated\animation.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="integrated\oglxReadErrors.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="map.json">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="map_jx.json">
+      <Filter>资源文件</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -34,9 +34,9 @@ private:
 
 	TMStyle::CStyle* _style;
 
-public:
+	public:
 	TMBuffer(BufferType type, std::string index) : _type(type), _index(index),_Texture(0x00),_cData(0x00),_vData(0x00), _hData(0x00),
-		_iData(0x00), _tData(0x00), _sData(0x00), _style(0x00) {};
+		_iData(0x00), _tData(0x00), _sData(0x00), _imData(0x00), _style(0x00) {};
 
 	virtual ~TMBuffer();
     GLuint*				texture()	const;

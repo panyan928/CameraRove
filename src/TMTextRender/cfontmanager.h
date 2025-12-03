@@ -29,8 +29,8 @@ namespace textRender {
       int         initialize(const char* path);
       int         createFont(const char *filename, int face, int tall, bool bold, bool italic, bool antialias);//创建字体
       int         getFontTall(int font_index);
-      void        renderChar(int font_index, int code, unsigned char* screen, Vec2i& position, Color color);
-      void        renderChar(int font_index, char* text, unsigned char *screen, Vec2i& position, Color color);
+      void        renderChar(int font_index, int code, Vec2i& position, Color color);
+      void        renderChar(int font_index, char* text, Vec2i& position, Color color);
      
       int         getFontIndex(string name, int fontSize);
       int         getFontIndex(string name, int fontSize, bool bold);

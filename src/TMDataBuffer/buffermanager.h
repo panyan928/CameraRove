@@ -20,6 +20,7 @@ private:
 	int insert_2_level_Buffer(TMBuffer* data, string index);
 	int insert_3_level_Buffer(DataUnit* data, string index);
 	
+	void* _mutexHandle;
 
 public:
 	BufferManager();

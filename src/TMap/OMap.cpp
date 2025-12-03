@@ -18,7 +18,7 @@ OMap::OMap(string path)
 {
 	_scheduler = 0x00;
 	_layers.clear();
-    _display = 1;  // 0 nothing, 1 vector, 2 raster, 3 all
+    _display = 2;  // 0 nothing, 1 vector, 2 raster, 3 all
     lastDisplay=_display;
     isViewChanged = true;
     lastZoom = 0;
@@ -29,13 +29,14 @@ OMap::OMap(string path)
 
 OMap::OMap(const char* path)
 {
+    _crowd = 1;
     _scheduler = 0x00;
     _3dScheduler = 0x00;
     _nScheduler = 0x00;
     _manager = 0x00;
     _manager_2 = 0x00;
     _layers.clear();
-    _display = 2;  // 0 nothing, 1 vector, 2 raster, 3 all
+    //_display = 3;  // 0 nothing, 1 vector, 2 raster, 3 all
     lastDisplay=_display;
     isViewChanged = true;
     lastZoom = 0;
@@ -44,6 +45,7 @@ OMap::OMap(const char* path)
     _brightness = 100; // [0, 1]
     string path_s = path;
     initialMap(path_s);
+    setDislpay(2);
 }
 
 OMap::~OMap()
@@ -78,6 +80,7 @@ OMap::~OMap()
  * 缩放等级、地图图层以及其它可变配�?
  * @param path map.json 配置路径
 */
+#include "cJSON.h"
 int OMap::initialMap(string json_path)
 {
 //#ifndef WIN32
@@ -104,6 +107,113 @@ int OMap::initialMap(string json_path)
     fread(content,1,len, ifs);
     fclose(ifs);
 
+    //CJson调用
+    cJSON* root = cJSON_Parse(content);
+    if (!root) {
+        const char* errptr = cJSON_GetErrorPtr();
+        fprintf(stderr, "JSON 解析失败: %s\n", errptr ? errptr : "未知错误");
+        free(content);
+        return -1;
+    }
+    // 解析基本地图信息
+    float zoom, lon, lat;
+    //读取zoom
+    cJSON* zoom1 = cJSON_GetObjectItem(root, "zoom");
+    if (zoom1 != NULL && cJSON_IsNumber(zoom1)) {
+        zoom = zoom1->valueint;
+        printf("zoom: %d\n", zoom);
+    }
+    else {
+        printf("zoom error\n");
+        return -1;
+    }
+    //读取center
+    cJSON* center1 = cJSON_GetObjectItem(root, "center");
+    if (center1 != NULL && cJSON_IsArray(center1)) {
+        // 获取第一个元素（整数）
+        cJSON* item1 = cJSON_GetArrayItem(center1, 0);
+        if (item1 != NULL && cJSON_IsNumber(item1)) {
+            lon = item1->valuedouble;
+            printf("lon: %.2f\n", lon);
+        }
+        else {
+            printf("lon error\n");
+            return -1;
+        }
+        // 获取第二个元素（浮点数，需要转换）
+        cJSON* item2 = cJSON_GetArrayItem(center1, 1);
+        if (item2 != NULL && cJSON_IsNumber(item2)) {
+            lat = item2->valuedouble;
+            printf("lat: %.2f\n", lat);
+        }
+        else {
+            printf("lat error\n");
+            return -1;
+        }
+    }
+    else {
+        printf("center error\n");
+        return -1;
+    }
+    Vec2d center(lon, lat);
+    _scheduler = new OMScheduler((int)zoom, center);
+
+    // 解析图层
+    cJSON* layers = cJSON_GetObjectItem(root, "layers");
+    if (layers == NULL || !cJSON_IsArray(layers)) {
+        printf("layers error\n");
+        return -1;
+    }
+    int layerCount = cJSON_GetArraySize(layers); // 从JSON获取实际图层数量
+    int i;
+    for (i = 0; i < layerCount; i++) {
+        cJSON* layer = cJSON_GetArrayItem(layers, i);
+        // 解析每个图层信息
+        char* layerType = cJSON_GetStringValue(cJSON_GetObjectItem(layer, "layer-type")); //从JSON获取图层类型
+        if (layerType == NULL) return -1;
+        if (strcmp(layerType, "vector-tile") == 0) {
+            const char* path = cJSON_GetStringValue(cJSON_GetObjectItem(layer, "path"));
+            CVectorTileLayer* vtLayer = new CVectorTileLayer(path);
+            vtLayer->setLayerName(cJSON_GetStringValue(cJSON_GetObjectItem(layer, "layer-name")));
+            string geo_type = cJSON_GetStringValue(cJSON_GetObjectItem(layer, "geometry-type"));
+            vtLayer->setGeometryType(geo_type);
+
+            cJSON* zoom2 = cJSON_GetObjectItem(layer, "zoom");
+            int minZoom = cJSON_GetArrayItem(zoom2, 0)->valueint;
+            int maxZoom = cJSON_GetArrayItem(zoom2, 1)->valueint;
+
+            vtLayer->setZoom(Vec2i(minZoom, maxZoom));
+
+            if (geo_type.compare("point") == 0) {
+                int anno = cJSON_GetNumberValue(cJSON_GetObjectItem(layer, "anno"));
+                string label = cJSON_GetStringValue(cJSON_GetObjectItem(layer, "anno-field"));
+                vtLayer->setAnnotation(anno, label);
+            }
+
+            string stylePath = cJSON_GetStringValue(cJSON_GetObjectItem(layer, "style"));
+            vtLayer->getOrCreateStyle()->loadStyleCmethod(stylePath.c_str());
+            this->_layers.push_back(vtLayer);
+        } 
+        if (strcmp(layerType, "raster-tile") == 0) {
+            const char* path = cJSON_GetStringValue(cJSON_GetObjectItem(layer, "path"));
+            CRasterTileLayer* rtLayer = new CRasterTileLayer(path);
+            rtLayer->setLayerName(cJSON_GetStringValue(cJSON_GetObjectItem(layer, "layer-name")));
+            //        	rtLayer->setHeightPath(cJSON_GetStringValue(cJSON_GetObjectItem(layer, "heightPath")));
+            cJSON* zoom2 = cJSON_GetObjectItem(layer, "zoom");
+            int minZoom = cJSON_GetArrayItem(zoom2, 0)->valueint;
+            int maxZoom = cJSON_GetArrayItem(zoom2, 1)->valueint;
+            int height = cJSON_GetObjectItem(layer, "height")->valueint;
+            Vec2i _zoom( minZoom, maxZoom);
+            rtLayer->setZoom(_zoom);
+            //        	rtLayer->setHeightExaggerated(height);
+
+            //        	this->_layers.push_back(rtLayer);
+            //        	map->layers[i] = rtLayer;
+            this->_layers.push_back(rtLayer);
+        }
+    }
+
+#if 0    
     Json::Value mapRoot;
     Json::Reader jsonReader;
     if (!jsonReader.parse(content, mapRoot))
@@ -124,8 +234,8 @@ int OMap::initialMap(string json_path)
     lat = mapRoot["center"][1].asDouble();
     Vec2d center(lon, lat);
     //调度的初始化在后面坐做了非空检查，这里删了也没事，缺少center参数
-    _3dScheduler = new OM3DScheduler(center);
-    _3dScheduler->setZoom(zoom);
+    /*_3dScheduler = new OM3DScheduler(center);
+    _3dScheduler->setZoom(zoom);*/
 
     _scheduler = new OMScheduler((int)zoom, center);
 
@@ -167,13 +277,14 @@ int OMap::initialMap(string json_path)
             int minZoom = layer["zoom"][0].asInt();
             int maxZoom = layer["zoom"][1].asInt();
             int height  = layer["height"].asInt();
-
+            
             rtLayer->setZoom(Vec2i(minZoom, maxZoom));
             rtLayer->setHeightExaggerated(height);
 
             this->_layers.push_back(rtLayer);
         }
     }
+#endif
     free(content);
 	return 0;
 }
@@ -227,15 +338,41 @@ int OMap::getBuffer() {
                 cout << "stage 1 break in i = " << i << endl;
                 return 0;
             }
-            if ((_display == 2 || _display == 3) && _layers[i]->geometryType().size() == 0) {
-#ifdef TIN
-                _layers[i]->addBufferTIN(nearTiles, zoom, manager);
-#else
-                _layers[i]->addBuffer(nearTiles, zoom, manager);
-#endif
+            //Flong 增加的
+// 
+//栅格图 (raster-tile) - 根据displayMode和layer-name选择不同图层
+            if (_layers[i]->geometryType().size() == 0) {
+                string layerName = _layers[i]->layerName();
+                bool shouldLoad = false;
+
+                if (_display == 0 && layerName == "terrain") {
+                    // 地形图模式：只加载terrain图层
+                    shouldLoad = true;
+
+                }
+                else if (_display == 2 && layerName == "raster") {
+                    // 卫星影像模式：只加载raster图层
+                    shouldLoad = true;
+
+                }
+                else if (_display == 3 && layerName == "raster") {
+                    // 矢量+卫星模式：加载raster图层
+                    shouldLoad = true;
+
+                }
+                else if (_display == 4 && layerName == "terrain") {
+                    // 矢量+地形模式：加载terrain图层
+                    shouldLoad = true;
+
+                }
+
+                if (shouldLoad) {
+                    _layers[i]->addBuffer(nearTiles, zoom, manager);
+                }
             }
-                
-            if ((_display == 1 || _display == 3) && _layers[i]->geometryType().size() != 0)
+
+            //矢量图 (vector-tile)
+            if ((_display == 1 || _display == 3 || _display == 4) && _layers[i]->geometryType().size() != 0)
             {
                 _layers[i]->addBuffer(nearTiles, zoom, manager);
             }
@@ -270,15 +407,13 @@ int OMap::getBuffer() {
             cout << "stage 2-1 break in i = " << i << endl;
             return 0;
         }
-        if ((_display == 2 || _display == 3) && _layers[i]->geometryType().size() == 0) {
-#ifdef TIN
-            _layers[i]->addBufferTIN(nearTiles, zoom, manager);
-#else
+        //Flong 增加的
+        //栅格图 (raster-tile) - 包括卫星影像和地形图
+        if ((_display == 0 || _display == 2 || _display == 3 || _display == 4) && _layers[i]->geometryType().size() == 0) {
             _layers[i]->addBuffer(nearTiles, zoom, manager);
-#endif
         }
-            
-        if ((_display == 1 || _display == 3) && _layers[i]->geometryType().size() != 0)
+        //矢量图 (vector-tile)
+        if ((_display == 1 || _display == 3 || _display == 4) && _layers[i]->geometryType().size() != 0)
         {
             _layers[i]->addBuffer(nearTiles, zoom, manager);
         }
@@ -299,20 +434,37 @@ int OMap::getBuffer() {
             cout << "stage 2-2 break in i = " << i << endl;
             return 0;
         }
-        if ((_display == 2 || _display == 3) && _layers[i]->geometryType().size() == 0) {
-#ifdef TIN
-            _layers[i]->addBufferTIN(highTiles, zoom + 1, manager);
-            _layers[i]->addBufferTIN(lowTiles, zoom - 1, manager);
-            //_layers[i]->addBufferTIN(nearTiles, zoom, manager);
-#else
-            _layers[i]->addBuffer(highTiles, zoom + 1, manager);
-            _layers[i]->addBuffer(lowTiles, zoom - 1, manager);
-            //_layers[i]->addBuffer(nearTiles, zoom, manager);
-#endif
-            
+
+        //Flong新增
+//栅格图 (raster-tile) - 根据displayMode和layer-name选择不同图层
+        if (_layers[i]->geometryType().size() == 0) {
+            string layerName = _layers[i]->layerName();
+            bool shouldLoad = false;
+
+            if (_display == 0 && layerName == "terrain") {
+                // 地形图模式：只加载terrain图层
+                shouldLoad = true;
+            }
+            else if (_display == 2 && layerName == "raster") {
+                // 卫星影像模式：只加载raster图层
+                shouldLoad = true;
+            }
+            else if (_display == 3 && layerName == "raster") {
+                // 矢量+卫星模式：加载raster图层
+                shouldLoad = true;
+            }
+            else if (_display == 4 && layerName == "terrain") {
+                // 矢量+地形模式：加载terrain图层
+                shouldLoad = true;
+            }
+
+            if (shouldLoad) {
+                _layers[i]->addBuffer(highTiles, zoom + 1, manager);
+                _layers[i]->addBuffer(lowTiles, zoom - 1, manager);
+            }
         }
 
-        if ((_display == 1 || _display == 3) && _layers[i]->geometryType().size() != 0)
+        if ((_display == 1 || _display == 3 || _display == 4) && _layers[i]->geometryType().size() != 0)
         {
             _layers[i]->addBuffer(highTiles, zoom + 1, manager);
             _layers[i]->addBuffer(lowTiles, zoom - 1, manager);
@@ -337,23 +489,41 @@ int OMap::draw()
     // scheduler->getTiles(tiles, zoom,1);
     int zoom = scheduler2d->zoom();
     scheduler2d->getTiles(tiles, zoom);
-    cout << "draw tiles: " << tiles.size() << endl;
     int state = 0;
     int len = _layers.size();
     for (int i = 0; i < len; i++) {
         if (!_layers[i]->isVisible())
             continue;
-        if ((_display == 2 || _display == 3) && _layers[i]->geometryType().size() == 0)
-        {
-#ifdef TIN
-            _layers[i]->drawTIN(tiles, zoom, manager);
-#else
-            _layers[i]->draw(tiles, zoom, manager);
-#endif
+        //Flong增加的
+ //绘制栅格图层 - 根据displayMode和layer-name选择不同图层
+        if (_layers[i]->geometryType().size() == 0) {
+            string layerName = _layers[i]->layerName();
+            bool shouldDraw = false;
+
+            if (_display == 0 && layerName == "terrain") {
+                // 地形图模式：只绘制terrain图层
+                shouldDraw = true;
+            }
+            else if (_display == 2 && layerName == "raster") {
+                // 卫星影像模式：只绘制raster图层
+                shouldDraw = true;
+            }
+            else if (_display == 3 && layerName == "raster") {
+                // 矢量+卫星模式：绘制raster图层
+                shouldDraw = true;
+            }
+            else if (_display == 4 && layerName == "terrain") {
+                // 矢量+地形模式：绘制terrain图层
+                shouldDraw = true;
+            }
+
+            if (shouldDraw) {
+                _layers[i]->draw(tiles, zoom, manager, _crowd);
+            }
         }
-            
-        if ((_display == 1 || _display == 3) && _layers[i]->geometryType().size() != 0)
-            _layers[i]->draw(tiles, zoom, manager);
+        //绘制矢量图层，矢量图层有几何类型
+        if ((_display == 1 || _display == 3 || _display == 4) && _layers[i]->geometryType().size() != 0)
+            _layers[i]->draw(tiles, zoom, manager, _crowd);
     }
     return 0;
 }
@@ -371,9 +541,9 @@ int OMap::draw1()
        /* if (_layers[i]->layerName().compare("china_region") == 0)
             _layers[i]->draw(tiles, zoom, manager);*/
         if ((_display == 3 || _display == 2) && _layers[i]->geometryType().size() == 0)
-            _layers[i]->draw(tiles, zoom, manager);
+            _layers[i]->draw(tiles, zoom, manager, _crowd);
         if ((_display == 3 || _display == 1) && _layers[i]->geometryType().size() != 0)
-            _layers[i]->draw(tiles, zoom, manager);
+            _layers[i]->draw(tiles, zoom, manager, _crowd);
     }
 
 
@@ -483,6 +653,48 @@ int OMap::getData(int level)
 void OMap::setDislpay(int mode)
 {
     _display = mode;
+    if (_display == 3 || _display ==4) {
+        turnOffLayer(6);
+        turnOffLayer(2);
+        turnOffLayer(7);
+        //��
+        /*turnOffLayer(2);
+        turnOffLayer(6);
+        turnOffLayer(7);
+        turnOffLayer(12);
+        turnOffLayer(13);
+        turnOffLayer(14);
+        turnOffLayer(15);
+        turnOffLayer(23);
+        turnOffLayer(29);*/
+    }
+    else if (_display == 1) {
+        //��
+        turnOnLayer(1);
+        turnOnLayer(4);
+        turnOnLayer(5);
+        turnOnLayer(9);
+        turnOnLayer(10);
+        turnOnLayer(11);
+        //��
+        turnOnLayer(2);
+        turnOnLayer(6);
+        turnOnLayer(7);
+        turnOnLayer(12);
+        turnOnLayer(13);
+        turnOnLayer(14);
+        turnOnLayer(15);
+        turnOnLayer(23);
+        turnOnLayer(29);
+    }
+    else if (_display == 4) {
+        turnOnLayer(1);
+        turnOffLayer(4);
+        turnOffLayer(5);
+        turnOffLayer(9);
+        turnOffLayer(10);
+        turnOffLayer(11);
+    }
 }
 
 CGeoLayer* OMap::getLayer(int i)
@@ -494,6 +706,13 @@ CGeoLayer* OMap::getLayer(int i)
 int OMap::Dislpay()
 {
     return _display;
+}
+
+int OMap::getCrowd() {
+    return _crowd;
+}
+void OMap::setCrowd(int level) {
+    _crowd = level;
 }
 
 void OMap::turnOffLayer(int index)
@@ -534,14 +753,14 @@ CScheduler* OMap::getOrCreateNScheduler()
 BufferManager* OMap::getOrCreateBufferManager()
 {
     if (_manager == 0x00)
-        _manager = new BufferManager(3000);
+        _manager = new BufferManager(2000);
     return _manager;
 }
 
 BufferManager* OMap::getOrCreate2ndBufferManager()
 {
     if (_manager_2 == 0x00)
-        _manager_2 = new BufferManager(3000);
+        _manager_2 = new BufferManager(2000);
     return _manager_2;
 }
 

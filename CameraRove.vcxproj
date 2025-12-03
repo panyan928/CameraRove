@@ -51,7 +51,7 @@
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>D:\pyan\map_wd_20250507\fontEngine_win;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>D:\pyan\map_wd_20250507_pyan\fontEngine_win;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86)</LibraryPath>
     <LibraryWPath>$(WindowsSDK_MetadataPath);</LibraryWPath>
     <GenerateManifest>false</GenerateManifest>
@@ -70,7 +70,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <AdditionalIncludeDirectories>$(ProjectDir)\..\libs\fontEngine\h;$(ProjectDir)\include;$(ProjectDir)\..\libs\pthread\include;$(ProjectDir)\..\libs;$(ProjectDir)\..\offlineMap1019;$(ProjectDir)\..;$(ProjectDir)\..\libs\freetype\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\pyan\map_wd_20250507_pyan\3d\integrated;D:\pyan\map_wd_20250507_pyan\3d\oglx\src\sgl;D:\pyan\map_wd_20250507_pyan\3d\oglx\src\mth;D:\pyan\map_wd_20250507_pyan\3d\kcg;D:\pyan\map_wd_20250507_pyan\3d\oglx\include;$(ProjectDir)\..\libs\fontEngine\h;D:\pyan\map_wd_20250507_pyan\3d\src;$(ProjectDir)\include;$(ProjectDir)\..\libs\pthread\include;$(ProjectDir)\..\libs;$(ProjectDir)\..;$(ProjectDir)\..\libs\freetype\include</AdditionalIncludeDirectories>
       <ConformanceMode>false</ConformanceMode>
     </ClCompile>
     <Link>
@@ -113,14 +113,38 @@
     <ClInclude Include="include\airplaneDraw.h" />
     <ClInclude Include="include\Camera.h" />
     <ClInclude Include="include\CameraRove.h" />
+    <ClInclude Include="include\cJSON.h" />
     <ClInclude Include="include\GLFrame.h" />
     <ClInclude Include="include\GLWindow.h" />
     <ClInclude Include="include\mapDrv.h" />
+    <ClInclude Include="include\specific.h" />
     <ClInclude Include="include\stdafx.h" />
     <ClInclude Include="include\Vector.h" />
+    <ClInclude Include="integrated\animation.h" />
+    <ClInclude Include="integrated\oglxReadErrors.h" />
+    <ClInclude Include="integrated\specific.h" />
+    <ClInclude Include="kcg\aol_color_table.h" />
+    <ClInclude Include="kcg\aol_font_table.h" />
+    <ClInclude Include="kcg\aol_imported_functions.h" />
+    <ClInclude Include="kcg\aol_line_stipple_table.h" />
+    <ClInclude Include="kcg\aol_line_width_table.h" />
+    <ClInclude Include="kcg\aol_symbology_layer.h" />
+    <ClInclude Include="kcg\aol_texture_table.h" />
+    <ClInclude Include="kcg\kcg_assign.h" />
+    <ClInclude Include="kcg\target_configuration.h" />
+    <ClInclude Include="oglx\include\glf.h" />
+    <ClInclude Include="oglx\include\oglx.h" />
+    <ClInclude Include="oglx\include\oglx_port.h" />
+    <ClInclude Include="oglx\include\oglx_version.h" />
+    <ClInclude Include="oglx\include\sgl.h" />
+    <ClInclude Include="oglx\include\sglConstants.h" />
+    <ClInclude Include="oglx\include\sgl_context_types.h" />
+    <ClInclude Include="oglx\include\sgl_types.h" />
+    <ClInclude Include="oglx\src\mth\mth.h" />
+    <ClInclude Include="oglx\src\sgl\sgl_private.h" />
+    <ClInclude Include="oglx\src\sgl\sgl_shaders.h" />
     <ClInclude Include="src\OpenGLEngine\copenglcoordinatesengine.h" />
     <ClInclude Include="src\OpenGLEngine\glstateengine.h" />
-    <ClInclude Include="src\OpenGLEngine\InputCharsets1.h" />
     <ClInclude Include="src\OpenGLEngine\InputVString1.h" />
     <ClInclude Include="src\OpenGLEngine\openglengine.h" />
     <ClInclude Include="src\OpenGLEngine\openglfileengine.h" />
@@ -165,7 +189,6 @@
     <ClInclude Include="src\TMTextRender\cfont.h" />
     <ClInclude Include="src\TMTextRender\cfontmanager.h" />
     <ClInclude Include="src\TMTextRender\cfontrender.h" />
-    <ClInclude Include="src\TMTextRender\cglobal.h" />
     <ClInclude Include="src\TMTextRender\cpage.h" />
     <ClInclude Include="src\TMTextRender\CStringUtil.h" />
     <ClInclude Include="src\TMTextRender\tmtools.h" />
@@ -176,20 +199,161 @@
     <ClInclude Include="src\TMUtil\tmtools.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="integrated\animation.c" />
+    <ClCompile Include="integrated\oglxReadErrors.c" />
+    <ClCompile Include="kcg\aol_color_table.c" />
+    <ClCompile Include="kcg\aol_font_table.c" />
+    <ClCompile Include="kcg\aol_font_table1.c" />
+    <ClCompile Include="kcg\aol_font_table2.c" />
+    <ClCompile Include="kcg\aol_line_stipple_table.c" />
+    <ClCompile Include="kcg\aol_line_width_table.c" />
+    <ClCompile Include="kcg\aol_symbology_layer.c" />
+    <ClCompile Include="kcg\aol_texture_table.c" />
+    <ClCompile Include="kcg\target_configuration.c" />
+    <ClCompile Include="oglx\src\mth\mth_acos_degree.c" />
+    <ClCompile Include="oglx\src\mth\mth_asin_radian.c" />
+    <ClCompile Include="oglx\src\mth\mth_atan_degree.c" />
+    <ClCompile Include="oglx\src\mth\mth_cos_degree.c" />
+    <ClCompile Include="oglx\src\mth\mth_cos_sin_degree.c" />
+    <ClCompile Include="oglx\src\mth\mth_functions.c" />
+    <ClCompile Include="oglx\src\mth\mth_next_higher_power2.c" />
+    <ClCompile Include="oglx\src\mth\mth_sin_degree.c" />
+    <ClCompile Include="oglx\src\mth\mth_sqrtf.c" />
+    <ClCompile Include="oglx\src\sgl\appearance\oglxBindTexture.c" />
+    <ClCompile Include="oglx\src\sgl\appearance\oglxColor4f.c" />
+    <ClCompile Include="oglx\src\sgl\appearance\oglxColor4fv.c" />
+    <ClCompile Include="oglx\src\sgl\appearance\oglxSelectFont.c" />
+    <ClCompile Include="oglx\src\sgl\appearance\sglBindTexture.c" />
+    <ClCompile Include="oglx\src\sgl\appearance\sglFormatTexture.c" />
+    <ClCompile Include="oglx\src\sgl\appearance\sglIndexColori.c" />
+    <ClCompile Include="oglx\src\sgl\appearance\sglIndexFonti.c" />
+    <ClCompile Include="oglx\src\sgl\appearance\sglIndexFontLineWidthi.c" />
+    <ClCompile Include="oglx\src\sgl\appearance\sglIndexHaloColori.c" />
+    <ClCompile Include="oglx\src\sgl\appearance\sglIndexLineStipplei.c" />
+    <ClCompile Include="oglx\src\sgl\appearance\sglIndexLineWidthi.c" />
+    <ClCompile Include="oglx\src\sgl\appearance\sglSetLineCaps.c" />
+    <ClCompile Include="oglx\src\sgl\appearance\sglSetTextAlignment.c" />
+    <ClCompile Include="oglx\src\sgl\appearance\sglTransparency8.c" />
+    <ClCompile Include="oglx\src\sgl\clipping\sglAllocateMaskID.c" />
+    <ClCompile Include="oglx\src\sgl\clipping\sglBeginScissor.c" />
+    <ClCompile Include="oglx\src\sgl\clipping\sglClipBox.c" />
+    <ClCompile Include="oglx\src\sgl\clipping\sglClipPlane.c" />
+    <ClCompile Include="oglx\src\sgl\clipping\sglContinueStencil.c" />
+    <ClCompile Include="oglx\src\sgl\clipping\sglEndScissor.c" />
+    <ClCompile Include="oglx\src\sgl\clipping\sglFreeMaskID.c" />
+    <ClCompile Include="oglx\src\sgl\clipping\sglGetActiveMasks.c" />
+    <ClCompile Include="oglx\src\sgl\clipping\sglPointIsInsideScissors.c" />
+    <ClCompile Include="oglx\src\sgl\clipping\sglRectangleIntersectsScissors.c" />
+    <ClCompile Include="oglx\src\sgl\clipping\sglSetActiveMasks.c" />
+    <ClCompile Include="oglx\src\sgl\clipping\sgl_stencil_buffer.c" />
+    <ClCompile Include="oglx\src\sgl\errors\oglxSetError.c" />
+    <ClCompile Include="oglx\src\sgl\errors\sglClearErrors.c" />
+    <ClCompile Include="oglx\src\sgl\errors\sglGetErrors.c" />
+    <ClCompile Include="oglx\src\sgl\initialization\oglx_default_fonts.c" />
+    <ClCompile Include="oglx\src\sgl\initialization\sglColorPointerf.c" />
+    <ClCompile Include="oglx\src\sgl\initialization\sglCompressedTexImage2D.c" />
+    <ClCompile Include="oglx\src\sgl\initialization\sglGetCurrentContext.c" />
+    <ClCompile Include="oglx\src\sgl\initialization\sglGetVersion.c" />
+    <ClCompile Include="oglx\src\sgl\initialization\sglInit.c" />
+    <ClCompile Include="oglx\src\sgl\initialization\sglLineStipplePointer.c" />
+    <ClCompile Include="oglx\src\sgl\initialization\sglLineWidthPointerf.c" />
+    <ClCompile Include="oglx\src\sgl\initialization\sglReset.c" />
+    <ClCompile Include="oglx\src\sgl\initialization\sglResetOpenGLSettings.c" />
+    <ClCompile Include="oglx\src\sgl\initialization\sglSetCurrentContext.c" />
+    <ClCompile Include="oglx\src\sgl\initialization\sglSetRenderMode.c" />
+    <ClCompile Include="oglx\src\sgl\initialization\sglSetTextureInternalFormat.c" />
+    <ClCompile Include="oglx\src\sgl\initialization\sglTerminate.c" />
+    <ClCompile Include="oglx\src\sgl\initialization\sglTexImage2Dubv.c" />
+    <ClCompile Include="oglx\src\sgl\initialization\sgluLoadFonts.c" />
+    <ClCompile Include="oglx\src\sgl\interactivity\sglCircleActiveAreaGetAngle.c" />
+    <ClCompile Include="oglx\src\sgl\interactivity\sglCircleActiveAreaGetRate.c" />
+    <ClCompile Include="oglx\src\sgl\interactivity\sglCircleActiveAreaGetStatus.c" />
+    <ClCompile Include="oglx\src\sgl\interactivity\sglRectangleActiveAreaGetHeightRate.c" />
+    <ClCompile Include="oglx\src\sgl\interactivity\sglRectangleActiveAreaGetStatus.c" />
+    <ClCompile Include="oglx\src\sgl\interactivity\sglRectangleActiveAreaGetWidthRate.c" />
+    <ClCompile Include="oglx\src\sgl\interactivity\sglShapeActiveAreaGetStatus.c" />
+    <ClCompile Include="oglx\src\sgl\modes\oglxDisable.c" />
+    <ClCompile Include="oglx\src\sgl\modes\oglxEnable.c" />
+    <ClCompile Include="oglx\src\sgl\modes\sglDisable.c" />
+    <ClCompile Include="oglx\src\sgl\modes\sglEnable.c" />
+    <ClCompile Include="oglx\src\sgl\modes\sglRestoreStates.c" />
+    <ClCompile Include="oglx\src\sgl\primitives\oglxDrawTexVertexArray.c" />
+    <ClCompile Include="oglx\src\sgl\primitives\oglxDrawVertexArray.c" />
+    <ClCompile Include="oglx\src\sgl\primitives\sglBegin.c" />
+    <ClCompile Include="oglx\src\sgl\primitives\sglEnd.c" />
+    <ClCompile Include="oglx\src\sgl\primitives\sglGetArcSegmentBounds.c" />
+    <ClCompile Include="oglx\src\sgl\primitives\sglTexVertex4f.c" />
+    <ClCompile Include="oglx\src\sgl\primitives\sgluArcCircleLinePointsList2f.c" />
+    <ClCompile Include="oglx\src\sgl\primitives\sgluArcEllipse2f.c" />
+    <ClCompile Include="oglx\src\sgl\primitives\sgluArcSector2f.c" />
+    <ClCompile Include="oglx\src\sgl\primitives\sgluArcSegment.c" />
+    <ClCompile Include="oglx\src\sgl\primitives\sgluCrown2f.c" />
+    <ClCompile Include="oglx\src\sgl\primitives\sgluDrawBitmap.c" />
+    <ClCompile Include="oglx\src\sgl\primitives\sglVertex2f.c" />
+    <ClCompile Include="oglx\src\sgl\primitives\sgl_end.c" />
+    <ClCompile Include="oglx\src\sgl\primitives\sgl_line.c" />
+    <ClCompile Include="oglx\src\sgl\sgl_intern_data.c" />
+    <ClCompile Include="oglx\src\sgl\sgl_shaders.c" />
+    <ClCompile Include="oglx\src\sgl\sgl_utils.c" />
+    <ClCompile Include="oglx\src\sgl\static_sequences\sglBeginStaticSequence.c" />
+    <ClCompile Include="oglx\src\sgl\static_sequences\sglCallStaticSequence.c" />
+    <ClCompile Include="oglx\src\sgl\static_sequences\sglCreateStaticBitmap.c" />
+    <ClCompile Include="oglx\src\sgl\static_sequences\sglDrawStaticBitmap.c" />
+    <ClCompile Include="oglx\src\sgl\static_sequences\sglEndStaticSequence.c" />
+    <ClCompile Include="oglx\src\sgl\text\oglx_fonts_encoding.c" />
+    <ClCompile Include="oglx\src\sgl\text\sglGetFontValue.c" />
+    <ClCompile Include="oglx\src\sgl\text\sglGetRichTextBounds.c" />
+    <ClCompile Include="oglx\src\sgl\text\sglGetTextAreaBounds.c" />
+    <ClCompile Include="oglx\src\sgl\text\sglGetTextAreaUnicodeBounds.c" />
+    <ClCompile Include="oglx\src\sgl\text\sglGetTextMultilineBounds.c" />
+    <ClCompile Include="oglx\src\sgl\text\sglGetTextMultilineUnicodeBounds.c" />
+    <ClCompile Include="oglx\src\sgl\text\sglSetCharsetEncoding.c" />
+    <ClCompile Include="oglx\src\sgl\text\sglSetDefaultRichTextAttributes.c" />
+    <ClCompile Include="oglx\src\sgl\text\sglSetLinesSeparators.c" />
+    <ClCompile Include="oglx\src\sgl\text\sglSetSecondFontAttributes.c" />
+    <ClCompile Include="oglx\src\sgl\text\sglSetWordsSeparators.c" />
+    <ClCompile Include="oglx\src\sgl\text\sgluWriteFloat.c" />
+    <ClCompile Include="oglx\src\sgl\text\sgluWriteRichText.c" />
+    <ClCompile Include="oglx\src\sgl\text\sgluWriteText.c" />
+    <ClCompile Include="oglx\src\sgl\text\sgluWriteTextArea.c" />
+    <ClCompile Include="oglx\src\sgl\text\sgluWriteUnicodeText.c" />
+    <ClCompile Include="oglx\src\sgl\text\sgluWriteUnicodeTextArea.c" />
+    <ClCompile Include="oglx\src\sgl\text\sgluWriteWideText.c" />
+    <ClCompile Include="oglx\src\sgl\text\sgluWriteWideTextArea.c" />
+    <ClCompile Include="oglx\src\sgl\text\str_functions.c" />
+    <ClCompile Include="oglx\src\sgl\transformation\oglxLoadMatrixf.c" />
+    <ClCompile Include="oglx\src\sgl\transformation\oglxPopMatrix.c" />
+    <ClCompile Include="oglx\src\sgl\transformation\oglxPushMatrix.c" />
+    <ClCompile Include="oglx\src\sgl\transformation\sglConvertPixelToPoint.c" />
+    <ClCompile Include="oglx\src\sgl\transformation\sglConvertPointToPixel.c" />
+    <ClCompile Include="oglx\src\sgl\transformation\sglConvertPointToScreen.c" />
+    <ClCompile Include="oglx\src\sgl\transformation\sglConvertScreenToPoint.c" />
+    <ClCompile Include="oglx\src\sgl\transformation\sglLoadIdentity.c" />
+    <ClCompile Include="oglx\src\sgl\transformation\sglMatrixtf.c" />
+    <ClCompile Include="oglx\src\sgl\transformation\sglOrtho.c" />
+    <ClCompile Include="oglx\src\sgl\transformation\sglPopMatrix.c" />
+    <ClCompile Include="oglx\src\sgl\transformation\sglPopMatrixAndTranslate.c" />
+    <ClCompile Include="oglx\src\sgl\transformation\sglPushMatrix.c" />
+    <ClCompile Include="oglx\src\sgl\transformation\sglPushMatrixAndTranslate.c" />
+    <ClCompile Include="oglx\src\sgl\transformation\sglRotatef.c" />
+    <ClCompile Include="oglx\src\sgl\transformation\sglScalef.c" />
+    <ClCompile Include="oglx\src\sgl\transformation\sglTranslatef.c" />
+    <ClCompile Include="oglx\src\sgl\transformation\sglViewport.c" />
     <ClCompile Include="src\airlineDraw.cpp" />
     <ClCompile Include="src\airplaneDraw.cpp" />
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\CameraRove.cpp" />
+    <ClCompile Include="src\cJSON.c" />
     <ClCompile Include="src\GLFrame.cpp" />
     <ClCompile Include="src\GLWindow.cpp" />
     <ClCompile Include="src\jsoncpp.cpp" />
     <ClCompile Include="src\mapDrv.cpp" />
     <ClCompile Include="src\OpenGLEngine\glstateengine.cpp" />
-    <ClCompile Include="src\OpenGLEngine\InputCharsets1.cpp" />
     <ClCompile Include="src\OpenGLEngine\InputVString1.cpp" />
     <ClCompile Include="src\OpenGLEngine\openglcoordinatesengine.cpp" />
     <ClCompile Include="src\OpenGLEngine\openglfileengine.cpp" />
     <ClCompile Include="src\OpenGLEngine\openglrenderengine.cpp" />
+    <ClCompile Include="src\specific.c" />
     <ClCompile Include="src\stdafx.cpp" />
     <ClCompile Include="src\TMap\CGeoLayer.cpp" />
     <ClCompile Include="src\TMap\CPolygon.cpp" />
@@ -229,7 +393,6 @@
     <ClCompile Include="src\TMTextRender\cfont.cpp" />
     <ClCompile Include="src\TMTextRender\cfontmanager.cpp" />
     <ClCompile Include="src\TMTextRender\cfontrender.cpp" />
-    <ClCompile Include="src\TMTextRender\cglobal.cpp" />
     <ClCompile Include="src\TMTextRender\cpage.cpp" />
     <ClCompile Include="src\TMTextRender\CStringUtil.cpp" />
     <ClCompile Include="src\TMUtil\cgeoutil.cpp" />
@@ -237,6 +400,10 @@
     <ClCompile Include="src\TMUtil\OMapGlobal.cpp" />
     <ClCompile Include="src\TMUtil\OMGeoUtil.cpp" />
     <ClCompile Include="src\Vector.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="map.json" />
+    <None Include="map_jx.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

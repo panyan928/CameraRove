@@ -1,20 +1,20 @@
 #include "GLWindow.h"													/**< 包含GLwindows.h头文件 */
-
 #include <gl/gl.h>														/**< 包含OpenGL头文件 */
 #include <gl/glu.h>														
 
+#include "TMUtil/OMapGlobal.h"
 
 /** 构造函数 */
 GLWindow::GLWindow()
 {
 	m_WindowPosX = 0;												/**< 窗口的左上角的X位置 */
 	m_WindowPosY = 0;												/**< 窗口的左上角的Y位置 */
-	m_WindowWidth = 1050;												/**< 窗口的宽度 */
-	m_WindowHeight = 1050;												/**< 窗口的高度 */
+	m_WindowWidth = screenWidth;												/**< 窗口的宽度 */
+	m_WindowHeight = screenHeight;												/**< 窗口的高度 */
 	m_ScreenWidth = 1440;												/**< 全屏的宽度 */
 	m_ScreenHeight = 900;												/**< 全屏的高度 */
 	m_BitsPerPixel = 32;												/**< 颜色位深 */
-	m_IsFullScreen = false;											/**< 不使用全屏 */
+	m_IsFullScreen = true;											/**< 不使用全屏 */
 
 	m_hWnd = 0;
 	m_hDC = 0;
