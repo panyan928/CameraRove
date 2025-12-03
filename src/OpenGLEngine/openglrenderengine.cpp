@@ -240,7 +240,6 @@ namespace openglEngine {
 			Level2Indexs[textureIndex] = level2Index;
 			textureIndex++;
 			if (textureIndex == 48) textureIndex = 0;
-			cout << "load new texture:" << level2Index << endl;
 			if (nrChannels == 3)
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
 			else

@@ -303,7 +303,7 @@ int CRasterTileLayer::addBuffer(vector<Vec3i> tiles, int zoom, BufferManager* ma
 						pt[1] = leftTop[1] - (i - 0) * span;					
 						double lat, lon;
 						CGeoUtil::WebMercator2lonLat(pt[0], pt[1], lat, lon);
-						printf("%lf , %lf\n", pt[0], pt[1]);
+						
 						//  if (height == 0x00)
 						CGeoUtil::lonLatHeight2XYZ(lon * CGeoUtil::PI / 180, lat * CGeoUtil::PI / 180, 0, x, y, z);
 						//  else {
