@@ -363,3 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 /src/TMTextRender/freetype
 /.vscode/settings.json
+/map_jx.json
