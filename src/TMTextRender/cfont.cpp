@@ -4,6 +4,20 @@
 #include "cfont.h"
 #include "gl\gl.h"	
 #include "gl\glu.h"
+#include "TMScheduler/OMScheduler.h"
+
+// 外部声明全局变量
+extern OMScheduler* _scheduler2d;
+// 全局变量，用于标识当前是否为airport模式syj
+bool g_isAirportMode = false;
+
+/**
+ * @brief               检测是否为airport模式
+ * @details             通过全局变量检测当前是否处于airport模式
+ * @return true         当前为airport模式
+ * @return false        当前为默认模式
+ */
+
 namespace textRender {
 CFont::CFont()
 {
@@ -56,7 +70,11 @@ bool CFont::create(const char* filename, FT_Long face_index, int tall, bool bold
 
     return true;
 }
-
+bool isAirportPath()
+{
+    // 判断是否为airport模式   SYJ
+    return g_isAirportMode;
+}
 
 int CFont::getFontTall() const
 {
@@ -99,38 +117,135 @@ void CFont::renderChar(int code, glyphMetrics *metrics, unsigned char *screen, V
     loadChar(code, metrics, screen, position);
 }
 
-void CFont::renderChar(char* text, Vec2i& position)
-{    
-#if 0
+//void CFont::renderChar(char* text, Vec2i& position)
+//{
+//#if 0
+//    GLint viewport[4];
+//    glGetIntegerv(GL_VIEWPORT, viewport);
+//    int viewportWidth = viewport[2];
+//    int viewportHeight = viewport[3];
+//    glPushMatrix();
+//    glMatrixMode(GL_PROJECTION);
+//    glLoadIdentity();
+//    glOrtho(0, viewport[2], 0, viewport[3], -10.0, 10.0);
+//
+//    glMatrixMode(GL_MODELVIEW);
+//    glLoadIdentity();
+//    //FlongÐÂÔö
+//    glColor4f(m_color[0] / 255.0, m_color[1] / 255.0, m_color[2] / 255.0, m_color[3] / 255.0);
+//    //glColor4f(m_color[0], m_color[1], m_color[2], m_color[3]);
+//    //oglfDrawString(m_font, position[0], 768 - position[1], (const unsigned char*)text, FONT_JUST_HLEFT, FONT_JUST_VTOP, false);
+//    oglfDrawString(m_font, position[0], 768 - position[1], (const unsigned char*)text, FONT_JUST_HLEFT, FONT_JUST_VTOP);
+//    glPopMatrix();
+//#else
+//    GLint viewport[4];
+//    glGetIntegerv(GL_VIEWPORT, viewport);
+//
+//    //FlongÐÂÔö
+//    glColor4f(m_color[0] / 255.0, m_color[1] / 255.0, m_color[2] / 255.0, m_color[3] / 255.0);
+//    //glColor4f(m_color[0], m_color[1], m_color[2], m_color[3]);
+//
+//    //oglfDrawString(m_font, position[0], viewport[3] - position[1], (const unsigned char*)text, FONT_JUST_HLEFT, FONT_JUST_VBOTTOM);
+//    oglfDrawString(m_font, position[0], viewport[3] - position[1], (const unsigned char*)text, FONT_JUST_HCENTER, FONT_JUST_VCENTER);
+//#endif
+//}
+
+void CFont::renderChar(char* text, Vec2i& position, float rotationAngle)
+{
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);
-    int viewportWidth = viewport[2];
-    int viewportHeight = viewport[3];
+
+    // 设置颜色
+    glColor4f(m_color[0] / 255.0, m_color[1] / 255.0, m_color[2] / 255.0, m_color[3] / 255.0);
+
+    // 调整文字位置，使其正确显示在标记点旁边
+    
+    float adjustedX;
+    float adjustedY;
+    
+    // 检查是否为airport模式且文字为红色,
+    
+    if (g_isAirportMode == true && m_color[0] > 200 && m_color[1] < 50 && m_color[2] < 50)
+    {
+        // 获取当前zoom级别
+        float currentZoom = _scheduler2d->zoom();
+        
+          
+        if (currentZoom == 6 )
+        {
+            adjustedX = position[0] + 34.0; 
+        }
+        else if(currentZoom == 7)
+        {
+            adjustedX = position[0] + 33.0;
+        }
+        else if(currentZoom == 8)
+        {
+            adjustedX = position[0] + 32.0;
+        }
+        else if (currentZoom == 9)
+        {
+            adjustedX = position[0] + 31.0;
+        }
+        else
+        {
+            // 其他zoom级别使用默认值30.0像素
+            adjustedX = position[0] + 30.0;
+        }
+        
+        adjustedY = viewport[3] - position[1] - 15;  // 向上移动15像素
+    }
+    else
+    {
+        adjustedX = position[0] + 5;  // 向右移动5像素
+        adjustedY = viewport[3] - position[1] - 15;  // 向上移动15像素
+    }
+
+    // 保存当前矩阵状态
     glPushMatrix();
+    
+    // 设置正交投影
     glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
     glLoadIdentity();
     glOrtho(0, viewport[2], 0, viewport[3], -10.0, 10.0);
-
+    
+    // 设置模型视图矩阵
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    //Flong����
-    glColor4f(m_color[0] / 255.0, m_color[1] / 255.0, m_color[2] / 255.0, m_color[3] / 255.0);
-    //glColor4f(m_color[0], m_color[1], m_color[2], m_color[3]);
-    //oglfDrawString(m_font, position[0], 768 - position[1], (const unsigned char*)text, FONT_JUST_HLEFT, FONT_JUST_VTOP, false);
-    oglfDrawString(m_font, position[0], 768 - position[1], (const unsigned char*)text, FONT_JUST_HLEFT, FONT_JUST_VTOP);
+    
+    // 如果需要旋转
+    if (rotationAngle != 0.0f) {
+        // 精确计算第一个字符的中心点作为旋转中心
+        // 由于使用HLEFT对齐，第一个字符的左边界就是adjustedX
+       
+        float charWidth = 8.0f; // 假设字符宽度约为8像素
+        float firstCharCenterX = adjustedX + charWidth / 2.0f;
+        
+        // 对于垂直方向，由于使用VCENTER对齐，adjustedY已经是垂直中心
+        float firstCharCenterY = adjustedY;
+        
+        // 先平移到第一个字符的中心
+        glTranslatef(firstCharCenterX, firstCharCenterY, 0.0f);
+        // 绕z轴旋转
+        glRotatef(rotationAngle, 0.0f, 0.0f, 1.0f);
+        // 平移回原来的位置
+        glTranslatef(-firstCharCenterX, -firstCharCenterY, 0.0f);
+    }
+    
+    // 渲染文字
+    oglfDrawString(m_font, adjustedX, adjustedY, (const unsigned char*)text, FONT_JUST_HLEFT, FONT_JUST_VCENTER);
+    
+    // 恢复投影矩阵
+    glMatrixMode(GL_PROJECTION);
     glPopMatrix();
-#else
-    GLint viewport[4];
-    glGetIntegerv(GL_VIEWPORT, viewport);
-
-    //Flong����
-    glColor4f(m_color[0] / 255.0, m_color[1] / 255.0, m_color[2] / 255.0, m_color[3] / 255.0);
-    //glColor4f(m_color[0], m_color[1], m_color[2], m_color[3]);
-
-    //oglfDrawString(m_font, position[0], viewport[3] - position[1], (const unsigned char*)text, FONT_JUST_HLEFT, FONT_JUST_VBOTTOM);
-    oglfDrawString(m_font, position[0], viewport[3] - position[1], (const unsigned char*)text, FONT_JUST_HCENTER, FONT_JUST_VCENTER);
-#endif
+    
+    // 恢复到模型视图矩阵并弹出保存的状态
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
 }
+
+
 void CFont::setColor(Color color)
 {
     memcpy(&m_color, &color, sizeof(m_color));
@@ -347,7 +462,7 @@ void CFont::Draw_MONO_Bitmap(FT_GlyphSlot& glyph, unsigned char* screen, Vec2i& 
         for (int j = 0; j < width; j++) {
             // bitmap.width  位图宽度
             // bitmap.rows   位图行数（高度）
-            // bitmap.pitch  位图一行占用的字节�?
+            // bitmap.pitch  位图一行占用的字节�?
             int color = bitmap->buffer[i * bitmap->pitch + j / 8];
 
             if (!(color & (1 << (7 - (j % 8)))))
@@ -499,7 +614,7 @@ void CFont::loadChar(int code, glyphMetrics *metrics, unsigned char* screen, Vec
 
                 switch (bitmap->pixel_mode)
                 {
-                    //MONO模式�?个像素仅�?bit保存，只有黑和白�?
+                    //MONO模式�?个像素仅�?bit保存，只有黑和白�?
                     case FT_PIXEL_MODE_MONO:
                     {
                         if (!m_antialias && m_bold)
@@ -515,7 +630,7 @@ void CFont::loadChar(int code, glyphMetrics *metrics, unsigned char* screen, Vec
                         //Draw_Bitmap(glyph, screen, position, tm_char);
                         break;
                     }
-                    //GRAY模式1个像素用1个字节保存�?
+                    //GRAY模式1个像素用1个字节保存�?
                     case FT_PIXEL_MODE_GRAY:
                     {
                         CChar* tm_char = new CChar(code, Gray);

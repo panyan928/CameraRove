@@ -487,16 +487,31 @@ namespace openglEngine {
 			height *= fontSize;
 			width = fontSize * width / 2;
 
-			// 防重叠检测
-			Recti item(screen[0] - width / 2, screen[1] - height / 2, screen[0] + width / 2, screen[1] + height / 2);
-			if (checkOverlap(item, render->getData(), anno)) {
+			// 防重叠检测 - 最大化检测范围，确保标注之间完全不重叠
+			float expandFactor = 1.0f; // 扩大1倍
+			int bufferPixels = 1; // 添加固定20像素的缓冲区
+			int expandedWidth = static_cast<int>(width * expandFactor / 2) + bufferPixels;
+			int expandedHeight = static_cast<int>(height * expandFactor / 2) + bufferPixels;
+			Recti item(screen[0] - expandedWidth, screen[1] - expandedHeight, screen[0] + expandedWidth, screen[1] + expandedHeight);
+
+			// 检查是否为airport文件夹下的文字
+			// 引入全局变量g_isAirportMode，用于标识当前是否为airport模式
+			extern bool g_isAirportMode;
+
+			// airport文件夹下的文字具有最高优先级，不进行防重叠检测
+			// 当处于airport模式且文字为红色时（RGB值为红色系），视为airport文件夹下的文字
+			bool isAirportText = g_isAirportMode && r > 0.8f && g < 0.2f && b < 0.2f;
+
+			// 只有非airport文字才进行防重叠检测
+			if (!isAirportText && checkOverlap(item, render->getData(), anno)) {
 				continue;
 			}
-			
+
 			// 渲染
 			char* name_char = const_cast<char*>(name.c_str());
-			render->render(name_char, Vec2i(screen[0], screen[1]), fontSize, fontName.c_str(), Color(255 * r, 255 * g, 255 * b, 255));
+			render->render(name_char, Vec2i(screen[0] - width / 2, screen[1] - height / 2), fontSize, fontName.c_str(), Color(255 * r, 255 * g, 255 * b, 255));
 			++drawCount;
+
 		}
 
 		vCount += drawCount;

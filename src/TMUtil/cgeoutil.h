@@ -59,7 +59,7 @@
 		static void screen2World(Vec3d screen, Vec3d& world);
 
 		static Vec3d lineSegment_WGS84Ellipsoid_intersection(Vec3d p0, Vec3d p1,
-			Vec3d center = Vec3d(), double a = CGeoUtil::WGS_84_RADIUS_EQUATOR, double b = CGeoUtil::WGS_84_RADIUS_POLAR);
+			Vec3d center = Vec3d(0,0,0), double a = CGeoUtil::WGS_84_RADIUS_EQUATOR, double b = CGeoUtil::WGS_84_RADIUS_POLAR);
 
 	};
 

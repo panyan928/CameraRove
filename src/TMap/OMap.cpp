@@ -108,6 +108,7 @@ int OMap::initialMap(string json_path)
     fclose(ifs);
 
     //CJson调用
+#if 0
     cJSON* root = cJSON_Parse(content);
     if (!root) {
         const char* errptr = cJSON_GetErrorPtr();
@@ -173,6 +174,8 @@ int OMap::initialMap(string json_path)
         if (layerType == NULL) return -1;
         if (strcmp(layerType, "vector-tile") == 0) {
             const char* path = cJSON_GetStringValue(cJSON_GetObjectItem(layer, "path"));
+  
+
             CVectorTileLayer* vtLayer = new CVectorTileLayer(path);
             vtLayer->setLayerName(cJSON_GetStringValue(cJSON_GetObjectItem(layer, "layer-name")));
             string geo_type = cJSON_GetStringValue(cJSON_GetObjectItem(layer, "geometry-type"));
@@ -212,8 +215,8 @@ int OMap::initialMap(string json_path)
             this->_layers.push_back(rtLayer);
         }
     }
-
-#if 0    
+#endif
+#if 1
     Json::Value mapRoot;
     Json::Reader jsonReader;
     if (!jsonReader.parse(content, mapRoot))
@@ -246,6 +249,14 @@ int OMap::initialMap(string json_path)
         string type = layer["layer-type"].asString();
         if (type.compare("vector-tile") == 0) {
             string path = layer["path"].asString();
+            // 检测path是否在airport文件夹下syj
+            bool isAirportPath = (path.find("airport") != string::npos);
+            if (isAirportPath) {
+                // 设置全局标志，表示当前为airport模式
+                extern bool g_isAirportMode;
+                g_isAirportMode = true;
+            }
+
             CVectorTileLayer* vtLayer = new CVectorTileLayer(path);
             vtLayer->setLayerName(layer["layer-name"].asString());
             string geo_type = layer["geometry-type"].asString();

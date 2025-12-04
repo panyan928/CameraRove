@@ -1,4 +1,7 @@
 #include "cfontrender.h"
+#include "gl\gl.h"  
+#include "gl\glu.h"
+#define M_PI 3.141592653f
 namespace textRender {
     CFontRender::CFontRender(int screenWidth, int screenHeight)
     {
@@ -112,7 +115,12 @@ namespace textRender {
 
         m_fontManager->setStartPosition(pos);
 
-        m_fontManager->renderChar(fontIndex, text, pos, fontColor);
+        // 获取当前地图旋转角度
+        float modelview[16];
+        glGetFloatv(GL_MODELVIEW_MATRIX, modelview);
+        float rotationAngle = atan2(modelview[1], modelview[0]) * 180.0f / M_PI;
+
+        m_fontManager->renderChar(fontIndex, text, pos, fontColor, rotationAngle);
 
 
         return 0;

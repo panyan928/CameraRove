@@ -191,7 +191,6 @@
     <ClInclude Include="src\TMTextRender\cfontrender.h" />
     <ClInclude Include="src\TMTextRender\cpage.h" />
     <ClInclude Include="src\TMTextRender\CStringUtil.h" />
-    <ClInclude Include="src\TMTextRender\tmtools.h" />
     <ClInclude Include="src\TMUtil\cgeoutil.h" />
     <ClInclude Include="src\TMUtil\cstringutil.h" />
     <ClInclude Include="src\TMUtil\OMapGlobal.h" />

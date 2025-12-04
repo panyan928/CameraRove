@@ -25,18 +25,19 @@ namespace textRender {
   public:
       CFontManager();
       ~CFontManager();
-
+      
       int         initialize(const char* path);
       int         createFont(const char *filename, int face, int tall, bool bold, bool italic, bool antialias);//创建字体
       int         getFontTall(int font_index);
       void        renderChar(int font_index, int code, Vec2i& position, Color color);
-      void        renderChar(int font_index, char* text, Vec2i& position, Color color);
+      void        renderChar(int font_index, char* text, Vec2i& position, Color color, float rotationAngle = 0.0f);
      
       int         getFontIndex(string name, int fontSize);
       int         getFontIndex(string name, int fontSize, bool bold);
       
       void        setStartPosition(Vec2i pos);
-
+      int         getFontHeight(int fontIndex);
+      int         getCharWidth(int fontIndex, char c);
 
   private:
       vector<CFont*>  m_fonts;
@@ -47,4 +48,4 @@ namespace textRender {
       string          m_fontPath;
   };
 }
-#endif 
+#endif

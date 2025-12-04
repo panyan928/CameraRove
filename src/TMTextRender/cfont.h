@@ -28,6 +28,9 @@ using namespace std;
 #include FT_BITMAP_H
 #include FT_OUTLINE_H
 
+// 全局变量声明
+extern bool g_isAirportMode;
+      
 namespace textRender {
   class CFont
   {
@@ -40,12 +43,12 @@ namespace textRender {
       int                     getFontTall(void) const;
 
       void                    renderChar(int code, glyphMetrics *metrics, unsigned char* screen, Vec2i& position);
-      void                    renderChar(char* text, Vec2i& position);
-
+      void                    renderChar(char* text, Vec2i& position, float rotationAngle = 0.0f);
+      //void                    renderChar(char* text, Vec2i& position);
       void                    setColor(Color color);
       void                    setOutline(bool type);
       void                    setOutlineColor(Color color);
-
+      bool                    isAirportPath();
       string                  fontName() const;
       bool                    bold() const;
   private:

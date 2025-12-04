@@ -70,8 +70,8 @@ namespace textRender {
         return font->getFontTall();
     }
 
-    void CFontManager::renderChar(int font_index, char* text, Vec2i& position, Color color)
-    {
+    void CFontManager::renderChar(int font_index, char* text, Vec2i& position, Color color, float rotationAngle)
+{
 
         int i = CONVERT_FONT_INDEX(font_index);
 
@@ -83,7 +83,8 @@ namespace textRender {
 
         CFont *font = m_fonts[i];
         font->setColor(color);
-        font->renderChar(text, position);
+        font->renderChar(text, position, rotationAngle);
+        //font->renderChar(text, position);
     }
     void CFontManager::renderChar(int font_index, int code, Vec2i& position, Color color)
     {
@@ -143,7 +144,22 @@ namespace textRender {
     {
         memcpy(&m_start, &pos, sizeof(pos));
     }
+    //syj
+    int CFontManager::getCharWidth(int fontIndex, char c) {
+        if (fontIndex >= 0 && fontIndex < static_cast<int>(m_fonts.size()) && m_fonts[fontIndex] != nullptr) {
+            // ���� CFont �� .m_tall �� .size ��Ա�������� getFontTall ����ȫ
+            int fontSize = getFontTall(fontIndex);
+            return static_cast<int>(fontSize * 0.6f); // �ȿ�������ƿ���
+        }
+        return 8; // Ĭ�Ͽ���
+    }
 
+    int CFontManager::getFontHeight(int fontIndex) {
+        if (fontIndex >= 0 && fontIndex < static_cast<int>(m_fonts.size()) && m_fonts[fontIndex] != nullptr) {
+            return getFontTall(fontIndex); // �������к������ȫ
+        }
+        return 16; // Ĭ�ϸ߶�
+    }
 }
 
 

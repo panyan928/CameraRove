@@ -174,9 +174,6 @@
     <ClInclude Include="src\TMTextRender\CStringUtil.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\TMTextRender\tmtools.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="src\TMUtil\cgeoutil.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -187,9 +184,6 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="src\TMUtil\OMGeoUtil.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\TMUtil\tmtools.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="include\mapDrv.h">
@@ -277,6 +271,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="integrated\specific.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMUtil\tmtools.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
