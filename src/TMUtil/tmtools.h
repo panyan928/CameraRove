@@ -11,8 +11,6 @@ class Frustum {
 public:
 	Frustum(double fovy, double aspectRatio, double zNear, double zFar) :
 		fovy(fovy), aspectRatio(aspectRatio), zNear(zNear), zFar(zFar) {};
-	Frustum() : fovy(0), aspectRatio(0), zNear(0), zFar(0) {};
-
 	~Frustum() {};
 	double& operator[] (int i) {
 		switch (i)

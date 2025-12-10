@@ -86,6 +86,24 @@ namespace textRender {
         font->renderChar(text, position, rotationAngle);
         //font->renderChar(text, position);
     }
+
+    void CFontManager::renderChar(int font_index, char* text, Vec2i& position, Color color)
+    {
+
+        int i = CONVERT_FONT_INDEX(font_index);
+
+        if (i == -1)
+        {
+            printf("error font index!\n");
+            return;
+        }
+
+        CFont* font = m_fonts[i];
+        font->setColor(color);
+        font->renderChar(text, position);
+        //font->renderChar(text, position);
+    }
+
     void CFontManager::renderChar(int font_index, int code, Vec2i& position, Color color)
     {
 

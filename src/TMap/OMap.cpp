@@ -45,7 +45,7 @@ OMap::OMap(const char* path)
     _brightness = 100; // [0, 1]
     string path_s = path;
     initialMap(path_s);
-    setDislpay(2);
+    setDislpay(1); //0-地形 1-矢量 2-卫星 3-卫星+矢量 4-地形+矢量
 }
 
 OMap::~OMap()
@@ -266,11 +266,15 @@ int OMap::initialMap(string json_path)
             int maxZoom = layer["zoom"][1].asInt();
 
             vtLayer->setZoom(Vec2i(minZoom, maxZoom));
-
-            if (geo_type.compare("point") == 0) {
+            if(layer.isMember("anno")) {
                 int anno = layer["anno"].asInt();
-                string label = layer["anno-field"].asString();
-                vtLayer->setAnnotation(anno, label);
+                if(layer.isMember("anno-field")) {      //如果layer有anno-field标签，则设置注释
+                    string label = layer["anno-field"].asString();
+                    vtLayer->setAnnotation(anno, label);
+                }  
+                else {
+                    vtLayer->setAnnotation(anno, "");
+                }
             }
 
             string stylePath = layer["style"].asString().c_str();
@@ -724,6 +728,36 @@ int OMap::getCrowd() {
 }
 void OMap::setCrowd(int level) {
     _crowd = level;
+}
+
+void OMap::turnOfforOnLayerbyAnno(int anno)
+{
+    if(anno == 6){
+        for (int i = 2; i < _layers.size(); i++) {
+            // 使用 dynamic_cast 安全地将父类指针转换为子类指针
+            CVectorTileLayer* vLayer = dynamic_cast<CVectorTileLayer*>(_layers[i]);
+            if (vLayer != nullptr) {  // 检查转换是否成功
+                int _anno = vLayer->getAnnotation();
+                if(_anno == 1 || _anno == 2 || _anno == 3 || _anno == 4 || _anno == 5){
+                    vLayer->setVisible(true);
+                }
+            }
+        }
+    }
+    else{
+        bool isVisible  = true;
+        for (int i = 2; i < _layers.size(); i++) {
+            // 使用 dynamic_cast 安全地将父类指针转换为子类指针
+            CVectorTileLayer* vLayer = dynamic_cast<CVectorTileLayer*>(_layers[i]);
+            if (vLayer != nullptr) {  // 检查转换是否成功
+                if (vLayer->getAnnotation() == anno) {
+                    isVisible = vLayer->isVisible();
+                    vLayer->setVisible(!isVisible);
+                }
+            }
+        }
+    }  
+   
 }
 
 void OMap::turnOffLayer(int index)

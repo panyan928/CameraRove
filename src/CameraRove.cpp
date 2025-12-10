@@ -226,27 +226,33 @@ void CameraRove::UpdateCamera()
 	}
     else if (m_Keys.IsPressed('1'))
 	{
-		_map->setCrowd(1);
+		m_Keys.SetReleased('1');
+		_map->turnOfforOnLayerbyAnno(1);
 	}
 	else if (m_Keys.IsPressed('2'))
 	{
-		_map->setCrowd(2);
+		m_Keys.SetReleased('2');
+		_map->turnOfforOnLayerbyAnno(2);
 	}
     else if (m_Keys.IsPressed('3'))
 	{
-		_map->setCrowd(3);
+		m_Keys.SetReleased('3');
+		_map->turnOfforOnLayerbyAnno(3);
 	}
 	else if (m_Keys.IsPressed('4'))
 	{
-		_map->setCrowd(4);
+		m_Keys.SetReleased('4');
+		_map->turnOfforOnLayerbyAnno(4);
 	}
 	else if (m_Keys.IsPressed('5'))
 	{
-		_map->setCrowd(5);
+		m_Keys.SetReleased('5');
+		_map->turnOfforOnLayerbyAnno(5);
 	}
 	else if (m_Keys.IsPressed('6'))
 	{
-		_map->setCrowd(6);
+		m_Keys.SetReleased('6');
+		_map->turnOfforOnLayerbyAnno(6);
 	}
 	else if (m_Keys.IsPressed('F'))
 	{

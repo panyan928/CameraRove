@@ -20,6 +20,11 @@ void CVectorTileLayer::setAnnotation(int anno, string label)
 	this->_label = label;
 }
 
+int CVectorTileLayer::getAnnotation()
+{
+	return _anno;
+}
+
 int CVectorTileLayer::draw(Recti bounds, int zoom)
 {
 #if 0
@@ -219,7 +224,7 @@ int CVectorTileLayer::draw(vector<Vec3i> tiles, int zoom, BufferManager* manager
 		int zoom = tiles[k][0];
 		int i = tiles[k][1];
 		int j = tiles[k][2];
-
+		
 		if (geometryType().compare("polygon") == 0) {
 			drawPolygon(zoom, i, j, manager, 1);
 		}
@@ -229,8 +234,7 @@ int CVectorTileLayer::draw(vector<Vec3i> tiles, int zoom, BufferManager* manager
 		if (geometryType().compare("point") == 0) {
 			//drawPoint(zoom, i, j, manager);
 			if (_anno) {
-				if(_anno >= crowdLevel) 
-					drawAnnotation(zoom, i, j, manager, crowdLevel); //_anno 1-6 crowdLevel值越大，显示的_anno越少
+				drawAnnotation(zoom, i, j, manager, crowdLevel); //_anno 1-6 crowdLevel值越大，显示的_anno越少
 			}
 			else
 				drawPoint(zoom, i, j, manager, 1);

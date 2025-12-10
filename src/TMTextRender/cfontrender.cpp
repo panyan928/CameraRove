@@ -120,8 +120,8 @@ namespace textRender {
         glGetFloatv(GL_MODELVIEW_MATRIX, modelview);
         float rotationAngle = atan2(modelview[1], modelview[0]) * 180.0f / M_PI;
 
-        m_fontManager->renderChar(fontIndex, text, pos, fontColor, rotationAngle);
-
+        //m_fontManager->renderChar(fontIndex, text, pos, fontColor, rotationAngle);
+        m_fontManager->renderChar(fontIndex, text, pos, fontColor);
 
         return 0;
     }

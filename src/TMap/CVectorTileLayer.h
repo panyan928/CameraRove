@@ -17,7 +17,7 @@ public:
     CVectorTileLayer(string path) : _path(path) {};
     virtual ~CVectorTileLayer();
     void setAnnotation(int anno, string label);
-
+    int getAnnotation();
     int draw(Recti bounds, int zoom);
     int draw(Recti bounds, int zoom, BufferManager* manager);
     int draw(vector<Vec3i> tiles, int zoom, BufferManager* manager, int crowdLevel);

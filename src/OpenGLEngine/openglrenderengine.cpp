@@ -508,8 +508,23 @@ namespace openglEngine {
 			}
 
 			// 渲染
+			// 参照 InputOpenglFont::AddText 的 FA_Hor_Left 对齐逻辑
+			// 要让文字在点的右侧（文字左边对齐点），垂直居中：
+			// - 文字左边X = screen[0]，中心X = screen[0] + width/2
+			// - 文字垂直居中，中心Y = screen[1]
 			char* name_char = const_cast<char*>(name.c_str());
-			render->render(name_char, Vec2i(screen[0] - width / 2, screen[1] - height / 2), fontSize, fontName.c_str(), Color(255 * r, 255 * g, 255 * b, 255));
+			render->render(name_char, Vec2i(screen[0]-fontSize/2, screen[1]), fontSize, fontName.c_str(), Color(255 * r, 255 * g, 255 * b, 255));
+			//float point[3];
+			//point[0] = world[0];
+			//point[1] = world[1];
+			//point[2] = world[2];
+			//glPointSize(5.0);  // 设置点大小
+
+			//glEnableClientState(GL_VERTEX_ARRAY);
+			//glVertexPointer(3, GL_FLOAT, 0, point);
+			//glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
+
+			//glDrawArrays(GL_POINTS, 0, 1);
 			++drawCount;
 
 		}

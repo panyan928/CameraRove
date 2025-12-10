@@ -47,7 +47,7 @@ public:
     int Dislpay();
     int getCrowd();
     void setCrowd(int level);
-
+    void turnOfforOnLayerbyAnno(int anno);
     void turnOffLayer(int index);
     void turnOnLayer(int index);
     //int multiGetData(DataParameter* para);
