@@ -5,7 +5,7 @@
 #include "../OpenGLEngine/openglengine.h"
 #include "../OpenGLEngine/openglfileengine.h"
 #include "../OpenGLEngine/openglrenderengine.h"
-
+#include "TileDatReader.h"
 //#include "OMFileEngine/openglvertice.h"
 //#include "OMRenderEngine/OpenGLRenderEngine.h"
 
@@ -37,6 +37,9 @@ private:
     int _heightExaggerated = 1;
     float* _textures;
     int index_num;
+
+    TileDatReader* _tileDatReader;
+    bool _useDatFile;
 };
 
 #endif // !CRasterTileLayer_H

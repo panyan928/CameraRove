@@ -1,7 +1,36 @@
 #include "crastertilelayer.h"
 #include "sqlite/sqlite3.h"
 #include <sstream>
-#include "../libs/stb_image.h"
+#include <algorithm>
+#include <vector>
+#include <tuple>
+
+namespace
+{
+	// 默认每帧最大加载瓦片数
+	constexpr int DEFAULT_TILES_PER_BATCH = 80;
+	constexpr int MAX_CACHE_SIZE = 120;
+
+	int clampWindowRadiusByZoom(int zoom, int radius)
+	{
+		if (zoom >= 13)
+			return std::min(radius, 6);
+		if (zoom >= 11)
+			return std::min(radius, 8);
+		return radius;
+	}
+
+	int batchLimitForZoom(int zoom)
+	{
+		if (zoom >= 13)
+			return 40;
+		if (zoom >= 11)
+			return 60;
+		return DEFAULT_TILES_PER_BATCH;
+	}
+}
+
+
 
 CRasterTileLayer::CRasterTileLayer(string path)
 {
@@ -20,8 +49,28 @@ CRasterTileLayer::CRasterTileLayer(string path)
 	}
 	//cout <<"index_t: "<< index_t << endl;
 	_path = path;
+	_tileDatReader = 0x00;
+	_useDatFile = false;
 	//index_num = (size * size - 2 * size + 1) * 20;
 	//index_num = size * size * 3;
+
+	auto hasDatExtension = [](const string& filePath)->bool {
+		if (filePath.size() < 4) return false;
+		string ext = filePath.substr(filePath.size() - 4);
+		std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+		return ext == ".dat";
+		};
+
+	if (hasDatExtension(_path)) {
+		_tileDatReader = new TileDatReader();
+		if (_tileDatReader->load(_path)) {
+			_useDatFile = true;
+		}
+		else {
+			delete _tileDatReader;
+			_tileDatReader = 0x00;
+		}
+	}
 }
 
 CRasterTileLayer::~CRasterTileLayer()
@@ -29,6 +78,11 @@ CRasterTileLayer::~CRasterTileLayer()
 	if (_textures != 0x00)
 		delete[] _textures;
 	_textures = 0x00;
+
+	if (_tileDatReader) {
+		delete _tileDatReader;
+		_tileDatReader = 0x00;
+	}
 }
 
 int CRasterTileLayer::draw(Recti bounds, int zoom)
@@ -40,24 +94,24 @@ int CRasterTileLayer::draw(Recti bounds, int zoom)
 			string path_pts, path_index, path_texture;
 			int pt_size = 0;
 
-			
-            ostringstream ost_temp;//ost_temp.str("");
-            ost_temp << _path << (zoom) << "." << ((int)pow(2, zoom) - 1 - j) << "." << ((i % (int)pow(2, zoom))) << ".vertice";
-            path_pts = ost_temp.str();
-            //path_pts = _path + to_string(zoom) + "." + to_string((int)pow(2, zoom) - 1 - j) + "." + to_string((i % (int)pow(2, zoom))) + ".vertice";
-            float* pts = openglEngine::OpenGLFileEngine::getVerticesFromBinary<float>(path_pts.c_str(), CGeoUtil::WGS84, 3, pt_size);
 
-            ost_temp.str("");
-            ost_temp << _path << (zoom) << "." << ((int)pow(2, zoom) - 1 - j) << "." << ((i % (int)pow(2, zoom))) << ".index";
-            path_index = ost_temp.str();
-            //path_index = _path + to_string(zoom) + "." + to_string((int)pow(2, zoom) - 1 - j) + "." + to_string((i % (int)pow(2, zoom))) + ".index";
-            int* index = openglEngine::OpenGLFileEngine::getIndexFromBinary<int>(path_index.c_str(), pt_size);
+			ostringstream ost_temp;//ost_temp.str("");
+			ost_temp << _path << (zoom) << "." << ((int)pow(2, zoom) - 1 - j) << "." << ((i % (int)pow(2, zoom))) << ".vertice";
+			path_pts = ost_temp.str();
+			//path_pts = _path + to_string(zoom) + "." + to_string((int)pow(2, zoom) - 1 - j) + "." + to_string((i % (int)pow(2, zoom))) + ".vertice";
+			float* pts = openglEngine::OpenGLFileEngine::getVerticesFromBinary<float>(path_pts.c_str(), CGeoUtil::WGS84, 3, pt_size);
 
-            float* texture_coor = openglEngine::OpenGLFileEngine::getTextureCoor<float>(8);
 			ost_temp.str("");
-            ost_temp << _path << (zoom) << "." << ((int)pow(2, zoom) - 1 - j) << "." << ((i % (int)pow(2, zoom))) << ".jpg";
-            path_texture = ost_temp.str();
-            //path_texture = _path + to_string(zoom) + "." + to_string((int)pow(2, zoom) - 1 - j) + "." + to_string((i % (int)pow(2, zoom))) + ".jpg";
+			ost_temp << _path << (zoom) << "." << ((int)pow(2, zoom) - 1 - j) << "." << ((i % (int)pow(2, zoom))) << ".index";
+			path_index = ost_temp.str();
+			//path_index = _path + to_string(zoom) + "." + to_string((int)pow(2, zoom) - 1 - j) + "." + to_string((i % (int)pow(2, zoom))) + ".index";
+			int* index = openglEngine::OpenGLFileEngine::getIndexFromBinary<int>(path_index.c_str(), pt_size);
+
+			float* texture_coor = openglEngine::OpenGLFileEngine::getTextureCoor<float>(8);
+			ost_temp.str("");
+			ost_temp << _path << (zoom) << "." << ((int)pow(2, zoom) - 1 - j) << "." << ((i % (int)pow(2, zoom))) << ".jpg";
+			path_texture = ost_temp.str();
+			//path_texture = _path + to_string(zoom) + "." + to_string((int)pow(2, zoom) - 1 - j) + "." + to_string((i % (int)pow(2, zoom))) + ".jpg";
 			openglEngine::OpenGLRenderEngine::drawRasters(pts, texture_coor, index, path_texture.c_str(), pt_size);
 
 			/*float* pts = openglEngine::OpenGLFileEngine::getVerticesFromBinary<float>(path_pts.c_str(), CGeoUtil::WGS84, 3, pt_size);
@@ -118,7 +172,7 @@ int CRasterTileLayer::draw(vector<Vec3i> tiles, int zoom, BufferManager* manager
 		ostringstream ost_temp;//ost_temp.str("");
 		ost_temp << (zoom) << "." << (row) << "." << (col);
 		string tileIndex = ost_temp.str();
-        //string tileIndex = to_string(zoom) + "." + to_string(row) + "." + to_string(col);
+		//string tileIndex = to_string(zoom) + "." + to_string(row) + "." + to_string(col);
 		string level2Index = tileIndex + "." + layerName();
 		//cout << level2Index <<"\n";
 		TMBuffer* buffer = manager->getFrom2LevelBuffer(level2Index);
@@ -128,8 +182,6 @@ int CRasterTileLayer::draw(vector<Vec3i> tiles, int zoom, BufferManager* manager
 		Heights* pHeight = 0x00;
 		Index* pIndex = 0x00;
 		Image* pImage = 0x00;
-		
-
 
 		if (buffer) {
 			//pTexture = buffer->texture();
@@ -148,14 +200,14 @@ int CRasterTileLayer::draw(vector<Vec3i> tiles, int zoom, BufferManager* manager
 		float* colors = static_cast<float*>(pColors->data());
 		int* indexes = static_cast<int*>(pIndex->data());
 		unsigned char* image = static_cast<unsigned char*>(pImage->data());
-		int width=0, height=0, nrChannels=0;
+		int width = 0, height = 0, nrChannels = 0;
 		pImage->getInfo(width, height, nrChannels);
 		if (vertices && indexes)
 			if (displayMode == 1)
 				openglEngine::OpenGLRenderEngine::drawRasters(vertices, _textures, indexes, image, width, height, nrChannels,
-				index_num, level2Index);
-			else if(displayMode == 2)
-				openglEngine::OpenGLRenderEngine::drawHeight(vertices, colors,indexes, (size * size - 2 * size + 1) * 6);
+					index_num, level2Index);
+			else if (displayMode == 2)
+				openglEngine::OpenGLRenderEngine::drawHeight(vertices, colors, indexes, (size * size - 2 * size + 1) * 6);
 	}
 	return 0;
 }
@@ -220,10 +272,54 @@ int CRasterTileLayer::addBuffer(vector<Vec3i> tiles, int zoom, BufferManager* ma
 
 	//height文件是66*66
 	int interval = 4;
-    int stride = 1; //数据抽取
+	int stride = 1; //数据抽取
 	int size = 256 / interval + 2;
 	size = 2;
 
+	int batchLimit = tiles.empty() ? DEFAULT_TILES_PER_BATCH : batchLimitForZoom(tiles[0][0]);
+	//Flong新增，用于判断串口瓦片索引数量
+	// 对于dat文件，批量预加载当前tiles列表的索引（不加载数据）
+	if (_useDatFile && _tileDatReader && !tiles.empty())
+	{
+		Vec3i centerTile = tiles[tiles.size() / 2];
+		int centerZoom = centerTile[0];
+		int centerCol = centerTile[1];
+		int centerRow = pow(2, centerZoom) - centerTile[2] - 1;
+
+		// 先设置窗口，用于限制预加载范围
+		double tileCount = static_cast<double>(tiles.size());
+		int approxSpan = static_cast<int>(std::ceil(std::sqrt(tileCount)));
+		int windowRadius = std::max(4, approxSpan / 2 + 2); // 稍微增大半径，避免过度清理
+		windowRadius = clampWindowRadiusByZoom(centerZoom, windowRadius);
+		_tileDatReader->setWindowRadius(windowRadius);
+		_tileDatReader->ensureWindow(static_cast<uint16_t>(centerZoom),
+			static_cast<uint32_t>(centerCol),
+			static_cast<uint32_t>(centerRow));
+
+		batchLimit = batchLimitForZoom(centerZoom);
+		// 批量预加载当前tiles列表中窗口范围内的索引
+		std::vector<std::tuple<int, int, int>> tileCoords;
+		for (size_t i = 0; i < tiles.size(); i++)
+		{
+			int zoom = tiles[i][0];
+			int col = tiles[i][1];
+			int row = pow(2, zoom) - tiles[i][2] - 1;
+			// 只添加窗口范围内的瓦片
+			if (zoom == centerZoom)
+			{
+				int64_t dx = static_cast<int64_t>(col) - static_cast<int64_t>(centerCol);
+				int64_t dy = static_cast<int64_t>(row) - static_cast<int64_t>(centerRow);
+				if (std::abs(dx) <= windowRadius && std::abs(dy) <= windowRadius)
+				{
+					tileCoords.push_back(std::make_tuple(zoom, col, row));
+				}
+			}
+		}
+		_tileDatReader->preloadIndices(tileCoords);
+	}
+	
+
+	int processedTiles = 0;
 	for (int k = 0; k < tiles.size(); k++) {
 		int zoom = tiles[k][0];
 		int col = tiles[k][1];
@@ -247,23 +343,35 @@ int CRasterTileLayer::addBuffer(vector<Vec3i> tiles, int zoom, BufferManager* ma
 		Index* pIndex = 0x00;
 		Image* pImage = 0x00;
 		{
+			bool loadedSuccessfully = false;
 			buffer = new TMBuffer(TerrianBuffer, level2Index);
 			string cIndex = level2Index + ".color";
 			string vIndex = level2Index + ".vertice";
 			string iIndex = level2Index + ".index";
 			string hIndex = tileIndex + ".height";
 			string imIndex = tileIndex + ".image";
+			//Flong新增绘制卫星dat
 			if (!pImage) {
-				int width, height, nrChannels;
-				int len = 0;
-				//10.27数据源更改
-				ostringstream ost_temp;//ost_temp.str("");                
-                ost_temp << _path << (zoom) << "/" << (col) << "/" << (row) << ".jpg";
-                string path = ost_temp.str();
-				//string path = _path + to_string(zoom) + "/" + to_string(col) + "/" + to_string(row) + ".jpg";
-				//unsigned char* img = openglEngine::OpenGLFileEngine::getImgFromDB<unsigned char>(imgDB, zoom, tiles[k][2], col,len);
-				//unsigned char* data = stbi_load_from_memory(img, len, &width, &height, &nrChannels, 0);
-				unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
+				int width = 0, height = 0, nrChannels = 0;
+				unsigned char* data = 0x00;
+				// 按需加载：只在真正需要时才从dat文件读取数据
+				if (_useDatFile && _tileDatReader) {
+					std::vector<unsigned char> tileBytes;
+					// getTile会按需读取数据，不会一次性加载所有数据
+					if (_tileDatReader->getTile(zoom, col, row, tileBytes)) {
+						data = stbi_load_from_memory(tileBytes.data(), static_cast<int>(tileBytes.size()),
+							&width, &height, &nrChannels, 0);
+					}
+					loadedSuccessfully = true;
+				}
+				else {
+					//10.27数据源更改
+					ostringstream ost_temp;//ost_temp.str("");                
+					ost_temp << _path << (zoom) << "/" << (col) << "/" << (row) << ".jpg";
+					string path = ost_temp.str();
+					data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
+				}
+
 				if (data) {
 					pImage = new Image(data, width * height, imIndex);
 					pImage->setInfo(height, width, nrChannels);
@@ -295,15 +403,14 @@ int CRasterTileLayer::addBuffer(vector<Vec3i> tiles, int zoom, BufferManager* ma
 				double span = 2 * CGeoUtil::PI * CGeoUtil::WGS_84_RADIUS_EQUATOR / pow(2, zoom) / (size - 1);
 				double x, y, z;
 
-				
+
 				int index_t = 0; int index_v = 0; int index_color = 0;  int index_i = 0;
 				for (int i = 0; i < size; i++) {
 					for (int j = 0; j < size; j++) {
 						pt[0] = leftTop[0] + (j - 0) * span;
-						pt[1] = leftTop[1] - (i - 0) * span;					
+						pt[1] = leftTop[1] - (i - 0) * span;
 						double lat, lon;
 						CGeoUtil::WebMercator2lonLat(pt[0], pt[1], lat, lon);
-						
 						//  if (height == 0x00)
 						CGeoUtil::lonLatHeight2XYZ(lon * CGeoUtil::PI / 180, lat * CGeoUtil::PI / 180, 0, x, y, z);
 						//  else {
@@ -317,11 +424,10 @@ int CRasterTileLayer::addBuffer(vector<Vec3i> tiles, int zoom, BufferManager* ma
 						//  else
 						//  	//h1 = height[i * size * 2 + j * 2];
 						//  	h1 = height[i * size + j];
-						
+
 						vertices[index_v++] = pt[0];
 						vertices[index_v++] = pt[1];
 						vertices[index_v++] = 0.1;
-						
 						Vec3d color = calColor(h1);
 						colors[index_color++] = color[0];
 						colors[index_color++] = color[1];
@@ -334,7 +440,7 @@ int CRasterTileLayer::addBuffer(vector<Vec3i> tiles, int zoom, BufferManager* ma
 								((j == (size - 1)) && (i % stride == 0)) || \
 								((i == (size - 1)) && (j == (size - 1))) || \
 								((i % stride == 0) && (j % stride == 0))
-								) 
+								)
 							{
 								index[index_i++] = (i)*size + j;
 								index[index_i++] = (i)*size + j - stride;
@@ -349,7 +455,7 @@ int CRasterTileLayer::addBuffer(vector<Vec3i> tiles, int zoom, BufferManager* ma
 				//cout << index_v << endl;
 				//GLuint* texture = new GLuint();
 				//glGenTextures(1, texture);
-                index_num = index_i;
+				index_num = index_i;
 				pVertices = new Vertices(vertices, size * size, vIndex);
 				pColors = new Vertices(colors, size * size, cIndex);
 				pIndex = new Index(index, index_num, iIndex);
@@ -361,7 +467,17 @@ int CRasterTileLayer::addBuffer(vector<Vec3i> tiles, int zoom, BufferManager* ma
 				buffer->setData(pImage, IMAGE);
 				//buffer->setData(texture, TEXTURE);
 				manager->insert(2, buffer, level2Index);
+				loadedSuccessfully = true;
+			}
 
+			if (loadedSuccessfully)
+			{
+				processedTiles++;
+				if (processedTiles >= batchLimit)
+				{
+					// 本帧加载数量达到上限，其余瓦片留待下一帧处理
+					break;
+				}
 			}
 		}
 	}

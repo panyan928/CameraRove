@@ -276,6 +276,15 @@
     <ClInclude Include="src\TMUtil\tmtools.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="src\TMap\TileDatReader.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TMap\VectorDatReader.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\memory_monitor.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Camera.cpp">
@@ -879,6 +888,15 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="integrated\oglxReadErrors.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMap\TileDatReader.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TMap\VectorDatReader.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\memory_monitor.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

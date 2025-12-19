@@ -48,13 +48,6 @@ int OMScheduler::compute()
 	// 获取整数缩放级别
 	int zoom_i = static_cast<int>(_zoom);
 
-	// 获取视口大小
-	GLint viewport[4];
-	glGetIntegerv(GL_VIEWPORT, viewport);
-	int viewportWidth = viewport[2];
-	int viewportHeight = viewport[3];
-	if (viewportWidth < 0 || viewportHeight < 0) return -1;
-
 	// 计算当前级别下一个像素在墨卡托坐标系下的大小
 	double pixel = 2 * CGeoUtil::PI * CGeoUtil::Web_Mecator_R / pow(2, zoom_i) / 256;
 
@@ -63,8 +56,8 @@ int OMScheduler::compute()
 	double span = 2 * CGeoUtil::PI * CGeoUtil::Web_Mecator_R / pow(2, zoom_i);
 
 	//基于旋转视口四角的精确计算
-	double viewWidth = viewportWidth * pixel; //屏幕横向墨卡托坐标范围
-	double viewHeight = viewportHeight * pixel; //屏幕纵向墨卡托坐标范围
+	double viewWidth = screenWidth * pixel; //屏幕横向墨卡托坐标范围
+	double viewHeight = screenHeight * pixel; //屏幕纵向墨卡托坐标范围
 
 	// 视口的四个角点（相对于中心点）
 	Vec2d corners[4] = {
@@ -200,19 +193,14 @@ int OMScheduler::getTilesBuffer(vector<Vec3i>& tiles, int zoom)
     // 计算一个像素在墨卡托坐标系下的大小
 	double pixel = 2 * CGeoUtil::PI * CGeoUtil::Web_Mecator_R / pow(2, zoom) / 256;
     
-	GLint viewport[4];
-	glGetIntegerv(GL_VIEWPORT, viewport);
-    int viewportWidth = 1920;
-    int viewportHeight = 1080;
-    
 	Recti tileBound2;
 	Rectd windowRect2;
 
     // 计算窗口的墨卡托坐标范围
-    windowRect2[0] = _center[0] - viewportWidth / 2.0 * pixel; // 左边界
-    windowRect2[2] = _center[0] + viewportWidth / 2.0 * pixel; // 右边界
-    windowRect2[1] = _center[1] - viewportHeight / 2.0 * pixel; // 下边界
-    windowRect2[3] = _center[1] + viewportHeight / 2.0 * pixel; // 上边界
+    windowRect2[0] = _center[0] - screenWidth / 2.0 * pixel; // 左边界
+    windowRect2[2] = _center[0] + screenWidth / 2.0 * pixel; // 右边界
+    windowRect2[1] = _center[1] - screenHeight / 2.0 * pixel; // 下边界
+    windowRect2[3] = _center[1] + screenHeight / 2.0 * pixel; // 上边界
     
     // 计算墨卡托坐标范围对应的瓦片索引范围
     double begin = -CGeoUtil::PI * CGeoUtil::Web_Mecator_R;

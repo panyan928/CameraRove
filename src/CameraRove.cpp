@@ -257,14 +257,17 @@ void CameraRove::UpdateCamera()
 	else if (m_Keys.IsPressed('F'))
 	{
 		_scheduler2d->setCenter(116, 28.5);
+		_map->isViewChanged = true;
 	}
 	else if (m_Keys.IsPressed('G'))
 	{
 		_scheduler2d->setCenter(109, 34.2);
+		_map->isViewChanged = true;
 		}
 	else if (m_Keys.IsPressed('H'))
 	{
 		_scheduler2d->setCenter(116.3, 39.9);
+		_map->isViewChanged = true;
 	}
 	/*else if (m_Keys.IsPressed('B'))
 	{

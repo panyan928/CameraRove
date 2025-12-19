@@ -32,7 +32,7 @@ pthread_mutex_t g_mutex;
 #define M_PI 3.141592653
 
 #ifdef WIN32
-OMap* _map = new OMap("D:/pyan/map_wd_20221219/data/map.json");
+OMap* _map = new OMap("D:/pyan/map_wd_20221219/data/map_dat.json");
 //OMap* _map = new OMap("C://Users/pyan/Documents/pyan/map_wd_20221219/data/map_zd_vector.json");
 //OMap* _map = new OMap("D://pyan/DATA/data/map_win_zd.json");
 

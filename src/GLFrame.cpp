@@ -2,24 +2,24 @@
 /**
 *																			
 *  GLApplication * GLApplication::Create(const char * class_name)		
-*		´´½¨ÄãµÄ×ÓÀàµÄÒ»¸öÊµÀı		
+*		åˆ›å»ºä½ çš„å­ç±»çš„ä¸€ä¸ªå®ä¾‹		
 *																			
 *  bool Init();														
-*		Ö´ĞĞËùÓĞµÄ³õÊ¼»¯¹¤×÷£¬Èç¹û³É¹¦º¯Êı·µ»Øtrue							
+*		æ‰§è¡Œæ‰€æœ‰çš„åˆå§‹åŒ–å·¥ä½œï¼Œå¦‚æœæˆåŠŸå‡½æ•°è¿”å›true							
 *											 								
 *  void Uninit();													
-*		Ö´ĞĞËùÓĞµÄĞ¶ÔØ¹¤×÷										
+*		æ‰§è¡Œæ‰€æœ‰çš„å¸è½½å·¥ä½œ										
 *																			
 *  void Update(DWORD milliseconds);										
-*		Ö´ĞĞËùÓĞµÄ¸üĞÂ²Ù×÷£¬´«ÈëµÄ²ÎÊıÎªÁ½´Î²Ù×÷¾­¹ıµÄÊ±¼ä£¬ÒÔºÁÃëÎªµ¥Î»
+*		æ‰§è¡Œæ‰€æœ‰çš„æ›´æ–°æ“ä½œï¼Œä¼ å…¥çš„å‚æ•°ä¸ºä¸¤æ¬¡æ“ä½œç»è¿‡çš„æ—¶é—´ï¼Œä»¥æ¯«ç§’ä¸ºå•ä½
 *																			
 *  void Draw();															
-*		Ö´ĞĞËùÓĞµÄ»æÖÆ²Ù×÷
+*		æ‰§è¡Œæ‰€æœ‰çš„ç»˜åˆ¶æ“ä½œ
 */																			
 //======================================================================
 #include<iostream>
 #include "stdafx.h"
-#include "GLFrame.h"													/**< °üº¬GLFrame.hÍ·ÎÄ¼ş */
+#include "GLFrame.h"													/**< åŒ…å«GLFrame.hå¤´æ–‡ä»¶ */
 #include "Camera.h"	
 #include "TMUtil/OMapGlobal.h"
 #include "mapDrv.h"
@@ -37,160 +37,160 @@
 #endif // WIN32
 
 //extern GLint gltWriteTGA(const char *szFileName);
-/** Ö÷³ÌĞòÈë¿Ú */
+/** ä¸»ç¨‹åºå…¥å£ */
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 	int ret = -1;
-	GLApplication * appl = GLApplication::Create("OpenGL");			/**< ´´½¨³ÌĞòÀà */
+	GLApplication * appl = GLApplication::Create("OpenGL");			/**< åˆ›å»ºç¨‹åºç±» */
 	if (appl != 0)
 	{
-		ret = appl->Main(hInstance, hPrevInstance, lpCmdLine, nCmdShow);/**< Ö´ĞĞ³ÌĞòÖ÷Ñ­»· */
-		delete appl;													/**< É¾³ı³ÌĞòÀà£¨ÔÚ¼Ì³ĞÀàÖĞ£¬Ê¹ÓÃGL_Example * example = new GL_Example(class_name);·ÖÅäÁËÒ»¿éÄÚ´æ£©*/
+		ret = appl->Main(hInstance, hPrevInstance, lpCmdLine, nCmdShow);/**< æ‰§è¡Œç¨‹åºä¸»å¾ªç¯ */
+		delete appl;													/**< åˆ é™¤ç¨‹åºç±»ï¼ˆåœ¨ç»§æ‰¿ç±»ä¸­ï¼Œä½¿ç”¨GL_Example * example = new GL_Example(class_name);åˆ†é…äº†ä¸€å—å†…å­˜ï¼‰*/
 	}
 	else
-	{																	/**< ´´½¨³ÌĞò³ö´í */
-		MessageBox(HWND_DESKTOP, "´´½¨³ÌĞò³ö´í", "Error", MB_OK | MB_ICONEXCLAMATION);
+	{																	/**< åˆ›å»ºç¨‹åºå‡ºé”™ */
+		MessageBox(HWND_DESKTOP, "åˆ›å»ºç¨‹åºå‡ºé”™", "Error", MB_OK | MB_ICONEXCLAMATION);
 	}
 	return ret;
 }	
 
 
-/** ´¦Àí´°¿ÚÏûÏ¢ */
+/** å¤„ç†çª—å£æ¶ˆæ¯ */
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	LONG user_data = GetWindowLong(hWnd, GWL_USERDATA);					/**< ·µ»ØÓÃ»§×Ô¶¨ÒåµÄ32Î»µÄ³ÌĞò¸½¼ÓÖµ */
+	LONG user_data = GetWindowLong(hWnd, GWL_USERDATA);					/**< è¿”å›ç”¨æˆ·è‡ªå®šä¹‰çš„32ä½çš„ç¨‹åºé™„åŠ å€¼ */
 	if (user_data == 0)
 	{	
-		/// Èç¹û³ÌĞòµÚÒ»´ÎÔËĞĞ
-		if (uMsg == WM_CREATE)											/**< ´¦Àí´°¿Ú´´½¨ÏûÏ¢ */
+		/// å¦‚æœç¨‹åºç¬¬ä¸€æ¬¡è¿è¡Œ
+		if (uMsg == WM_CREATE)											/**< å¤„ç†çª—å£åˆ›å»ºæ¶ˆæ¯ */
 		{																
-			/// ·µ»Ø´°¿Ú½á¹¹µÄÖ¸Õë£¬Ëü±£´æ¸Õ´´½¨µÄ³ÌĞòÊµÀıµÄÀà
+			/// è¿”å›çª—å£ç»“æ„çš„æŒ‡é’ˆï¼Œå®ƒä¿å­˜åˆšåˆ›å»ºçš„ç¨‹åºå®ä¾‹çš„ç±»
 			CREATESTRUCT * creation = reinterpret_cast<CREATESTRUCT *>(lParam);
 			
-			/// »ñµÃ³ÌĞòÊµÀıµÄÖ¸Õë
+			/// è·å¾—ç¨‹åºå®ä¾‹çš„æŒ‡é’ˆ
 			GLApplication * appl = reinterpret_cast<GLApplication *>(creation->lpCreateParams);
 			
-			/// ±£´æ³ÌĞòÊµÀıµÄÖ¸ÕëÎªÓÃ»§×Ô¶¨ÒåµÄ³ÌĞò¸½¼ÓÖµ
+			/// ä¿å­˜ç¨‹åºå®ä¾‹çš„æŒ‡é’ˆä¸ºç”¨æˆ·è‡ªå®šä¹‰çš„ç¨‹åºé™„åŠ å€¼
 			SetWindowLong(hWnd, GWL_USERDATA, reinterpret_cast<LONG>(appl));
-			appl->m_IsVisible = true;									/**< ÉèÖÃ³ÌĞò¿É¼û */
-			return 0;													/**< ·µ»Ø */
+			appl->m_IsVisible = true;									/**< è®¾ç½®ç¨‹åºå¯è§ */
+			return 0;													/**< è¿”å› */
 		}
 	}
 	else
 	{	
-		/// Èç¹û²»ÊÇµÚÒ»´Î´°¿Ú£¬·µ»Ø³ÌĞòÊµÀıµÄÖ¸Õë
+		/// å¦‚æœä¸æ˜¯ç¬¬ä¸€æ¬¡çª—å£ï¼Œè¿”å›ç¨‹åºå®ä¾‹çš„æŒ‡é’ˆ
 		GLApplication * appl = reinterpret_cast<GLApplication *>(user_data);
-		return appl->Message(hWnd, uMsg, wParam, lParam);				/**< µ÷ÓÃ³ÌĞòÊµÀı×Ô¼ºµÄÏûÏ¢´¦Àíº¯Êı */
+		return appl->Message(hWnd, uMsg, wParam, lParam);				/**< è°ƒç”¨ç¨‹åºå®ä¾‹è‡ªå·±çš„æ¶ˆæ¯å¤„ç†å‡½æ•° */
 	}
 
-	return DefWindowProc(hWnd, uMsg, wParam, lParam);					/**< µ÷ÓÃÄ¬ÈÏµÄ´°¿ÚÏûÏ¢´¦Àíº¯Êı */
+	return DefWindowProc(hWnd, uMsg, wParam, lParam);					/**< è°ƒç”¨é»˜è®¤çš„çª—å£æ¶ˆæ¯å¤„ç†å‡½æ•° */
 }
 
-/** ¹¹Ôìº¯Êı */
+/** æ„é€ å‡½æ•° */
 
 GLApplication::GLApplication(const char * class_name)					
 {
-	m_ClassName = class_name;											/**< ±£´æÀàÃû */
-	m_IsProgramLooping = true;											/**< ÉèÖÃ³ÌĞòÑ­»·Îªtrue */
-	m_CreateFullScreen = false;											/**< Ê¹ÓÃÈ«ÆÁÄ£Ê½ */
-	m_IsVisible = false;												/**< ²»¿É¼û */
-	m_ResizeDraw = false;												/**< ÔÚ´°¿Ú¸Ä±ä´óĞ¡µÄÊ±ºò£¬²»¿É»æÖÆ */
+	m_ClassName = class_name;											/**< ä¿å­˜ç±»å */
+	m_IsProgramLooping = true;											/**< è®¾ç½®ç¨‹åºå¾ªç¯ä¸ºtrue */
+	m_CreateFullScreen = false;											/**< ä½¿ç”¨å…¨å±æ¨¡å¼ */
+	m_IsVisible = false;												/**< ä¸å¯è§ */
+	m_ResizeDraw = false;												/**< åœ¨çª—å£æ”¹å˜å¤§å°çš„æ—¶å€™ï¼Œä¸å¯ç»˜åˆ¶ */
 	m_LastTickCount = 0;
 }
 
-void GLApplication::ToggleFullscreen()									/**< ÇĞ»» È«ÆÁ/´°¿ÚÄ£Ê½ */
+void GLApplication::ToggleFullscreen()									/**< åˆ‡æ¢ å…¨å±/çª—å£æ¨¡å¼ */
 {
-	PostMessage(m_Window, WM_TOGGLEFULLSCREEN, 0, 0);					/**< ·¢ËÍ×Ô¶¨µÄÇĞ»»ÏûÏ¢ */
+	PostMessage(m_Window, WM_TOGGLEFULLSCREEN, 0, 0);					/**< å‘é€è‡ªå®šçš„åˆ‡æ¢æ¶ˆæ¯ */
 }
 
-void GLApplication::TerminateApplication()								/**< ½áÊø³ÌĞò */
+void GLApplication::TerminateApplication()								/**< ç»“æŸç¨‹åº */
 {
-	PostMessage(m_Window, WM_QUIT, 0, 0);								/**< ·¢ËÍÍË³öÏûÏ¢ */
-	m_IsProgramLooping = false;											/**< Í£Ö¹³ÌĞòÑ­»· */
+	PostMessage(m_Window, WM_QUIT, 0, 0);								/**< å‘é€é€€å‡ºæ¶ˆæ¯ */
+	m_IsProgramLooping = false;											/**< åœæ­¢ç¨‹åºå¾ªç¯ */
 }
 
-/** ÏûÏ¢Ñ­»· */
+/** æ¶ˆæ¯å¾ªç¯ */
 LRESULT GLApplication::Message(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	switch (uMsg)														/**< ´¦Àí²»Í¬µÄWindowsÏûÏ¢ */
+	switch (uMsg)														/**< å¤„ç†ä¸åŒçš„Windowsæ¶ˆæ¯ */
 	{
-		case WM_SYSCOMMAND:												/**< ½Ø»ñÏµÍ³ÃüÁî */
+		case WM_SYSCOMMAND:												/**< æˆªè·ç³»ç»Ÿå‘½ä»¤ */
 			switch (wParam)												
 			{
-				case SC_SCREENSAVE:										/**< ½Ø»ñÆÁÄ»±£»¤Æô¶¯ÃüÁî */
-				case SC_MONITORPOWER:									/**< ½Ø»ñÏÔÊ¾ÆäÊ¡µçÄ£Ê½Æô¶¯ÃüÁî */
-					return 0;											/**< ²»ÆôÓÃÕâÁ½¸öÃüÁî */
+				case SC_SCREENSAVE:										/**< æˆªè·å±å¹•ä¿æŠ¤å¯åŠ¨å‘½ä»¤ */
+				case SC_MONITORPOWER:									/**< æˆªè·æ˜¾ç¤ºå…¶çœç”µæ¨¡å¼å¯åŠ¨å‘½ä»¤ */
+					return 0;											/**< ä¸å¯ç”¨è¿™ä¸¤ä¸ªå‘½ä»¤ */
 				break;
 			}
-		break;															/**< ÍË³ö */
+		break;															/**< é€€å‡º */
 
-		case WM_CLOSE:													/**< ¹Ø±Õ´°¿Ú */
-			TerminateApplication();										/**< µ÷ÓÃTerminateApplicationº¯Êı */
+		case WM_CLOSE:													/**< å…³é—­çª—å£ */
+			TerminateApplication();										/**< è°ƒç”¨TerminateApplicationå‡½æ•° */
 			return 0;													
 		break;
 
 		case WM_EXITMENULOOP:
 		case WM_EXITSIZEMOVE:
-			m_LastTickCount = GetTickCount();							/**< ¸üĞÂ¼ÆÊıÆ÷µÄÖµ */
+			m_LastTickCount = GetTickCount();							/**< æ›´æ–°è®¡æ•°å™¨çš„å€¼ */
 			return 0;
 		break;
 
 		case WM_MOVE:
-			m_Window.SetPosX(LOWORD(lParam));							/**< ¸üĞÂÊó±êµÄ×ø±ê */
+			m_Window.SetPosX(LOWORD(lParam));							/**< æ›´æ–°é¼ æ ‡çš„åæ ‡ */
 			m_Window.SetPosY(HIWORD(lParam));							
 			return 0;
 		break;
 
 		case WM_PAINT:
-			if (m_ResizeDraw == true)									/**< Èç¹ûĞèÒªÖØ»æ */
+			if (m_ResizeDraw == true)									/**< å¦‚æœéœ€è¦é‡ç»˜ */
 			{
-				m_Window.ReshapeGL();									/**< ÖØĞÂÉèÖÃ´°¿ÚµÄ´óĞ¡ */
-				//myDisplay();													/**< ÖØĞÂ»æÖÆ */
+				m_Window.ReshapeGL();									/**< é‡æ–°è®¾ç½®çª—å£çš„å¤§å° */
+				//myDisplay();													/**< é‡æ–°ç»˜åˆ¶ */
 				//Draw();                
-				m_Window.SwapBuffers();									/**< ½»»»Ç°ºóÖ¡»º´æ */
+				m_Window.SwapBuffers();									/**< äº¤æ¢å‰åå¸§ç¼“å­˜ */
 			}
 		break;
 
-		case WM_SIZING:													/**< ´°¿ÚÕıÔÚ¸Ä±ä´óĞ¡ */
+		case WM_SIZING:													/**< çª—å£æ­£åœ¨æ”¹å˜å¤§å° */
 		{
 			RECT * rect = (RECT *)lParam;
-			m_Window.SetWidth(rect->right - rect->left);				/**< ÉèÖÃ´°¿Ú¿í¶È */
-			m_Window.SetHeight(rect->bottom - rect->top);				/**< ÉèÖÃ´°¿Ú¸ß¶È */
+			m_Window.SetWidth(rect->right - rect->left);				/**< è®¾ç½®çª—å£å®½åº¦ */
+			m_Window.SetHeight(rect->bottom - rect->top);				/**< è®¾ç½®çª—å£é«˜åº¦ */
 			return TRUE;
 		}
 		break;
 
-		case WM_SIZE:													/**< ´°¿Ú¸Ä±ä´óĞ¡ºó */
-			switch (wParam)												/**< ´¦Àí²»Í¬µÄ´°¿Ú×´Ì¬ */
+		case WM_SIZE:													/**< çª—å£æ”¹å˜å¤§å°å */
+			switch (wParam)												/**< å¤„ç†ä¸åŒçš„çª—å£çŠ¶æ€ */
 			{
-				case SIZE_MINIMIZED:									/**< ÊÇ·ñ×îĞ¡»¯? */
-					m_IsVisible = false;								/**< Èç¹ûÊÇ£¬ÔòÉèÖÃ²»¿É¼û */
+				case SIZE_MINIMIZED:									/**< æ˜¯å¦æœ€å°åŒ–? */
+					m_IsVisible = false;								/**< å¦‚æœæ˜¯ï¼Œåˆ™è®¾ç½®ä¸å¯è§ */
 					return 0;											
 				break;
 
-				case SIZE_MAXIMIZED:									/**< ´°¿ÚÊÇ·ñ×î´ó»¯? */
-				case SIZE_RESTORED:										/**< ´°¿Ú±»»¹Ô­? */
-					m_IsVisible = true;									/**< ÉèÖÃÎª¿É¼û */
-					m_Window.SetWidth(LOWORD(lParam));					/**< ÉèÖÃ´°¿Ú¿í¶È */
-					m_Window.SetHeight(HIWORD(lParam));					/**< ÉèÖÃ´°¿Ú¸ß¶È */
-					m_Window.ReshapeGL();								/**< ¸Ä±ä´°¿Ú´óĞ¡ */
-					m_LastTickCount = GetTickCount();					/**< ¸üĞÂ¼ÆÊıÆ÷µÄÖµ */
+				case SIZE_MAXIMIZED:									/**< çª—å£æ˜¯å¦æœ€å¤§åŒ–? */
+				case SIZE_RESTORED:										/**< çª—å£è¢«è¿˜åŸ? */
+					m_IsVisible = true;									/**< è®¾ç½®ä¸ºå¯è§ */
+					m_Window.SetWidth(LOWORD(lParam));					/**< è®¾ç½®çª—å£å®½åº¦ */
+					m_Window.SetHeight(HIWORD(lParam));					/**< è®¾ç½®çª—å£é«˜åº¦ */
+					m_Window.ReshapeGL();								/**< æ”¹å˜çª—å£å¤§å° */
+					m_LastTickCount = GetTickCount();					/**< æ›´æ–°è®¡æ•°å™¨çš„å€¼ */
 					return 0;											
 				break;
 			}
 		break;															
 
-		case WM_KEYDOWN:												/**< ¸üĞÂ°´¼üĞÅÏ¢ */
+		case WM_KEYDOWN:												/**< æ›´æ–°æŒ‰é”®ä¿¡æ¯ */
 			m_Keys.SetPressed(wParam);									
 			return 0;													
 		break;
 
-		case WM_KEYUP:													/**< ¸üĞÂÊÍ·Å¼üĞÅÏ¢ */
+		case WM_KEYUP:													/**< æ›´æ–°é‡Šæ”¾é”®ä¿¡æ¯ */
 			m_Keys.SetReleased(wParam);									
 			return 0;													
 		break;
 
-		case WM_TOGGLEFULLSCREEN:										/**< ÇĞ»» È«ÆÁ/´°¿ÚÄ£Ê½ */
+		case WM_TOGGLEFULLSCREEN:										/**< åˆ‡æ¢ å…¨å±/çª—å£æ¨¡å¼ */
 			m_CreateFullScreen = !m_CreateFullScreen;
 			PostMessage(hWnd, WM_QUIT, 0, 0);
 		break;
@@ -200,47 +200,47 @@ LRESULT GLApplication::Message(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 		break;
 	}
 
-	return DefWindowProc(hWnd, uMsg, wParam, lParam);					/**< µ÷ÓÃÄ¬ÈÏµÄ´°¿ÚÏûÏ¢´¦Àíº¯Êı */
+	return DefWindowProc(hWnd, uMsg, wParam, lParam);					/**< è°ƒç”¨é»˜è®¤çš„çª—å£æ¶ˆæ¯å¤„ç†å‡½æ•° */
 }
 
-/** ³ÌĞòµÄÖ÷Ñ­»· */
+/** ç¨‹åºçš„ä¸»å¾ªç¯ */
 int GLApplication::Main(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-	/// ×¢²áÒ»¸ö´°¿Ú
-	WNDCLASSEX windowClass;												/**< ´°¿ÚÀà */
-	ZeroMemory(&windowClass, sizeof(WNDCLASSEX));						/**< Çå¿Õ½á¹¹Îª0 */
-	windowClass.cbSize			= sizeof(WNDCLASSEX);					/**< ´°¿Ú½á¹¹µÄ´óĞ¡ */
-	windowClass.style			= CS_HREDRAW | CS_VREDRAW | CS_OWNDC;	/**< ÉèÖÃ´°¿ÚÀàĞÍÎª£¬ÒÆ¶¯Ê±ÖØ»­£¬²¢Îª´°¿ÚÈ¡µÃDC */
-	windowClass.lpfnWndProc		= (WNDPROC)(WindowProc);				/**< WndProc´¦ÀíÏûÏ¢ */
-	windowClass.hInstance		= hInstance;							/**< ÉèÖÃÊµÀı */
-	windowClass.hbrBackground	= (HBRUSH)(COLOR_APPWORKSPACE);			/**< ÉèÖÃ±³¾° */
-	windowClass.hCursor			= LoadCursor(NULL, IDC_ARROW);			/**< ÔØÈë¹â±ê */
-	windowClass.lpszClassName	= m_ClassName;							/**< ÉèÖÃÀàÃû */
-	if (RegisterClassEx(&windowClass) == 0)								/**< ³¢ÊÔ×¢²á´°¿ÚÀà */
+	/// æ³¨å†Œä¸€ä¸ªçª—å£
+	WNDCLASSEX windowClass;												/**< çª—å£ç±» */
+	ZeroMemory(&windowClass, sizeof(WNDCLASSEX));						/**< æ¸…ç©ºç»“æ„ä¸º0 */
+	windowClass.cbSize			= sizeof(WNDCLASSEX);					/**< çª—å£ç»“æ„çš„å¤§å° */
+	windowClass.style			= CS_HREDRAW | CS_VREDRAW | CS_OWNDC;	/**< è®¾ç½®çª—å£ç±»å‹ä¸ºï¼Œç§»åŠ¨æ—¶é‡ç”»ï¼Œå¹¶ä¸ºçª—å£å–å¾—DC */
+	windowClass.lpfnWndProc		= (WNDPROC)(WindowProc);				/**< WndProcå¤„ç†æ¶ˆæ¯ */
+	windowClass.hInstance		= hInstance;							/**< è®¾ç½®å®ä¾‹ */
+	windowClass.hbrBackground	= (HBRUSH)(COLOR_APPWORKSPACE);			/**< è®¾ç½®èƒŒæ™¯ */
+	windowClass.hCursor			= LoadCursor(NULL, IDC_ARROW);			/**< è½½å…¥å…‰æ ‡ */
+	windowClass.lpszClassName	= m_ClassName;							/**< è®¾ç½®ç±»å */
+	if (RegisterClassEx(&windowClass) == 0)								/**< å°è¯•æ³¨å†Œçª—å£ç±» */
 	{																	/**< NOTE: Failure, Should Never Happen */
-		MessageBox(HWND_DESKTOP, "×¢²á´°¿ÚÊ§°Ü!", "Error", MB_OK | MB_ICONEXCLAMATION);
-		return -1;														/**< ÍË³ö²¢·µ»ØFALSE */
+		MessageBox(HWND_DESKTOP, "æ³¨å†Œçª—å£å¤±è´¥!", "Error", MB_OK | MB_ICONEXCLAMATION);
+		return -1;														/**< é€€å‡ºå¹¶è¿”å›FALSE */
 	}
 #if 0
-	// Ñ¯ÎÊÊÇ·ñÔÚÈ«ÆÁ×´Ì¬ÏÂÔËĞĞ?
-	if (MessageBox(HWND_DESKTOP, "ÄãÏëÔÚÈ«ÆÁ×´Ì¬ÏÂÔËĞĞÃ´ ?", "ÉèÖÃÔËĞĞÄ£Ê½", MB_YESNO | MB_ICONQUESTION) == IDNO)
+	// è¯¢é—®æ˜¯å¦åœ¨å…¨å±çŠ¶æ€ä¸‹è¿è¡Œ?
+	if (MessageBox(HWND_DESKTOP, "ä½ æƒ³åœ¨å…¨å±çŠ¶æ€ä¸‹è¿è¡Œä¹ˆ ?", "è®¾ç½®è¿è¡Œæ¨¡å¼", MB_YESNO | MB_ICONQUESTION) == IDNO)
 	{
-		m_CreateFullScreen = false;										/**< m_CreateFullScreen¼ÇÂ¼µ±Ç°µÄÏÔÊ¾Ä£Ê½Îª´°¿Ú */
+		m_CreateFullScreen = false;										/**< m_CreateFullScreenè®°å½•å½“å‰çš„æ˜¾ç¤ºæ¨¡å¼ä¸ºçª—å£ */
 	}
 #endif
 	//m_CreateFullScreen = false;	
-	while (m_IsProgramLooping)											/**< Ñ­»·Ö±µ½WM_QUITÍË³ö³ÌĞò */
+	while (m_IsProgramLooping)											/**< å¾ªç¯ç›´åˆ°WM_QUITé€€å‡ºç¨‹åº */
 	{																	
-		/// ´´½¨Ò»¸ö´°¿Ú
+		/// åˆ›å»ºä¸€ä¸ªçª—å£
 		if (m_Window.Create("OMap", m_ClassName, m_CreateFullScreen, hInstance, this) == true)
 		{	
 			
-			/// Èç¹û³õÊ¼»¯Ê§°Ü£¬ÔòÍË³ö
-			if (Init() == false)									    /**< µ÷ÓÃ×Ô¶¨ÒåµÄ³õÊ¼»¯º¯Êı */
-			{															/**< Ê§°Ü */
-				TerminateApplication();									/**< ¹Ø±Õ´°¿ÚÍË³ö³ÌĞò */
+			/// å¦‚æœåˆå§‹åŒ–å¤±è´¥ï¼Œåˆ™é€€å‡º
+			if (Init() == false)									    /**< è°ƒç”¨è‡ªå®šä¹‰çš„åˆå§‹åŒ–å‡½æ•° */
+			{															/**< å¤±è´¥ */
+				TerminateApplication();									/**< å…³é—­çª—å£é€€å‡ºç¨‹åº */
 			}
-			else														/**< ³É¹¦¿ªÊ¼ÏûÏ¢Ñ­»· */
+			else														/**< æˆåŠŸå¼€å§‹æ¶ˆæ¯å¾ªç¯ */
 			{
 				Initial(); 	
 				/*oglx_init();
@@ -253,77 +253,77 @@ int GLApplication::Main(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCm
 					330,						// 33 millisecond interval 
 					(TIMERPROC) NULL);		// timer callback 
 
-				MSG msg;												/**< WindowÏûÏ¢½á¹¹ */ 
-				bool isMessagePumpActive = true;						/**< µ±ÏûÏ¢²»Îª¿ÕÊ±£¬´¦ÀíÏûÏ¢Ñ­»· */
-				m_LastTickCount = GetTickCount();						/**< ·µ»Øµ±Ç°µÄ¼ÆÊ±Æ÷µÄÖµ */
-				m_Keys.Clear();											/**< Çå¿ÕËùÓĞµÄ°´¼üĞÅÏ¢ */
-				while (isMessagePumpActive == true)						/**< µ±ÏûÏ¢²»Îª¿ÕÊ±£¬´¦ÀíÏûÏ¢Ñ­»· */
-				{														/**< ³É¹¦´´½¨´°¿Ú£¬¼ì²â´°¿ÚÏûÏ¢ */
+				MSG msg;												/**< Windowæ¶ˆæ¯ç»“æ„ */ 
+				bool isMessagePumpActive = true;						/**< å½“æ¶ˆæ¯ä¸ä¸ºç©ºæ—¶ï¼Œå¤„ç†æ¶ˆæ¯å¾ªç¯ */
+				m_LastTickCount = GetTickCount();						/**< è¿”å›å½“å‰çš„è®¡æ—¶å™¨çš„å€¼ */
+				m_Keys.Clear();											/**< æ¸…ç©ºæ‰€æœ‰çš„æŒ‰é”®ä¿¡æ¯ */
+				while (isMessagePumpActive == true)						/**< å½“æ¶ˆæ¯ä¸ä¸ºç©ºæ—¶ï¼Œå¤„ç†æ¶ˆæ¯å¾ªç¯ */
+				{														/**< æˆåŠŸåˆ›å»ºçª—å£ï¼Œæ£€æµ‹çª—å£æ¶ˆæ¯ */
 					if (PeekMessage(&msg, m_Window, 0, 0, PM_REMOVE) != 0)
 					{													
-						/// ¼ì²âÊÇ·ñÎªWM_QUITÏûÏ¢
+						/// æ£€æµ‹æ˜¯å¦ä¸ºWM_QUITæ¶ˆæ¯
 						if (msg.message != WM_QUIT)						
 						{
-							DispatchMessage(&msg);						/**< Èç¹û²»ÊÇWM_QUIT, ·¢ËÍÏûÏ¢µ½ÏûÏ¢»Øµ÷º¯ÊıÖĞ´¦Àí */
+							DispatchMessage(&msg);						/**< å¦‚æœä¸æ˜¯WM_QUIT, å‘é€æ¶ˆæ¯åˆ°æ¶ˆæ¯å›è°ƒå‡½æ•°ä¸­å¤„ç† */
 						}
 						else											
 						{
-							isMessagePumpActive = false;				/**< Èç¹ûÊÇ£¬ÔòÍË³ö */
+							isMessagePumpActive = false;				/**< å¦‚æœæ˜¯ï¼Œåˆ™é€€å‡º */
 						}
 					}
-					/// Èç¹ûÃ»ÓĞÏûÏ¢
+					/// å¦‚æœæ²¡æœ‰æ¶ˆæ¯
 					else												
 					{
-						if (m_IsVisible == false)						/**< Èç¹û´°¿Ú²»¿É¼û */
+						if (m_IsVisible == false)						/**< å¦‚æœçª—å£ä¸å¯è§ */
 						{
-							WaitMessage();								/**< ÔİÍ£³ÌĞò£¬µÈ´ıÏûÏ¢ */
+							WaitMessage();								/**< æš‚åœç¨‹åºï¼Œç­‰å¾…æ¶ˆæ¯ */
 						}
-						else											/**< Èç¹û´°¿Ú¿É¼û */
-						{												/**< Ö´ĞĞÏûÏ¢Ñ­»· */
-							DWORD tickCount = GetTickCount();			/**< ·µ»Ø¼ÆÊ±Æ÷µÄµ±Ç°Öµ */
+						else											/**< å¦‚æœçª—å£å¯è§ */
+						{												/**< æ‰§è¡Œæ¶ˆæ¯å¾ªç¯ */
+							DWORD tickCount = GetTickCount();			/**< è¿”å›è®¡æ—¶å™¨çš„å½“å‰å€¼ */
 							
-							Update(tickCount - m_LastTickCount);		/**< µ÷ÓÃÓÃ»§×Ô¶¨ÒåµÄ¸üĞÂº¯Êı */
-							m_LastTickCount = tickCount;				/**< ÖØĞÂÉèÖÃÉÏÒ»´Î£¬¼ÆÊıÆ÷µÄÖµ */						
+							Update(tickCount - m_LastTickCount);		/**< è°ƒç”¨ç”¨æˆ·è‡ªå®šä¹‰çš„æ›´æ–°å‡½æ•° */
+							m_LastTickCount = tickCount;				/**< é‡æ–°è®¾ç½®ä¸Šä¸€æ¬¡ï¼Œè®¡æ•°å™¨çš„å€¼ */						
 							//float t1 = GetTickCount() * 0.001f;
 							//myDisplay();
-							Display2d();									/**< µ÷ÓÃÓÃ»§×Ô¶¨ÒåµÄ»æÖÆº¯Êı */
+							Display2d();									/**< è°ƒç”¨ç”¨æˆ·è‡ªå®šä¹‰çš„ç»˜åˆ¶å‡½æ•° */
 							//DisplayTest();
 							//drawText();
                             Draw();
 							renderFontArray();
 							//draw_scene();
 							//static int count=0;
-							//static float tpfArray[30];		/**< ÓÃÓÚ¼ÆËãÖ¡ÂÊµÄÊı×é */
+							//static float tpfArray[30];		/**< ç”¨äºè®¡ç®—å¸§ç‡çš„æ•°ç»„ */
 							//float t2 = GetTickCount() * 0.001f;
 							//count %= 30;
 							//tpfArray[count] = t2 - t1;
 							//count++;
-							//float sum = 0.0f;				/**< ÓÃÓÚ¼ÆËãÆ½¾ùÖ¡ÂÊµÄ±äÁ¿ */
+							//float sum = 0.0f;				/**< ç”¨äºè®¡ç®—å¹³å‡å¸§ç‡çš„å˜é‡ */
 							//int j = 0;
 							//for (j = 0; j < 30; j++) {
 							//	sum += tpfArray[j];
 							//}
 							//float frameRate = 30 / sum;
 							//std::cout << "frameRate1 = " << frameRate << std::endl;
-							//drawFontE(300,300,"ÄãºÃ");
+							//drawFontE(300,300,"ä½ å¥½");
                             
-							m_Window.SwapBuffers();/**< ½»»»Ç°ºóÖ¡»º´æ */
+							m_Window.SwapBuffers();/**< äº¤æ¢å‰åå¸§ç¼“å­˜ */
 							
 						}
 					}
-				}														/**< Èç¹ûisMessagePumpActive == true£¬ÔòÑ­»· */
+				}														/**< å¦‚æœisMessagePumpActive == trueï¼Œåˆ™å¾ªç¯ */
 			}															
-																		/**< ³ÌĞò½áÊø */
-			Uninit();													/**< ÓÃ»§×Ô¶¨ÒåµÄĞ¶ÔØº¯Êı */
-			m_Window.Destroy();											/**< É¾³ı´°¿Ú */
+																		/**< ç¨‹åºç»“æŸ */
+			Uninit();													/**< ç”¨æˆ·è‡ªå®šä¹‰çš„å¸è½½å‡½æ•° */
+			m_Window.Destroy();											/**< åˆ é™¤çª—å£ */
 		}
-		else															/**< Èç¹û´´½¨´°¿ÚÊ§°Ü */
+		else															/**< å¦‚æœåˆ›å»ºçª—å£å¤±è´¥ */
 		{																
-			MessageBox(HWND_DESKTOP, "´´½¨OpenGL´°¿Ú´íÎó", "Error", MB_OK | MB_ICONEXCLAMATION);
-			m_IsProgramLooping = false;									/**< Í£Ö¹³ÌĞòÑ­»· */
+			MessageBox(HWND_DESKTOP, "åˆ›å»ºOpenGLçª—å£é”™è¯¯", "Error", MB_OK | MB_ICONEXCLAMATION);
+			m_IsProgramLooping = false;									/**< åœæ­¢ç¨‹åºå¾ªç¯ */
 		}
 	}																	
 
-	UnregisterClass(m_ClassName, hInstance);							/**< È¡Ïû×¢²áµÄ´°¿Ú */
+	UnregisterClass(m_ClassName, hInstance);							/**< å–æ¶ˆæ³¨å†Œçš„çª—å£ */
 	return 0;
 }

@@ -249,14 +249,6 @@ int OMap::initialMap(string json_path)
         string type = layer["layer-type"].asString();
         if (type.compare("vector-tile") == 0) {
             string path = layer["path"].asString();
-            // 检测path是否在airport文件夹下syj
-            bool isAirportPath = (path.find("airport") != string::npos);
-            if (isAirportPath) {
-                // 设置全局标志，表示当前为airport模式
-                extern bool g_isAirportMode;
-                g_isAirportMode = true;
-            }
-
             CVectorTileLayer* vtLayer = new CVectorTileLayer(path);
             vtLayer->setLayerName(layer["layer-name"].asString());
             string geo_type = layer["geometry-type"].asString();
@@ -330,8 +322,8 @@ int OMap::isSameTiles(vector<Vec3i> nearTiles,vector<Vec3i> lastNearTiles){
 int OMap::getBuffer() {
     isViewChanged = false;
     OM3DScheduler* scheduler = getOrCreate3DScheduler();
-    BufferManager* manager = getOrCreate2ndBufferManager();
-    BufferManager* managerF = getOrCreateBufferManager();
+    //BufferManager* manager = getOrCreate2ndBufferManager();
+    BufferManager* manager = getOrCreateBufferManager();
     vector<Vec3i> highTiles,lowTiles,nearTiles;
     
     OMScheduler* scheduler2d = getOrCreateScheduler();
@@ -393,8 +385,9 @@ int OMap::getBuffer() {
             }
         }
         isBreak = 0;
-        isDoubleBufferLoaded = true;
+        isDoubleBufferLoaded = false;
         cout<<"get buffer stage 1"<<endl;
+        return 0;
         while (isDoubleBufferLoaded);     
     }
 #if 0
@@ -668,10 +661,13 @@ int OMap::getData(int level)
 void OMap::setDislpay(int mode)
 {
     _display = mode;
-    if (_display == 3 || _display ==4) {
-        turnOffLayer(6);
-        turnOffLayer(2);
-        turnOffLayer(7);
+    if (_display == 3) {
+        turnOffLayer(1);
+        turnOffLayer(4);
+        turnOffLayer(5);
+        turnOffLayer(9);
+        turnOffLayer(10);
+        turnOffLayer(11);
         //��
         /*turnOffLayer(2);
         turnOffLayer(6);

@@ -27,9 +27,6 @@ using namespace std;
 #include FT_FREETYPE_H
 #include FT_BITMAP_H
 #include FT_OUTLINE_H
-
-// 全局变量声明
-extern bool g_isAirportMode;
       
 namespace textRender {
   class CFont

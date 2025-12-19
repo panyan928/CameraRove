@@ -143,6 +143,7 @@
     <ClInclude Include="oglx\src\mth\mth.h" />
     <ClInclude Include="oglx\src\sgl\sgl_private.h" />
     <ClInclude Include="oglx\src\sgl\sgl_shaders.h" />
+    <ClInclude Include="src\memory_monitor.h" />
     <ClInclude Include="src\OpenGLEngine\copenglcoordinatesengine.h" />
     <ClInclude Include="src\OpenGLEngine\glstateengine.h" />
     <ClInclude Include="src\OpenGLEngine\InputVString1.h" />
@@ -158,6 +159,8 @@
     <ClInclude Include="src\TMap\CVectorTileLayer.h" />
     <ClInclude Include="src\TMap\JSONLayer.h" />
     <ClInclude Include="src\TMap\OMap.h" />
+    <ClInclude Include="src\TMap\TileDatReader.h" />
+    <ClInclude Include="src\TMap\VectorDatReader.h" />
     <ClInclude Include="src\TMDataBuffer\buffermanager.h" />
     <ClInclude Include="src\TMDataBuffer\ccache.h" />
     <ClInclude Include="src\TMDataBuffer\LRUCache.h" />
@@ -347,6 +350,7 @@
     <ClCompile Include="src\GLWindow.cpp" />
     <ClCompile Include="src\jsoncpp.cpp" />
     <ClCompile Include="src\mapDrv.cpp" />
+    <ClCompile Include="src\memory_monitor.cpp" />
     <ClCompile Include="src\OpenGLEngine\glstateengine.cpp" />
     <ClCompile Include="src\OpenGLEngine\InputVString1.cpp" />
     <ClCompile Include="src\OpenGLEngine\openglcoordinatesengine.cpp" />
@@ -363,6 +367,8 @@
     <ClCompile Include="src\TMap\CVectorTileLayer.cpp" />
     <ClCompile Include="src\TMap\JSONLayer.cpp" />
     <ClCompile Include="src\TMap\OMap.cpp" />
+    <ClCompile Include="src\TMap\TileDatReader.cpp" />
+    <ClCompile Include="src\TMap\VectorDatReader.cpp" />
     <ClCompile Include="src\TMDataBuffer\buffermanager.cpp" />
     <ClCompile Include="src\TMDataBuffer\ccache.cpp" />
     <ClCompile Include="src\TMDataBuffer\LRUCache.cpp" />

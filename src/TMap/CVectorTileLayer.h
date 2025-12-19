@@ -9,44 +9,107 @@
 //#include "GL/glut.h"
 #include "../TMUtil/OMGeoUtil.h"
 //#include <mutex>
+#include <unordered_map>
+#include <deque>
+#include <unordered_set>
 
+#include "VectorDatReader.h"
 class CVectorTileLayer : public CTileLayer
 {
 public:
     CVectorTileLayer();
-    CVectorTileLayer(string path) : _path(path) {};
+    CVectorTileLayer(string path);
     virtual ~CVectorTileLayer();
     void setAnnotation(int anno, string label);
     int getAnnotation();
-    int draw(Recti bounds, int zoom);
+	int draw(Recti bounds, int zoom);
     int draw(Recti bounds, int zoom, BufferManager* manager);
     int draw(vector<Vec3i> tiles, int zoom, BufferManager* manager, int crowdLevel);
     int addBuffer(vector<Vec3i> tiles, int zoom, BufferManager* manager);
     int addBufferTIN(vector<Vec3i> tiles, int zoom, BufferManager* manager){ return 0; }
     int drawTIN(vector<Vec3i> tiles, int zoom, BufferManager* manager) { return 0; }
-    int drawMultiThreads(void* para);
-    int getData(vector<Vec3i>& tiles, int zoom, BufferManager* manager);
+    virtual int drawMultiThreads(void* para) override { return 0; }
+    int getData(vector<Vec3i>& tiles, int zoom, BufferManager* manager) { return 0; }
     
 
 
 private:
+    //Flong新增dat定义
+    enum VectorTileDataType : uint8_t {
+        VECTOR_TYPE_PBF = 0,
+        VECTOR_TYPE_VERTICE = 1,
+        VECTOR_TYPE_STOP = 2,
+        VECTOR_TYPE_ANNO = 3
+    };
+
     string _path;
     int _anno = 0;
     string _label;
+    float _opacity = 1.0f; // 图层透明度 (0.0-1.0)
     //mutex _drawMutex;
+    bool _useDatFile = false;
+    VectorDatReader* _vectorDatReader = nullptr;
+    string _datFilePath;
 
     int drawPolygon(int zoom, int col, int row, BufferManager* manager, int draw);
     int drawPolyline(int zoom, int col, int row, BufferManager* manager, int draw);
     int drawPoint(int zoom, int col, int row, BufferManager* manager, int draw);
     int drawAnnotation(int zoom, int col, int row, BufferManager* manager, int draw);
 
-    int addPolygonBuffer(int zoom, int col, int row, BufferManager* manager,sqlite3* db);
-    int addPolylineBuffer(int zoom, int col, int row, BufferManager* manager,sqlite3* db);
-    int addPointBuffer(int zoom, int col, int row, BufferManager* manager,sqlite3* db);
-    int addAnnotationBuffer(int zoom, int col, int row, BufferManager* manager,sqlite3* db);
+    int addPolygonBuffer(int zoom, int col, int row, BufferManager* manager);
+    int addPolylineBuffer(int zoom, int col, int row, BufferManager* manager);
+    int addPointBuffer(int zoom, int col, int row, BufferManager* manager);
+    int addAnnotationBuffer(int zoom, int col, int row, BufferManager* manager);
     bool isDashArrayValid(vector<float>& dash);
+    bool loadVerticesFromDat(int zoom, int col, int row, float*& pts, int& size);
+    bool loadStopsFromDat(int zoom, int col, int row, int*& stops, int& pointsCount, int& stopsCount);
+    bool loadAnnoFromDat(int zoom, int col, int row, std::string& text);
+    void initDatReader();
 
-    DataUnit* getDataUnit(TMBuffer* buffer, DataType type); 
+
+    // 根据瓦片计算dat文件中的坐标（尝试原始/翻转row）
+    bool resolveDatCoords(int zoom, int col, int row, uint8_t type, int& datX, int& datY);
+
+    int normalizeColumn(int col, int zoom) const;
+
+    void logDatStatus(const std::string& stage, int zoom, int col, int row, int datX, int datY, bool hasData) const;
+
+
+    // 记录当前zoom，用于检测zoom变化时清除坐标缓存
+    int _currentZoom = -1;
+
+    std::deque<Vec3i> _pendingTiles;
+    std::unordered_set<uint64_t> _pendingTileSet;
+    int _maxTilesPerFrame = 200;
+
+    uint64_t makeTileKey(int zoom, int col, int row) const;
+
+    // 坐标解析结果缓存，避免重复调用 hasTileData
+    struct CoordCacheKey {
+        int zoom;
+        int col;
+        int row;
+        uint8_t type;
+        bool operator==(const CoordCacheKey& other) const {
+            return zoom == other.zoom && col == other.col && row == other.row && type == other.type;
+        }
+    };
+    struct CoordCacheKeyHash {
+        size_t operator()(const CoordCacheKey& key) const {
+            return (static_cast<size_t>(key.zoom) << 24) ^
+                (static_cast<size_t>(key.col) << 16) ^
+                (static_cast<size_t>(key.row) << 8) ^
+                static_cast<size_t>(key.type);
+        }
+    };
+    struct CoordCacheValue {
+        int datX;
+        int datY;
+        bool found;
+    };
+    std::unordered_map<CoordCacheKey, CoordCacheValue, CoordCacheKeyHash> _coordCache;
+    static const size_t MAX_COORD_CACHE_SIZE = 1000; // 限制缓存大小
+
 };
 
 #endif

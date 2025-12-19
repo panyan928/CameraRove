@@ -1,17 +1,34 @@
-#include <sstream>
-#include <iomanip>
 #include "CVectorTileLayer.h"
-#include "sqlite/sqlite3.h"
+//#include "sqlite/sqlite3.h"
+#include <sstream>
+#include <algorithm>
+#include <cctype>
+#include <cstdio>  // 用于 snprintf
+#include <iostream>
+//#include "memory_monitor.h"
+#include <cmath>   // 用于 ceil, sqrt
 
 CVectorTileLayer::CVectorTileLayer()
 {
-
+	_path = "";
+	_useDatFile = false;
+	_vectorDatReader = nullptr;
 }
 
+CVectorTileLayer::CVectorTileLayer(string path)
+{
+	_path = path;
+	_useDatFile = false;
+	_vectorDatReader = nullptr;
+	initDatReader();
+}
 
 CVectorTileLayer::~CVectorTileLayer()
 {
-
+	if (_vectorDatReader) {
+		delete _vectorDatReader;
+		_vectorDatReader = nullptr;
+	}
 }
 
 void CVectorTileLayer::setAnnotation(int anno, string label)
@@ -224,47 +241,7 @@ int CVectorTileLayer::draw(vector<Vec3i> tiles, int zoom, BufferManager* manager
 		int zoom = tiles[k][0];
 		int i = tiles[k][1];
 		int j = tiles[k][2];
-		
-		if (geometryType().compare("polygon") == 0) {
-			drawPolygon(zoom, i, j, manager, 1);
-		}
-		if (geometryType().compare("polyline") == 0) {
-			drawPolyline(zoom, i, j, manager, 1);
-		}
-		if (geometryType().compare("point") == 0) {
-			//drawPoint(zoom, i, j, manager);
-			if (_anno) {
-				drawAnnotation(zoom, i, j, manager, crowdLevel); //_anno 1-6 crowdLevelֵԽ����ʾ��_annoԽ��
-			}
-			else
-				drawPoint(zoom, i, j, manager, 1);
-		}
-	}
-	//clock_t end = clock();
 
-	//cout << layerName() << " " << end - begin << endl;
-	//cout << allCount << " " << count << endl;
-	return 0;
-}
-
-int CVectorTileLayer::drawMultiThreads(void* para)//
-{
-	drawParameter* data = static_cast<drawParameter*>(para);
-	vector<Vec3i> tiles = data->tiles;
-	BufferManager* manager = data->manager;
-
-	count = 0;
-
-	allCount = 0;
-
-	float r=0.0, g=0.0, b=0.0;
-	CStyle* style = getOrCreateStyle();
-	int len = tiles.size();
-	for (int k = 0; k < len; k++) {
-		allCount++;
-		int zoom = tiles[k][0];
-		int i = tiles[k][1];
-		int j = tiles[k][2];
 		if (geometryType().compare("polygon") == 0) {
 			drawPolygon(zoom, i, j, manager, 1);
 		}
@@ -290,110 +267,171 @@ int CVectorTileLayer::addBuffer(vector<Vec3i> tiles, int zoom, BufferManager* ma
 		return -1;
 	if (zoom < 0)
 		return -1;
-	/*sqlite3* pDataBase = NULL;
-	int iRet = sqlite3_open(this->_path.c_str(), &pDataBase);
-	if (iRet)
+	if (!_useDatFile || !_vectorDatReader) {
+		//std::cout << "[VectorTileLayer] addBuffer DAT unavailable layer=" << layerName()
+		//	<< " path=" << _path << std::endl;
+		return -1;
+	}
+
+	// 直接从 _indexMap 读取，无需窗口机制
+// 如果zoom变化，清除坐标缓存
+	if (!tiles.empty() && _vectorDatReader)
 	{
-		cout << "open db failed:" << sqlite3_errmsg(pDataBase) << endl;
-	}*/
-	int len = tiles.size();
-	for (int k = 0; k < len; k++) {
-		int zoom = tiles[k][0];
-		int col = tiles[k][1];
-		int row = tiles[k][2];
-        ostringstream ost_temp;//ost_temp.str("");
-		ost_temp << (zoom) << "." << (row) << "." << ((col % (int)pow(2, zoom)));
-		string tileIndex = ost_temp.str();
-		//string tileIndex = to_string(zoom) + "." + to_string(row) + "." + to_string((col % (int)pow(2, zoom)));
-		string level2Index = tileIndex + "." + layerName();
-		if (geometryType().compare("polygon") == 0) {
-			addPolygonBuffer(zoom, col, row, manager,NULL);
+		Vec3i centerTile = tiles[tiles.size() / 2];
+		int centerZoom = centerTile[0];
+
+		// 检查zoom是否变化，如果变化则清除坐标缓存
+		if (_currentZoom >= 0 && centerZoom != _currentZoom) {
+			_coordCache.clear();
 		}
-		if (geometryType().compare("polyline") == 0) {
-			addPolylineBuffer(zoom, col, row, manager, NULL);
+		_currentZoom = centerZoom;
+	}
+
+	// 预获取常用值，避免重复调用
+	string layerNameStr = layerName();
+	string geometryTypeStr = geometryType();
+
+	// 将新的瓦片加入待处理队列，按离中心的距离排序
+	if (!tiles.empty())
+	{
+		Vec3i center = tiles[tiles.size() / 2];
+		int centerNormCol = normalizeColumn(center[1], center[0]);
+		std::vector<std::pair<double, Vec3i>> sorted;
+		sorted.reserve(tiles.size());
+		for (auto tile : tiles)
+		{
+			int tileZoom = tile[0];
+			if (tileZoom < visibleZoom[0] || tileZoom > visibleZoom[1] || tileZoom < 0)
+			{
+				continue;
+			}
+			int normCol = normalizeColumn(tile[1], tileZoom);
+			uint64_t key = makeTileKey(tileZoom, normCol, tile[2]);
+			if (_pendingTileSet.count(key))
+			{
+				continue;
+			}
+			double dx = static_cast<double>(normCol - centerNormCol);
+			double dy = static_cast<double>(tile[2] - center[2]);
+			double dist = std::sqrt(dx * dx + dy * dy);
+			sorted.emplace_back(dist, Vec3i(tileZoom, tile[1], tile[2]));
+			_pendingTileSet.insert(key);
 		}
-		if (geometryType().compare("point") == 0) {
+		std::sort(sorted.begin(), sorted.end(),
+			[](const std::pair<double, Vec3i>& a, const std::pair<double, Vec3i>& b) { return a.first < b.first; });
+		for (const auto& entry : sorted)
+		{
+			_pendingTiles.push_back(entry.second);
+		}
+	}
+
+	std::vector<Vec3i> workTiles;
+	int budget = _maxTilesPerFrame;
+	while (budget > 0 && !_pendingTiles.empty())
+	{
+		Vec3i job = _pendingTiles.front();
+		_pendingTiles.pop_front();
+		int normCol = normalizeColumn(job[1], job[0]);
+		_pendingTileSet.erase(makeTileKey(job[0], normCol, job[2]));
+		workTiles.push_back(job);
+		budget--;
+	}
+
+	if (workTiles.empty())
+	{
+		return 0;
+	}
+
+	char tileIndexBuf[64];
+	for (auto job : tiles)
+	{
+		int normalizedCol = normalizeColumn(job[1], job[0]);
+		snprintf(tileIndexBuf, sizeof(tileIndexBuf), "%d.%d.%d", job[0], job[2], normalizedCol);
+		string tileIndex(tileIndexBuf);
+		string level2Index = tileIndex + "." + layerNameStr;
+
+		if (manager->getFrom2LevelBuffer(level2Index))
+		{
+			continue;
+		}
+
+		if (_useDatFile && _vectorDatReader)
+		{
+			bool hasData = false;
+			int datX = 0, datY = 0;
+			if (geometryTypeStr.compare("polygon") == 0 || geometryTypeStr.compare("polyline") == 0 || (!geometryTypeStr.compare("point") && !_anno))
+			{
+				hasData = resolveDatCoords(job[0], normalizedCol, job[2], VECTOR_TYPE_VERTICE, datX, datY);
+			}
+			else if (geometryTypeStr.compare("point") == 0 && _anno)
+			{
+				int datXVert = 0, datYVert = 0;
+				int datXAnno = 0, datYAnno = 0;
+				bool hasVert = resolveDatCoords(job[0], normalizedCol, job[2], VECTOR_TYPE_VERTICE, datXVert, datYVert);
+				bool hasAnno = resolveDatCoords(job[0], normalizedCol, job[2], VECTOR_TYPE_ANNO, datXAnno, datYAnno);
+				hasData = hasVert || hasAnno;
+			}
+			if (!hasData)
+			{
+				continue;
+			}
+		}
+
+		if (geometryTypeStr.compare("polygon") == 0) {
+			addPolygonBuffer(job[0], job[1], job[2], manager);
+		}
+		else if (geometryTypeStr.compare("polyline") == 0) {
+			addPolylineBuffer(job[0], job[1], job[2], manager);
+		}
+		else if (geometryTypeStr.compare("point") == 0) {
 			if (_anno) {
-				addAnnotationBuffer(zoom, col, row, manager, NULL);
+				addAnnotationBuffer(job[0], job[1], job[2], manager);
 			}
 			else {
-				addPointBuffer(zoom, col, row, manager, NULL);
+				addPointBuffer(job[0], job[1], job[2], manager);
 			}
-
 		}
 	}
-	/*iRet = sqlite3_close(pDataBase);
-	if (0 == iRet)
-	{
-		cout << "close db successfully" << endl;
-	}*/
+
 	return 0;
-}
-
-int CVectorTileLayer::getData(vector<Vec3i>& tiles, int zoom, BufferManager* manager)
-{
-	Vec2i visibleZoom = this->zoom();
-	if (zoom < visibleZoom[0] || zoom > visibleZoom[1])
-		return -1;
-	_amount = 0;
-
-	count = 0;
-
-	allCount = 0;
-
-	pierce = 0;
-	int len = tiles.size();
-	for (int k = 0; k < len; k++) {
-
-		int zoom = tiles[k][0];
-		int i = tiles[k][1];
-		int j = tiles[k][2];
-
-		if (geometryType().compare("polygon") == 0) {
-			drawPolygon(zoom, i, j, manager, 0);
-		}
-		if (geometryType().compare("polyline") == 0) {
-			drawPolyline(zoom, i, j, manager, 0);
-		}
-		if (geometryType().compare("point") == 0) {
-			//drawPoint(zoom, i, j, manager);
-			if (_anno)
-				drawAnnotation(zoom, i, j, manager, 0);
-			else
-				drawPoint(zoom, i, j, manager, 0);
-		}
-	}
-
-	//cout << allCount << " " << count << endl;
-	return _amount;
 }
 
 int CVectorTileLayer::drawPolygon(int zoom, int col, int row, BufferManager* manager, int draw)
 {
 	//clock_t t1, t2;
-	/***************ͼ��������?*********************/
-	//t1 = clock();
+/***************?????????????*********************/
+//t1 = clock();
 	CStyle* style = getOrCreateStyle();
-	float r=0.0, g=0.0, b=0.0;
-    if (style->fill(0)==0x00)
+	float r = 0.0, g = 0.0, b = 0.0;
+	if (style->fill(0) == 0x00)
 	{
 		int q = 0;
 	}
 	style->fill(0)->getColor()->colorRGB(r, g, b);
-	Color color(255 * r, 255 * g, 255 * b, 255);
+	// 根据图层透明度和样式透明度计算最终透明度
+	float styleOpacity = style->fill(0)->getColor()->opacity();
+	float finalOpacity = styleOpacity * _opacity;
+	int alpha = (int)(255 * finalOpacity);
+	Color color(255 * r, 255 * g, 255 * b, alpha);
 
-    // ����???��������??-->��������-->����˳���������?
-    //string tileIndex = to_string(zoom) + "." + to_string(row) + "." + to_string((col % (int)pow(2, zoom)));
-    ostringstream ost_temp;//ost_temp.str("");
-	ost_temp << (zoom) << "." << (row) << "." << ((col % (int)pow(2, zoom)));
-	string tileIndex = ost_temp.str();
+	int normalizedCol = normalizeColumn(col, zoom);
+	char tileIndexBuf[64];
+	snprintf(tileIndexBuf, sizeof(tileIndexBuf), "%d.%d.%d", zoom, row, normalizedCol);
+	string tileIndex(tileIndexBuf);
 	string level2Index = tileIndex + "." + layerName();
 	TMBuffer* mBuffer = manager->getFrom2LevelBuffer(level2Index);
-	Vertices* vertices = 0x00;
-	if (mBuffer) {
-		vertices = mBuffer->vData();
-		count++;
+	if (!mBuffer) {
+		return -1;
 	}
+	Vertices* vertices = 0x00;
+	vertices = mBuffer->vData();
+	if (!vertices) {
+		//std::cout << "[VectorTileLayer] drawPolygon vertices missing layer=" << layerName()
+		//	<< " z=" << zoom << " col=" << col << " row=" << row << std::endl;
+		pierce++;
+		return -1;
+	}
+	count++;
 	//else {
 	//	string dataIndex = level2Index + ".vertice";
 	//	string path = _path + tileIndex + ".vertice";
@@ -411,31 +449,36 @@ int CVectorTileLayer::drawPolygon(int zoom, int col, int row, BufferManager* man
 	//}
 	int state = -1;
 	if (vertices) {
-		int size_render = vertices->size();
+		int size_render = vertices->size(); // 顶点数量
+		if (size_render <= 0) {
+			return -1;
+		}
 		_amount += size_render;
 		float* pts_render = static_cast<float*>(vertices->data());
-		if (draw){
-            int upLimitLen = 65500;	//???????????????????
-    	    int times=0;//???????????
-            if(size_render % upLimitLen)
-        		times=size_render / upLimitLen + 1;
-        	else
-        		times = size_render / upLimitLen ;
-            int trueLen=0;//??��???????????
-            for (int i = 0; i < times; i++) {
-        		if (i == times - 1) {
-        			if(size_render % upLimitLen)
-        				trueLen = size_render % upLimitLen;
-        			else
-        				trueLen = upLimitLen;
-        		}
-        		else {
-        			trueLen = upLimitLen;
-        		}
-                state = openglEngine::OpenGLRenderEngine::drawTriangles<float>(&pts_render[upLimitLen*i], color, trueLen);
-        	}
-            
-        }
+		if (pts_render && draw) {
+			const int floatsPerVertex = 3;
+			const size_t totalFloatCount = static_cast<size_t>(size_render) * floatsPerVertex;
+			int upLimitLen = 65500;	// OpenGL 单次绘制的最大顶点数
+			int times = (size_render % upLimitLen) ? (size_render / upLimitLen + 1) : (size_render / upLimitLen);
+			for (int i = 0; i < times; i++) {
+				int startVertex = upLimitLen * i;
+				if (startVertex >= size_render) {
+					break;
+				}
+				int trueLen = (i == times - 1 && (size_render % upLimitLen)) ? (size_render % upLimitLen) : upLimitLen;
+				if (startVertex + trueLen > size_render) {
+					trueLen = size_render - startVertex;
+				}
+				if (trueLen <= 0) {
+					break;
+				}
+				size_t startFloatIndex = static_cast<size_t>(startVertex) * floatsPerVertex;
+				if (startFloatIndex >= totalFloatCount) {
+					break;
+				}
+				state = openglEngine::OpenGLRenderEngine::drawTriangles<float>(&pts_render[startFloatIndex], color, trueLen);
+			}
+		}
 	}
 	return state;
 }
@@ -443,20 +486,28 @@ int CVectorTileLayer::drawPolygon(int zoom, int col, int row, BufferManager* man
 int CVectorTileLayer::drawPolyline(int zoom, int col, int row, BufferManager* manager, int draw)
 {
 	CStyle* style = getOrCreateStyle();
-	float r=0.0, g=0.0, b=0.0;
-	//string tileIndex = to_string(zoom) + "." + to_string(row) + "." + to_string((col % (int)pow(2, zoom)));
-    ostringstream ost_temp;//ost_temp.str("");
-    ost_temp << (zoom) << "." << (row) << "." << ((col % (int)pow(2, zoom)));
-	string tileIndex = ost_temp.str();
+	float r = 0.0, g = 0.0, b = 0.0;
+	int normalizedCol = normalizeColumn(col, zoom);
+	char tileIndexBuf[64];
+	snprintf(tileIndexBuf, sizeof(tileIndexBuf), "%d.%d.%d", zoom, row, normalizedCol);
+	string tileIndex(tileIndexBuf);
 	string level2Index = tileIndex + "." + layerName();
 	TMBuffer* mBuffer = manager->getFrom2LevelBuffer(level2Index);
+	if (!mBuffer) {
+		return -1;
+	}
 	Vertices* vertices = 0x00;
 	Stop* stops = 0x00;
-	if (mBuffer) {
-		vertices = mBuffer->vData();
-		stops = mBuffer->sData();
-		count++;
+	vertices = mBuffer->vData();
+	stops = mBuffer->sData();
+	
+	if (!vertices || !stops) {
+		//std::cout << "[VectorTileLayer] drawPolyline still missing data layer=" << layerName()
+		//	<< " z=" << zoom << " col=" << col << " row=" << row << std::endl;
+		pierce++;
+		return -1;
 	}
+	count++;
 	/*else {
 		string dataIndex = level2Index + ".vertice";
 		string stopIndex = level2Index + ".stop";
@@ -500,23 +551,39 @@ int CVectorTileLayer::drawPolyline(int zoom, int col, int row, BufferManager* ma
 	}*/
 	int state = -1;
 	if (vertices && stops) {
-		int size_render = stops->size();
+		int size_render = stops->size(); // stops 数组长度
+		if (size_render <= 0) {
+			return -1;
+		}
 		_amount += size_render;
 		float* pts_render = static_cast<float*>(vertices->data());
 		int* stops_render = static_cast<int*>(stops->data());
 
-		_amount += stops_render[size_render - 1];
-		if (draw) {
-			int i = 0;
-			while (style->stroke(i)) {
-				style->stroke(i)->getColor()->colorRGB(r, g, b);
-				Color color(255 * r, 255 * g, 255 * b, 255);
-				vector<float> dashArray = style->stroke(i)->dashArray();
-				if (isDashArrayValid(dashArray))
-					state = openglEngine::OpenGLRenderEngine::drawLines(pts_render, stops_render, size_render, color, style->stroke(i)->width(), 1);
-				else
-					state = openglEngine::OpenGLRenderEngine::drawLines(pts_render, stops_render, size_render, color, style->stroke(i)->width(), 0);
-				i++;
+		if (pts_render && stops_render) {
+			int totalVertices = stops_render[size_render - 1];
+			if (totalVertices <= 0) {
+				return -1;
+			}
+			_amount += totalVertices;
+			if (draw) {
+				int i = 0;
+				while (style->stroke(i)) {
+					style->stroke(i)->getColor()->colorRGB(r, g, b);
+					// 根据图层透明度和样式透明度计算最终透明度
+					float styleOpacity = style->stroke(i)->getColor()->opacity();
+					float finalOpacity = styleOpacity * _opacity;
+					int alpha = (int)(255 * finalOpacity);
+					Color color(255 * r, 255 * g, 255 * b, alpha);
+					vector<float> dashArray = style->stroke(i)->dashArray();
+
+					// 使用新的OpenGL ES 1.1兼容函数，传递dashArray向量
+					//state = openglEngine::OpenGLRenderEngine::drawLines(pts_render, stops_render, size_render, color, style->stroke(i)->width(), dashArray);
+					if (isDashArrayValid(dashArray))
+						state = openglEngine::OpenGLRenderEngine::drawLines(pts_render, stops_render, size_render, color, style->stroke(i)->width(), 1);
+					else
+						state = openglEngine::OpenGLRenderEngine::drawLines(pts_render, stops_render, size_render, color, style->stroke(i)->width(), 0);
+					i++;
+				}
 			}
 		}
 	}
@@ -527,7 +594,7 @@ int CVectorTileLayer::drawPolyline(int zoom, int col, int row, BufferManager* ma
 		   manager->insert(2, mBuffer, level2Index);
 	   }
 	   else
-		   cout << "������������" << endl;*/
+		   cout << "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" << endl;*/
 
 		   //Vertices* vertices = mBuffer->vData();
 		   //Stop* stops = mBuffer->sData();
@@ -585,22 +652,25 @@ int CVectorTileLayer::drawPoint(int zoom, int col, int row, BufferManager* manag
 {
 	CStyle* style = getOrCreateStyle();
 
-	// ����???��������??-->��������-->����˳���������?
-	//string tileIndex = to_string(zoom) + "." + to_string(row) + "." + to_string((col % (int)pow(2, zoom)));
-    ostringstream ost_temp;//ost_temp.str("");
-	ost_temp << (zoom) << "." << (row) << "." << ((col % (int)pow(2, zoom)));
-	string tileIndex = ost_temp.str();
-
+	int normalizedCol = normalizeColumn(col, zoom);
+	char tileIndexBuf[64];
+	snprintf(tileIndexBuf, sizeof(tileIndexBuf), "%d.%d.%d", zoom, row, normalizedCol);
+	string tileIndex(tileIndexBuf);
 	string level2Index = tileIndex + "." + layerName();
 	TMBuffer* mBuffer = manager->getFrom2LevelBuffer(level2Index);
-
-	Vertices* vertices = 0x00;
-
-	if (mBuffer) {
-		vertices = mBuffer->vData();
-
-		count++;
+	if (!mBuffer) {
+		return -1;
 	}
+
+	Vertices* vertices = mBuffer->vData();
+	if (!vertices) {
+		//std::cout << "[VectorTileLayer] drawPoint vertices missing layer=" << layerName()
+		//	<< " z=" << zoom << " col=" << col << " row=" << row << std::endl;
+		pierce++;
+		return -1;
+	}
+
+	count++;
 	/*else {
 		mBuffer = new TMBuffer(BufferType::PointBuffer, level2Index);
 		string dataIndex = level2Index + ".vertices";
@@ -624,50 +694,66 @@ int CVectorTileLayer::drawPoint(int zoom, int col, int row, BufferManager* manag
 	int state = -1;
 	if (vertices) {
 		int size_render = vertices->size();
+		if (size_render <= 0) {
+			return -1;
+		}
 		_amount += size_render;
 		float* pts_render = static_cast<float*>(vertices->data());
-		//TODO("加一个Symbol的路???��??配置文�???)
-		#ifdef WIN32
-            string symbolPath = "D:/pyan/map_wd_20221219/data/mbtiles-jiangxi/symbols/" + layerName() + ".png";
-        #else//?????????tm3
-            string symbolPath = "D:\\mbtiles-jiangxi/symbols/" + layerName() + ".png";
-        #endif
-		if (draw)
-			openglEngine::OpenGLRenderEngine::drawSymbols<float>(pts_render, size_render, symbolPath.c_str(), _render);
+		if (pts_render) {
+			//TODO("?????ymbol????????????)
+#ifdef WIN32
+			string symbolPath = "./../data/mbtiles-jiangxi/symbols/" + layerName() + ".png";
+#else//?????????tm3
+			string symbolPath = "D:\\mbtiles-jiangxi/symbols/" + layerName() + ".png";
+#endif
+			if (draw)
+				openglEngine::OpenGLRenderEngine::drawSymbols<float>(pts_render, size_render, symbolPath.c_str(), _render);
+		}
 	}
 	return state;
 }
 
 int CVectorTileLayer::drawAnnotation(int zoom, int col, int row, BufferManager* manager, int draw)
 {
-	//string tileIndex = to_string(zoom) + "." + to_string(row) + "." + to_string((col % (int)pow(2, zoom)));
-    ostringstream ost_temp;//ost_temp.str("");
-    ost_temp << (zoom) << "." << (row) << "." << ((col % (int)pow(2, zoom)));
-	string tileIndex = ost_temp.str();
-
+	int normalizedCol = normalizeColumn(col, zoom);
+	char tileIndexBuf[64];
+	snprintf(tileIndexBuf, sizeof(tileIndexBuf), "%d.%d.%d", zoom, row, normalizedCol);
+	string tileIndex(tileIndexBuf);
 	string level2Index = tileIndex + "." + layerName();
 	TMBuffer* mBuffer = manager->getFrom2LevelBuffer(level2Index);
-
-	Vertices* vertices = 0x00;
-	Text* annos = 0x00;
-	Stop* stops = 0x00;
-
-	if (mBuffer) {
-		vertices = mBuffer->vData();
-		annos = mBuffer->tData();
-		stops = mBuffer->sData();
-
-		count++;
+	if (!mBuffer) {
+		return -1;
 	}
+
+	Vertices* vertices = mBuffer->vData();
+	Text* annos = mBuffer->tData();
+	Stop* stops = mBuffer->sData();
+	
+	if (!vertices || !annos || !stops) {
+		//std::cout << "[VectorTileLayer] drawAnnotation still missing data layer=" << layerName()
+		//	<< " z=" << zoom << " col=" << col << " row=" << row << std::endl;
+		pierce++;
+		return -1;
+	}
+
+	count++;
+
 	int state = -1;
 	if (vertices && annos && stops) {
 		int size_render = vertices->size();
+		if (size_render <= 0) {
+			return -1;
+		}
 		_amount += 3 * size_render;
 		float* pts_render = static_cast<float*>(vertices->data());
 		int* stops_render = static_cast<int*>(stops->data());
-		string text_render = static_cast<char*>(annos->data());
-		openglEngine::OpenGLRenderEngine::drawAnnotations(pts_render, size_render,
-				text_render, stops_render, getOrCreateStyle(), _render, _anno);
+		if (pts_render && stops_render) {
+			string text_render = static_cast<char*>(annos->data());
+			if (draw) {
+				openglEngine::OpenGLRenderEngine::drawAnnotations(pts_render, size_render,
+					text_render, stops_render, getOrCreateStyle(), _render, _anno);
+			}
+		}
 	}
 	return state;
 }
@@ -682,23 +768,54 @@ bool CVectorTileLayer::isDashArrayValid(vector<float>& dash)
 }
 
 
-int CVectorTileLayer::addPolygonBuffer(int zoom, int col, int row, BufferManager* manager,sqlite3* db) {
-    ostringstream ost_temp;//ost_temp.str("");
-	ost_temp << (zoom) << "." << (row) << "." << ((col % (int)pow(2, zoom)));
-	string tileIndex = ost_temp.str();
-	//string tileIndex = to_string(zoom) + "." + to_string(row) + "." + to_string((col % (int)pow(2, zoom)));
-	string level2Index = tileIndex + "." + layerName();
+int CVectorTileLayer::addPolygonBuffer(int zoom, int col, int row, BufferManager* manager) {
+	// DAT-only 入口校验
+	if (!_useDatFile || !_vectorDatReader) {
+		//std::cout << "[VectorTileLayer] polygon buffer DAT unavailable layer=" << layerName()
+		//	<< " z=" << zoom << " col=" << col << " row=" << row << std::endl;
+		pierce++;
+		return -1;
+	}
+
+	int normalizedCol = normalizeColumn(col, zoom);
+
+	// 优化字符串生成
+	char tileIndexBuf[64];
+	snprintf(tileIndexBuf, sizeof(tileIndexBuf), "%d.%d.%d", zoom, row, normalizedCol);
+	string tileIndex(tileIndexBuf);
+	string layerNameStr = layerName();
+	string level2Index = tileIndex + "." + layerNameStr;
+
 	TMBuffer* mBuffer = manager->getFrom2LevelBuffer(level2Index);
 	if (mBuffer) {
 		return 0;
 	}
+
 	Vertices* vertices = 0x00;
 	string dataIndex = level2Index + ".vertice";
-	string path = _path + tileIndex + ".vertice";
-	int size;
-	//10.27��������??
-	//float* pts = openglEngine::OpenGLFileEngine::getVerticesFromDB<float>(db, zoom, row, col, CGeoUtil::Proj::WGS84, 2, size);
-	float* pts = openglEngine::OpenGLFileEngine::getVerticesFromBinary<float>(path.c_str(), CGeoUtil::WGS84, 2, size);
+	int size = 0; // 初始化为0，防止未初始化值导致的问题
+
+	float* pts = nullptr;
+	// 从.dat文件读取 (注意 DAT 中 x=行, y=列)
+	int datX = 0;
+	int datY = 0;
+	bool hasData = resolveDatCoords(zoom, normalizedCol, row, VECTOR_TYPE_VERTICE, datX, datY);
+	logDatStatus("polygon.vert", zoom, normalizedCol, row, datX, datY, hasData);
+	if (hasData) {
+		if (!loadVerticesFromDat(zoom, datX, datY, pts, size)) {
+			//	std::cout << "[VectorTileLayer] polygon.vert load failed layer=" << layerName()
+			//		<< " tile(z=" << zoom << ", col=" << normalizedCol << ", row=" << row << ") dat=(" << datX << "," << datY << ")" << std::endl;
+			pierce++;
+			return -1;
+		}
+	}
+	else {
+		//std::cout << "[VectorTileLayer] polygon.vert missing layer=" << layerName()
+		//	<< " tile(z=" << zoom << ", col=" << normalizedCol << ", row=" << row << ") dat=(" << datX << "," << datY << ")" << std::endl;
+		pierce++;
+		return -1;
+	}
+
 	if (pts) {
 		/*cout << tileIndex << endl;
 		for (int i = 0; i < size / 3; i++) {
@@ -721,18 +838,33 @@ int CVectorTileLayer::addPolygonBuffer(int zoom, int col, int row, BufferManager
 		mBuffer->setData(vertices, VERTICE);
 		manager->insert(2, mBuffer, level2Index);
 	}
-	else
+	else {
+		//std::cout << "[VectorTileLayer] polygon.vert empty buffer layer=" << layerName()
+		//	<< " z=" << zoom << " col=" << normalizedCol << " row=" << row << std::endl;
 		pierce++;
+		return -1;
+	}
 	return 0;
 }
 
-int CVectorTileLayer::addPolylineBuffer(int zoom, int col, int row, BufferManager* manager,sqlite3* db)
+int CVectorTileLayer::addPolylineBuffer(int zoom, int col, int row, BufferManager* manager)
 {
-	//string tileIndex = to_string(zoom) + "." + to_string(row) + "." + to_string((col % (int)pow(2, zoom)));
-	ostringstream ost_temp;//ost_temp.str("");
-	ost_temp << (zoom) << "." << (row) << "." << ((col % (int)pow(2, zoom)));
-	string tileIndex = ost_temp.str();
-	string level2Index = tileIndex + "." + layerName();
+	if (!_useDatFile || !_vectorDatReader) {
+		//std::cout << "[VectorTileLayer] polyline buffer DAT unavailable layer=" << layerName()
+		//	<< " z=" << zoom << " col=" << col << " row=" << row << std::endl;
+		pierce++;
+		return -1;
+	}
+
+	int normalizedCol = normalizeColumn(col, zoom);
+
+	// 优化字符串生成
+	char tileIndexBuf[64];
+	snprintf(tileIndexBuf, sizeof(tileIndexBuf), "%d.%d.%d", zoom, row, normalizedCol);
+	string tileIndex(tileIndexBuf);
+	string layerNameStr = layerName();
+	string level2Index = tileIndex + "." + layerNameStr;
+
 	TMBuffer* mBuffer = manager->getFrom2LevelBuffer(level2Index);
 	if (mBuffer) {
 		return 0;
@@ -741,94 +873,172 @@ int CVectorTileLayer::addPolylineBuffer(int zoom, int col, int row, BufferManage
 	Stop* stops = 0x00;
 	string dataIndex = level2Index + ".vertice";
 	string stopIndex = level2Index + ".stop";
-		if (!vertices) {
-			string path = _path + tileIndex + ".vertice";
-			int size;
-			//10.27��������??
-			//float* pts = openglEngine::OpenGLFileEngine::getVerticesFromDB<float>(db, zoom, row, col, CGeoUtil::Proj::WGS84, 2, size);
-			float* pts = openglEngine::OpenGLFileEngine::getVerticesFromBinary<float>(path.c_str(), CGeoUtil::WGS84, 2, size);
-			if (pts) {
-				mBuffer = new TMBuffer(PolylineBuffer, level2Index);
-				string dataIndex = level2Index + ".vertice";
-				vertices = new Vertices(pts, size, dataIndex);
-				mBuffer->setData(vertices, VERTICE);
-			}
-			else {
-				if (mBuffer != 0x00)
-					delete mBuffer;
-				mBuffer = 0x00;
-				pierce++;
-				return -1;
-			}
-		}
 
-		if (!stops) {
-			string path = _path + tileIndex + ".stop";
-			int size, size1;
-			//10.27��������??
-			//int* pts = openglEngine::OpenGLFileEngine::getStopsFromDB<int>(db,zoom,row,col,size1,size);
-			int* pts = openglEngine::OpenGLFileEngine::getStopsFromBinary<int>(path.c_str(), size1, size);
-			if (pts) {
-				string dataIndex = level2Index + ".stop";
-				stops = new Stop(pts, size, dataIndex);
-				mBuffer->setData(stops, STOP);
-			}
-			else {
-				if (mBuffer != 0x00)
-					delete mBuffer;
-				mBuffer = 0x00;
-				return -1;
-			}
-		}
-		manager->insert(2, mBuffer, level2Index);
-	
-
-	return 0;
-}
-
-int CVectorTileLayer::addPointBuffer(int zoom, int col, int row, BufferManager* manager,sqlite3* db)
-{
-	//string tileIndex = to_string(zoom) + "." + to_string(row) + "." + to_string((col % (int)pow(2, zoom)));
-    ostringstream ost_temp;//ost_temp.str("");
-	ost_temp << (zoom) << "." << (row) << "." << ((col % (int)pow(2, zoom)));
-	string tileIndex = ost_temp.str();
-	string level2Index = tileIndex + "." + layerName();
-	TMBuffer* mBuffer = manager->getFrom2LevelBuffer(level2Index);
-	Vertices* vertices = 0x00;
-	mBuffer = new TMBuffer(PointBuffer, level2Index);
-	if (mBuffer) {
-		return 0;
-	}
-	string dataIndex = level2Index + ".vertices";
-		string path = _path + tileIndex + ".vertice";
-		int size;
-		//10.27��������??
-		//float* pts = openglEngine::OpenGLFileEngine::getVerticesFromDB<float>(db, zoom, row, col, CGeoUtil::Proj::WGS84, 2, size);
-		float* pts = openglEngine::OpenGLFileEngine::getVerticesFromBinary<float>(path.c_str(), CGeoUtil::WGS84, 2, size);
-		if (pts) {
-			vertices = new Vertices(pts, size, dataIndex);
-			mBuffer->setData(vertices, VERTICE);
-			manager->insert(2, mBuffer, level2Index);
-		}
-		else {
-			if (mBuffer != 0x00)
-				delete mBuffer;
-			mBuffer = 0x00;
+	// 加载vertices
+	float* pts = nullptr;
+	int size = 0;
+	int datX = 0;
+	int datY = 0;
+	bool hasVertData = resolveDatCoords(zoom, normalizedCol, row, VECTOR_TYPE_VERTICE, datX, datY);
+	logDatStatus("polyline.vert", zoom, normalizedCol, row, datX, datY, hasVertData);
+	if (hasVertData) {
+		if (!loadVerticesFromDat(zoom, datX, datY, pts, size)) {
+			//std::cout << "[VectorTileLayer] polyline.vert load failed layer=" << layerName()
+			//	<< " tile(z=" << zoom << ", col=" << normalizedCol << ", row=" << row << ") dat=(" << datX << "," << datY << ")" << std::endl;
 			pierce++;
 			return -1;
 		}
-	
+	}
+	else {
+		//std::cout << "[VectorTileLayer] polyline.vert missing layer=" << layerName()
+		//	<< " tile(z=" << zoom << ", col=" << normalizedCol << ", row=" << row << ") dat=(" << datX << "," << datY << ")" << std::endl;
+		pierce++;
+		return -1;
+	}
+
+	if (pts) {
+		mBuffer = new TMBuffer(PolylineBuffer, level2Index);
+		string dataIndex = level2Index + ".vertice";
+		vertices = new Vertices(pts, size, dataIndex);
+		mBuffer->setData(vertices, VERTICE);
+	}
+	else {
+		if (mBuffer != 0x00)
+			delete mBuffer;
+		mBuffer = 0x00;
+		//std::cout << "[VectorTileLayer] polyline.vert empty buffer layer=" << layerName()
+		//	<< " z=" << zoom << " col=" << normalizedCol << " row=" << row << std::endl;
+		pierce++;
+		return -1;
+	}
+
+	// 加载stops
+	int* stopData = nullptr;
+	int pointsCount = 0;
+	int stopsCount = 0;
+	int datXStop = 0;
+	int datYStop = 0;
+	bool hasStopData = resolveDatCoords(zoom, normalizedCol, row, VECTOR_TYPE_STOP, datXStop, datYStop);
+	logDatStatus("polyline.stop", zoom, normalizedCol, row, datXStop, datYStop, hasStopData);
+	if (hasStopData) {
+		if (!loadStopsFromDat(zoom, datXStop, datYStop, stopData, pointsCount, stopsCount)) {
+			if (mBuffer != 0x00)
+				delete mBuffer;
+			mBuffer = 0x00;
+			//std::cout << "[VectorTileLayer] polyline.stop load failed layer=" << layerName()
+			//	<< " tile(z=" << zoom << ", col=" << normalizedCol << ", row=" << row << ") dat=(" << datXStop << "," << datYStop << ")" << std::endl;
+			return -1;
+		}
+	}
+	else {
+		if (mBuffer != 0x00)
+			delete mBuffer;
+		mBuffer = 0x00;
+		//std::cout << "[VectorTileLayer] polyline.stop missing layer=" << layerName()
+		//	<< " tile(z=" << zoom << ", col=" << normalizedCol << ", row=" << row << ") dat=(" << datXStop << "," << datYStop << ")" << std::endl;
+		return -1;
+	}
+
+	if (stopData) {
+		string dataIndex = level2Index + ".stop";
+		stops = new Stop(stopData, stopsCount, dataIndex);
+		mBuffer->setData(stops, STOP);
+	}
+	else {
+		if (mBuffer != 0x00)
+			delete mBuffer;
+		mBuffer = 0x00;
+		//std::cout << "[VectorTileLayer] polyline.stop empty buffer layer=" << layerName()
+		//	<< " z=" << zoom << " col=" << normalizedCol << " row=" << row << std::endl;
+		return -1;
+	}
+
+	manager->insert(2, mBuffer, level2Index);
 
 	return 0;
 }
 
-int CVectorTileLayer::addAnnotationBuffer(int zoom, int col, int row, BufferManager* manager,sqlite3* db)
+int CVectorTileLayer::addPointBuffer(int zoom, int col, int row, BufferManager* manager)
 {
-	//string tileIndex = to_string(zoom) + "." + to_string(row) + "." + to_string((col % (int)pow(2, zoom)));
-	ostringstream ost_temp;//ost_temp.str("");
-	ost_temp << (zoom) << "." << (row) << "." << ((col % (int)pow(2, zoom)));
-	string tileIndex = ost_temp.str();
-	string level2Index = tileIndex + "." + layerName();
+	if (!_useDatFile || !_vectorDatReader) {
+		//std::cout << "[VectorTileLayer] point buffer DAT unavailable layer=" << layerName()
+		//	<< " z=" << zoom << " col=" << col << " row=" << row << std::endl;
+		pierce++;
+		return -1;
+	}
+
+	int normalizedCol = normalizeColumn(col, zoom);
+
+	// 优化字符串生成
+	char tileIndexBuf[64];
+	snprintf(tileIndexBuf, sizeof(tileIndexBuf), "%d.%d.%d", zoom, row, normalizedCol);
+	string tileIndex(tileIndexBuf);
+	string layerNameStr = layerName();
+	string level2Index = tileIndex + "." + layerNameStr;
+
+	TMBuffer* mBuffer = manager->getFrom2LevelBuffer(level2Index);
+	if (mBuffer) {
+		return 0;
+	}
+
+	Vertices* vertices = 0x00;
+	string dataIndex = level2Index + ".vertices";
+
+	float* pts = nullptr;
+	int size = 0; // 初始化为0，防止未初始化值导致的问题
+	int datX = 0;
+	int datY = 0;
+	bool hasData = resolveDatCoords(zoom, normalizedCol, row, VECTOR_TYPE_VERTICE, datX, datY);
+	logDatStatus("point.vert", zoom, normalizedCol, row, datX, datY, hasData);
+	if (hasData) {
+		if (!loadVerticesFromDat(zoom, datX, datY, pts, size)) {
+			//std::cout << "[VectorTileLayer] point.vert load failed layer=" << layerName()
+			//	<< " tile(z=" << zoom << ", col=" << normalizedCol << ", row=" << row << ") dat=(" << datX << "," << datY << ")" << std::endl;
+			pierce++;
+			return -1;
+		}
+	}
+	else {
+		/*	std::cout << "[VectorTileLayer] point.vert missing layer=" << layerName()
+				<< " tile(z=" << zoom << ", col=" << normalizedCol << ", row=" << row << ") dat=(" << datX << "," << datY << ")" << std::endl;*/
+		pierce++;
+		return -1;
+	}
+
+	if (pts) {
+		mBuffer = new TMBuffer(PointBuffer, level2Index);
+		vertices = new Vertices(pts, size, dataIndex);
+		mBuffer->setData(vertices, VERTICE);
+		manager->insert(2, mBuffer, level2Index);
+	}
+	else {
+		//std::cout << "[VectorTileLayer] point.vert empty buffer layer=" << layerName()
+		//	<< " z=" << zoom << " col=" << normalizedCol << " row=" << row << std::endl;
+		pierce++;
+		return -1;
+	}
+
+	return 0;
+}
+
+int CVectorTileLayer::addAnnotationBuffer(int zoom, int col, int row, BufferManager* manager)
+{
+	if (!_useDatFile || !_vectorDatReader) {
+		//std::cout << "[VectorTileLayer] annotation buffer DAT unavailable layer=" << layerName()
+		//	<< " z=" << zoom << " col=" << col << " row=" << row << std::endl;
+		pierce++;
+		return -1;
+	}
+
+	int normalizedCol = normalizeColumn(col, zoom);
+
+	// 优化字符串生成
+	char tileIndexBuf[64];
+	snprintf(tileIndexBuf, sizeof(tileIndexBuf), "%d.%d.%d", zoom, row, normalizedCol);
+	string tileIndex(tileIndexBuf);
+	string layerNameStr = layerName();
+	string level2Index = tileIndex + "." + layerNameStr;
+
 	TMBuffer* mBuffer = manager->getFrom2LevelBuffer(level2Index);
 	if (mBuffer) {
 		return 0;
@@ -840,66 +1050,286 @@ int CVectorTileLayer::addAnnotationBuffer(int zoom, int col, int row, BufferMana
 	string stopIndex = level2Index + ".stops";
 	string annoIndex = level2Index + ".text";
 
-		if (!vertices) {
-			string path = _path + tileIndex + ".vertice";
-			int size;
-			//10.27��������??
-			//float* pts = openglEngine::OpenGLFileEngine::getVerticesFromDB<float>(db, zoom, row, col, CGeoUtil::Proj::WGS84, 2, size);
-			float* pts = openglEngine::OpenGLFileEngine::getVerticesFromBinary<float>(path.c_str(), CGeoUtil::WGS84, 2, size);
-			if (pts) {
-				mBuffer = new TMBuffer(PolylineBuffer, level2Index);
-				string dataIndex = level2Index + ".vertices";
-				vertices = new Vertices(pts, size, dataIndex);
-				mBuffer->setData(vertices, VERTICE);
-			}
-			else {
-				if (mBuffer != 0x00)
-					delete mBuffer;
-				mBuffer = 0x00;
-				pierce++;
-				return -1;
-			}
+	// 加载vertices
+	float* pts = nullptr;
+	int size = 0;
+	int datX = 0;
+	int datY = 0;
+	bool hasVertData = resolveDatCoords(zoom, normalizedCol, row, VECTOR_TYPE_VERTICE, datX, datY);
+	logDatStatus("annotation.vert", zoom, normalizedCol, row, datX, datY, hasVertData);
+	if (hasVertData) {
+		if (!loadVerticesFromDat(zoom, datX, datY, pts, size)) {
+			//std::cout << "[VectorTileLayer] annotation.vert load failed layer=" << layerName()
+			//	<< " tile(z=" << zoom << ", col=" << normalizedCol << ", row=" << row << ") dat=(" << datX << "," << datY << ")" << std::endl;
+			pierce++;
+			return -1;
 		}
-		if (!stops) {
-			string path = _path + tileIndex + ".stop";
-			int size, size1;
-			//10.27��������??
-			//int* pts = openglEngine::OpenGLFileEngine::getStopsFromDB<int>(db, zoom, row, col, size1, size);
-			int* pts = openglEngine::OpenGLFileEngine::getStopsFromBinary<int>(path.c_str(), size1, size);
-			if (pts) {
-				stops = new Stop(pts, size, stopIndex);
+	}
+	else {
+		//std::cout << "[VectorTileLayer] annotation.vert missing layer=" << layerName()
+		//	<< " tile(z=" << zoom << ", col=" << normalizedCol << ", row=" << row << ") dat=(" << datX << "," << datY << ")" << std::endl;
+		pierce++;
+		return -1;
+	}
 
-				mBuffer->setData(stops, STOP);
-			}
-			else {
-				if (mBuffer != 0x00)
-					delete mBuffer;
-				mBuffer = 0x00;
-				return -1;
-			}
+	if (pts) {
+		mBuffer = new TMBuffer(PolylineBuffer, level2Index);
+		string dataIndex = level2Index + ".vertices";
+		vertices = new Vertices(pts, size, dataIndex);
+		mBuffer->setData(vertices, VERTICE);
+	}
+	else {
+		if (mBuffer != 0x00)
+			delete mBuffer;
+		mBuffer = 0x00;
+		//std::cout << "[VectorTileLayer] annotation.vert empty buffer layer=" << layerName()
+		//	<< " z=" << zoom << " col=" << normalizedCol << " row=" << row << std::endl;
+		pierce++;
+		return -1;
+	}
+
+	// 加载stops
+	int* stopData = nullptr;
+	int pointsCount = 0;
+	int stopsCount = 0;
+	int datXStop = 0;
+	int datYStop = 0;
+	bool hasStopData = resolveDatCoords(zoom, normalizedCol, row, VECTOR_TYPE_STOP, datXStop, datYStop);
+	logDatStatus("annotation.stop", zoom, normalizedCol, row, datXStop, datYStop, hasStopData);
+	if (hasStopData) {
+		if (!loadStopsFromDat(zoom, datXStop, datYStop, stopData, pointsCount, stopsCount)) {
+			if (mBuffer != 0x00)
+				delete mBuffer;
+			mBuffer = 0x00;
+			//std::cout << "[VectorTileLayer] annotation.stop load failed layer=" << layerName()
+			//	<< " tile(z=" << zoom << ", col=" << normalizedCol << ", row=" << row << ") dat=(" << datXStop << "," << datYStop << ")" << std::endl;
+			return -1;
 		}
-		if (!annos) {
-			string path = _path + tileIndex + ".anno";
-			//string tData = openglEngine::OpenGLFileEngine::getStringFromDB<char>(db,zoom,row,col);
-			string tData = openglEngine::OpenGLFileEngine::getStringFromBinary<char>(path.c_str());
-			int size = tData.length();
-			if (size) {
-				annos = new Text(const_cast<char*>(tData.c_str()), size, annoIndex);
+	}
+	else {
+		if (mBuffer != 0x00)
+			delete mBuffer;
+		mBuffer = 0x00;
+		//std::cout << "[VectorTileLayer] annotation.stop missing layer=" << layerName()
+		//	<< " tile(z=" << zoom << ", col=" << normalizedCol << ", row=" << row << ") dat=(" << datXStop << "," << datYStop << ")" << std::endl;
+		return -1;
+	}
 
-				mBuffer->setData(annos, TEXT);
+	if (stopData) {
+		stops = new Stop(stopData, stopsCount, stopIndex);
+		mBuffer->setData(stops, STOP);
+	}
+	else {
+		if (mBuffer != 0x00)
+			delete mBuffer;
+		mBuffer = 0x00;
+		//std::cout << "[VectorTileLayer] annotation.stop empty buffer layer=" << layerName()
+		//	<< " z=" << zoom << " col=" << normalizedCol << " row=" << row << std::endl;
+		return -1;
+	}
 
-			}
-			else {
-				if (mBuffer != 0x00)
-					delete mBuffer;
-				mBuffer = 0x00;
-				return -1;
-			}
+	// 加载anno
+	string tData;
+	int datXAnno = 0;
+	int datYAnno = 0;
+	bool hasAnnoData = resolveDatCoords(zoom, normalizedCol, row, VECTOR_TYPE_ANNO, datXAnno, datYAnno);
+	logDatStatus("annotation.anno", zoom, normalizedCol, row, datXAnno, datYAnno, hasAnnoData);
+	if (hasAnnoData) {
+		if (!loadAnnoFromDat(zoom, datXAnno, datYAnno, tData)) {
+			if (mBuffer != 0x00)
+				delete mBuffer;
+			mBuffer = 0x00;
+			//std::cout << "[VectorTileLayer] annotation.anno load failed layer=" << layerName()
+			//	<< " tile(z=" << zoom << ", col=" << normalizedCol << ", row=" << row << ") dat=(" << datXAnno << "," << datYAnno << ")" << std::endl;
+			return -1;
 		}
-		manager->insert(2, mBuffer, level2Index);
-	
+	}
+	else {
+		if (mBuffer != 0x00)
+			delete mBuffer;
+		mBuffer = 0x00;
+		//std::cout << "[VectorTileLayer] annotation.anno missing layer=" << layerName()
+		//	<< " tile(z=" << zoom << ", col=" << normalizedCol << ", row=" << row << ") dat=(" << datXAnno << "," << datYAnno << ")" << std::endl;
+		return -1;
+	}
+
+	int textSize = tData.length();
+	if (textSize) {
+		annos = new Text(const_cast<char*>(tData.c_str()), textSize, annoIndex);
+		mBuffer->setData(annos, TEXT);
+	}
+	else {
+		if (mBuffer != 0x00)
+			delete mBuffer;
+		mBuffer = 0x00;
+		//std::cout << "[VectorTileLayer] annotation.anno empty buffer layer=" << layerName()
+		//	<< " z=" << zoom << " col=" << normalizedCol << " row=" << row << std::endl;
+		return -1;
+	}
+
+	manager->insert(2, mBuffer, level2Index);
 	return 0;
 
 }
 
+bool CVectorTileLayer::resolveDatCoords(int zoom, int col, int row, uint8_t type, int& datX, int& datY)
+{
+	if (!_useDatFile || !_vectorDatReader) {
+		datX = col;
+		datY = row;
+		return true;
+	}
+	// DAT 中 x 对应文件名第二段（原 row），y 对应第三段（归一化列）
+	int normalizedCol = normalizeColumn(col, zoom);
+	int candidateX = row;
+	int candidateY = normalizedCol;
+	if (_vectorDatReader->hasTileData(zoom, candidateX, candidateY, type)) {
+		datX = candidateX;
+		datY = candidateY;
+		return true;
+	}
+	// 尝试翻转 row (TMS)
+	int maxRow = (1 << zoom) - 1;
+	int flippedRow = maxRow - row;
+	candidateX = flippedRow;
+	if (_vectorDatReader->hasTileData(zoom, candidateX, candidateY, type)) {
+		datX = candidateX;
+		datY = candidateY;
+		return true;
+	}
+	// 未找到
+	datX = row;
+	datY = normalizedCol;
+	return false;
+}
 
+int CVectorTileLayer::normalizeColumn(int col, int zoom) const
+{
+	if (zoom < 0)
+	{
+		return col;
+	}
+	int maxCol = (1 << zoom);
+	if (maxCol <= 0)
+	{
+		return col;
+	}
+	int normalized = col % maxCol;
+	if (normalized < 0)
+	{
+		normalized += maxCol;
+	}
+	return normalized;
+}
+
+uint64_t CVectorTileLayer::makeTileKey(int zoom, int col, int row) const
+{
+	uint64_t key = (static_cast<uint64_t>(zoom) << 42) |
+		((static_cast<uint64_t>(col) & ((1ull << 21) - 1ull)) << 21) |
+		(static_cast<uint64_t>(row) & ((1ull << 21) - 1ull));
+	return key;
+}
+
+void CVectorTileLayer::initDatReader()
+{
+	if (_path.empty()) {
+		return;
+	}
+
+	// 检查路径是否以.dat结尾
+	auto hasDatExtension = [](const string& filePath)->bool {
+		if (filePath.size() < 4) return false;
+		string ext = filePath.substr(filePath.size() - 4);
+		std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+		return ext == ".dat";
+		};
+
+	if (hasDatExtension(_path)) {
+		_vectorDatReader = new VectorDatReader();
+		if (_vectorDatReader->load(_path)) {
+			_useDatFile = true;
+			_datFilePath = _path;
+		}
+		else {
+			delete _vectorDatReader;
+			_vectorDatReader = nullptr;
+			_useDatFile = false;
+		}
+	}
+	else {
+	}
+}
+
+bool CVectorTileLayer::loadVerticesFromDat(int zoom, int col, int row, float*& pts, int& size)
+{
+	if (!_useDatFile || !_vectorDatReader) {
+		return false;
+	}
+
+	std::vector<unsigned char> tileData;
+	if (!_vectorDatReader->getTileData(zoom, col, row, VECTOR_TYPE_VERTICE, tileData)) {
+		return false;
+	}
+
+	if (tileData.empty()) {
+		return false;
+	}
+
+	pts = openglEngine::OpenGLFileEngine::getVerticesFromMemory<float>(
+		tileData.data(), tileData.size(), CGeoUtil::WGS84, 2, size);
+
+	bool success = (pts != nullptr && size > 0);
+	return success;
+}
+
+bool CVectorTileLayer::loadStopsFromDat(int zoom, int col, int row, int*& stops, int& pointsCount, int& stopsCount)
+{
+	if (!_useDatFile || !_vectorDatReader) {
+		return false;
+	}
+
+	std::vector<unsigned char> tileData;
+	if (!_vectorDatReader->getTileData(zoom, col, row, VECTOR_TYPE_STOP, tileData)) {
+		return false;
+	}
+
+	if (tileData.empty()) {
+		return false;
+	}
+
+	stops = openglEngine::OpenGLFileEngine::getStopsFromMemory<int>(
+		tileData.data(), tileData.size(), pointsCount, stopsCount);
+
+	bool success = (stops != nullptr && stopsCount > 0);
+	return success;
+}
+
+bool CVectorTileLayer::loadAnnoFromDat(int zoom, int col, int row, std::string& text)
+{
+	if (!_useDatFile || !_vectorDatReader) {
+		return false;
+	}
+
+	std::vector<unsigned char> tileData;
+	if (!_vectorDatReader->getTileData(zoom, col, row, VECTOR_TYPE_ANNO, tileData)) {
+		return false;
+	}
+
+	if (tileData.empty()) {
+		return false;
+	}
+
+	text = openglEngine::OpenGLFileEngine::getStringFromMemory<char>(
+		tileData.data(), tileData.size());
+
+	bool success = !text.empty();
+	return success;
+}
+
+void CVectorTileLayer::logDatStatus(const std::string& stage, int zoom, int col, int row, int datX, int datY, bool hasData) const
+{
+	std::cout << "[VectorTileLayer][" << stage << "] layer=" << layerName()
+		<< " tile(z=" << zoom << ", col=" << col << ", row=" << row << ")"
+		<< " datCoord=(" << datX << "," << datY << ") hasData=" << (hasData ? "true" : "false")
+		<< std::endl;
+}
