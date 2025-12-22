@@ -82,7 +82,7 @@ private:
 
 	Camera     m_Camera;                      /**< ÉãÏñ»úÀà */     
   	float      m_Fps;                         /**< Ö¡ËÙ */
-	
+	double     m_Fps2;
 
 	Vector3		planePos;
 

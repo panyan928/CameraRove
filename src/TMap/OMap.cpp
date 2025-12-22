@@ -322,8 +322,8 @@ int OMap::isSameTiles(vector<Vec3i> nearTiles,vector<Vec3i> lastNearTiles){
 int OMap::getBuffer() {
     isViewChanged = false;
     OM3DScheduler* scheduler = getOrCreate3DScheduler();
-    //BufferManager* manager = getOrCreate2ndBufferManager();
-    BufferManager* manager = getOrCreateBufferManager();
+    BufferManager* manager = getOrCreate2ndBufferManager();
+    //BufferManager* manager = getOrCreateBufferManager();
     vector<Vec3i> highTiles,lowTiles,nearTiles;
     
     OMScheduler* scheduler2d = getOrCreateScheduler();
@@ -385,9 +385,9 @@ int OMap::getBuffer() {
             }
         }
         isBreak = 0;
-        isDoubleBufferLoaded = false;
+        isDoubleBufferLoaded = true;
         cout<<"get buffer stage 1"<<endl;
-        return 0;
+        //return 0;
         while (isDoubleBufferLoaded);     
     }
 #if 0

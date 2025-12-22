@@ -273,74 +273,9 @@ int CVectorTileLayer::addBuffer(vector<Vec3i> tiles, int zoom, BufferManager* ma
 		return -1;
 	}
 
-	// 直接从 _indexMap 读取，无需窗口机制
-// 如果zoom变化，清除坐标缓存
-	if (!tiles.empty() && _vectorDatReader)
-	{
-		Vec3i centerTile = tiles[tiles.size() / 2];
-		int centerZoom = centerTile[0];
-
-		// 检查zoom是否变化，如果变化则清除坐标缓存
-		if (_currentZoom >= 0 && centerZoom != _currentZoom) {
-			_coordCache.clear();
-		}
-		_currentZoom = centerZoom;
-	}
-
 	// 预获取常用值，避免重复调用
 	string layerNameStr = layerName();
 	string geometryTypeStr = geometryType();
-
-	// 将新的瓦片加入待处理队列，按离中心的距离排序
-	if (!tiles.empty())
-	{
-		Vec3i center = tiles[tiles.size() / 2];
-		int centerNormCol = normalizeColumn(center[1], center[0]);
-		std::vector<std::pair<double, Vec3i>> sorted;
-		sorted.reserve(tiles.size());
-		for (auto tile : tiles)
-		{
-			int tileZoom = tile[0];
-			if (tileZoom < visibleZoom[0] || tileZoom > visibleZoom[1] || tileZoom < 0)
-			{
-				continue;
-			}
-			int normCol = normalizeColumn(tile[1], tileZoom);
-			uint64_t key = makeTileKey(tileZoom, normCol, tile[2]);
-			if (_pendingTileSet.count(key))
-			{
-				continue;
-			}
-			double dx = static_cast<double>(normCol - centerNormCol);
-			double dy = static_cast<double>(tile[2] - center[2]);
-			double dist = std::sqrt(dx * dx + dy * dy);
-			sorted.emplace_back(dist, Vec3i(tileZoom, tile[1], tile[2]));
-			_pendingTileSet.insert(key);
-		}
-		std::sort(sorted.begin(), sorted.end(),
-			[](const std::pair<double, Vec3i>& a, const std::pair<double, Vec3i>& b) { return a.first < b.first; });
-		for (const auto& entry : sorted)
-		{
-			_pendingTiles.push_back(entry.second);
-		}
-	}
-
-	std::vector<Vec3i> workTiles;
-	int budget = _maxTilesPerFrame;
-	while (budget > 0 && !_pendingTiles.empty())
-	{
-		Vec3i job = _pendingTiles.front();
-		_pendingTiles.pop_front();
-		int normCol = normalizeColumn(job[1], job[0]);
-		_pendingTileSet.erase(makeTileKey(job[0], normCol, job[2]));
-		workTiles.push_back(job);
-		budget--;
-	}
-
-	if (workTiles.empty())
-	{
-		return 0;
-	}
 
 	char tileIndexBuf[64];
 	for (auto job : tiles)

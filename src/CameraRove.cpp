@@ -75,7 +75,7 @@ void CameraRove::UpdateCamera()
 		if (!_scheduler2d->pan(4)) //计算像素移动的距离
 			_map->isViewChanged = true;
 		//_scheduler2d->pan(4);
-		Sleep(TIME);
+		// 移除 Sleep(TIME) - 避免帧率卡顿
 	}
 	else if (m_Keys.IsPressed(VK_DOWN) || m_Keys.IsPressed('S')) /**< 向下方向键或'S'键按下 */
 	{
@@ -84,7 +84,7 @@ void CameraRove::UpdateCamera()
 		if (!_scheduler2d->pan(2))
 			_map->isViewChanged = true;
 		//_scheduler2d->pan(2);
-		Sleep(TIME);
+		// 移除 Sleep(TIME) - 避免帧率卡顿
 	}
 	else if (m_Keys.IsPressed(VK_LEFT) || m_Keys.IsPressed('A')) /**< 向左方向键或'A'键按下 */
 	{
@@ -93,7 +93,7 @@ void CameraRove::UpdateCamera()
 		if (!_scheduler2d->pan(1))
 			_map->isViewChanged = true;
 		//_scheduler2d->pan(1);
-		Sleep(TIME);
+		// 移除 Sleep(TIME) - 避免帧率卡顿
 	}
 	else if (m_Keys.IsPressed(VK_RIGHT) || m_Keys.IsPressed('D')) /**< 向右方向键或'D'键按下 */
 	{
@@ -102,7 +102,7 @@ void CameraRove::UpdateCamera()
 		if (!_scheduler2d->pan(3))
 			_map->isViewChanged = true;
 		//_scheduler2d->pan(3);
-		Sleep(TIME);
+		// 移除 Sleep(TIME) - 避免帧率卡顿
 	}
 	else if (m_Keys.IsPressed('N'))
 	{
@@ -110,7 +110,7 @@ void CameraRove::UpdateCamera()
 		_scheduler2d->zoomIn();
 			_map->isViewChanged = true;
 		//_scheduler2d->zoomIn();
-		Sleep(TIME);
+		// 移除 Sleep(TIME) - 避免帧率卡顿
 	}		
 	else if (m_Keys.IsPressed('M'))
 	{
@@ -118,7 +118,7 @@ void CameraRove::UpdateCamera()
 		_scheduler2d->zoomOut();
 			_map->isViewChanged = true;
 		//_scheduler2d->zoomOut();
-		Sleep(TIME);
+		// 移除 Sleep(TIME) - 避免帧率卡顿
 	}		
 	else if (m_Keys.IsPressed('R')) //地形图
 	{
@@ -127,7 +127,6 @@ void CameraRove::UpdateCamera()
 			_map->setDislpay(0);
 			_map->isViewChanged = true;
 		}
-		Sleep(TIME);
 	}
 	else if (m_Keys.IsPressed('T')) //二维矢量
 	{
@@ -136,14 +135,14 @@ void CameraRove::UpdateCamera()
 			_map->setDislpay(1);
 			_map->isViewChanged = true;
 		}
-		//��
+		//关闭
 		_map->turnOnLayer(1);
 		_map->turnOnLayer(4);
 		_map->turnOnLayer(5);
 		_map->turnOnLayer(9);
 		_map->turnOnLayer(10);
 		_map->turnOnLayer(11);
-		//��
+		//打开
 		_map->turnOnLayer(2);
 		_map->turnOnLayer(6);
 		_map->turnOnLayer(7);
@@ -153,7 +152,7 @@ void CameraRove::UpdateCamera()
 		_map->turnOnLayer(15);
 		_map->turnOnLayer(23);
 		_map->turnOnLayer(29);
-		Sleep(TIME);
+		// 移除 Sleep(TIME) - 避免帧率卡顿
 	}
 	else if (m_Keys.IsPressed('Y')) //卫星影像
 	{
@@ -162,7 +161,7 @@ void CameraRove::UpdateCamera()
 			_map->setDislpay(2);
 			_map->isViewChanged = true;
 		}
-		Sleep(TIME);
+		// 移除 Sleep(TIME) - 避免帧率卡顿
 	}
 	else if (m_Keys.IsPressed('U')) //卫星+二维矢量
 	{
@@ -174,7 +173,7 @@ void CameraRove::UpdateCamera()
 		_map->turnOffLayer(2);
 		_map->turnOffLayer(6);
 		_map->turnOffLayer(7);
-		Sleep(TIME);
+		// 移除 Sleep(TIME) - 避免帧率卡顿
 	}
 	else if (m_Keys.IsPressed('I')) //二维矢量+地形图
 	{
@@ -186,7 +185,7 @@ void CameraRove::UpdateCamera()
 		_map->turnOffLayer(2);
 		_map->turnOffLayer(6);
 		_map->turnOffLayer(7);
-		Sleep(TIME);
+		// 移除 Sleep(TIME) - 避免帧率卡顿
 	}
 	else if (m_Keys.IsPressed('O'))
 	{
@@ -196,7 +195,7 @@ void CameraRove::UpdateCamera()
 		//	_map->isViewChanged = true;
 		_scheduler2d->rotate(angle);
 		_map->isViewChanged = true;
-		Sleep(TIME);
+		// 移除 Sleep(TIME) - 避免帧率卡顿
 	}
 	else if (m_Keys.IsPressed('P'))
 	{
@@ -204,7 +203,7 @@ void CameraRove::UpdateCamera()
 		angle -= 10;
 		_scheduler2d->rotate(angle);
 		_map->isViewChanged = true;
-		Sleep(TIME);
+		// 移除 Sleep(TIME) - 避免帧率卡顿
 	}
 	else if (m_Keys.IsPressed('C'))
 	{
@@ -212,7 +211,7 @@ void CameraRove::UpdateCamera()
 		static bool isDayMode = true; // true = day, false = night
 		isDayMode = !isDayMode;
 		SwitchMapStyle(isDayMode);
-		Sleep(TIME);
+		// 移除 Sleep(TIME) - 避免帧率卡顿
 	}	
 	else if (m_Keys.IsPressed('Q'))
 	{
@@ -376,21 +375,26 @@ void CameraRove::Update(DWORD milliseconds)
 	}
 	UpdateCamera();
 }
-
+#include<chrono>
 /** 计算帧速 */
 void CameraRove::CaculateFrameRate(){
 	static float framesPerSecond    = 0.0f;	     /**< 保存显示帧数 */	
     static float lastTime			= 0.0f;	     /**< 记录上次时间 */						
     float currentTime = GetTickCount() * 0.001f; /**< 获得当前时间 */	 			
-
+	std::chrono::high_resolution_clock::time_point time = std::chrono::high_resolution_clock::now();
+	static std::chrono::high_resolution_clock::time_point lastTime2;
 	++framesPerSecond;                           /**< 显示帧数递增1 */
     /** 如果时间差大于1.0秒 */
-	if( currentTime - lastTime > 2.0f )          
+	if( currentTime - lastTime > 1.0f )          
     {
+		m_Fps2 = framesPerSecond / std::chrono::duration<float>(time - lastTime2).count();
+		lastTime2 = time;
+
 		m_Fps = framesPerSecond / (currentTime - lastTime);                  /**< 当前帧数传给m_Fps */
 	    lastTime = currentTime;                   /**< 保存当前时间 */
         framesPerSecond = 0;                      /**< 将帧数置零 */                    
     }
+
 }
 
 /** 输出文字信息 */
@@ -400,7 +404,7 @@ void CameraRove::PrintText()
 	//输出帧速
 	char a[30];
 	CaculateFrameRate();
-    sprintf(a,"FPS:%.4f", m_Fps);
+    sprintf(a,"FPS:%.4f %.4f", m_Fps, m_Fps2);
 	//cout <<"FPS: " << m_Fps << endl;
 	GLint viewport[4];
 	glGetIntegerv(GL_VIEWPORT, viewport);

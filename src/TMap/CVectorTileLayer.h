@@ -1,6 +1,10 @@
 #ifndef CVECTORTILEAYER_H
 #define CVECTORTILEAYER_H
 
+#include <unordered_map>
+#include <deque>
+#include <unordered_set>
+
 #include "CTileLayer.h"
 #include "../TMScheduler/OMScheduler.h"
 #include "../TMUtil/tmtools.h"
@@ -9,11 +13,8 @@
 //#include "GL/glut.h"
 #include "../TMUtil/OMGeoUtil.h"
 //#include <mutex>
-#include <unordered_map>
-#include <deque>
-#include <unordered_set>
-
 #include "VectorDatReader.h"
+
 class CVectorTileLayer : public CTileLayer
 {
 public:
@@ -83,33 +84,6 @@ private:
     int _maxTilesPerFrame = 200;
 
     uint64_t makeTileKey(int zoom, int col, int row) const;
-
-    // 坐标解析结果缓存，避免重复调用 hasTileData
-    struct CoordCacheKey {
-        int zoom;
-        int col;
-        int row;
-        uint8_t type;
-        bool operator==(const CoordCacheKey& other) const {
-            return zoom == other.zoom && col == other.col && row == other.row && type == other.type;
-        }
-    };
-    struct CoordCacheKeyHash {
-        size_t operator()(const CoordCacheKey& key) const {
-            return (static_cast<size_t>(key.zoom) << 24) ^
-                (static_cast<size_t>(key.col) << 16) ^
-                (static_cast<size_t>(key.row) << 8) ^
-                static_cast<size_t>(key.type);
-        }
-    };
-    struct CoordCacheValue {
-        int datX;
-        int datY;
-        bool found;
-    };
-    std::unordered_map<CoordCacheKey, CoordCacheValue, CoordCacheKeyHash> _coordCache;
-    static const size_t MAX_COORD_CACHE_SIZE = 1000; // 限制缓存大小
-
 };
 
 #endif
